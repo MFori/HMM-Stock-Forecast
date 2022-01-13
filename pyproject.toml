@@ -1,0 +1,26 @@
+[tool.poetry]
+name = "hmm-stock-forecast"
+version = "1.0"
+description = "Stock forecasting based on (gaussian mixture) Hidden Markov Model"
+authors = ["Martin Forejt"]
+license = "MIT"
+
+packages = [
+    { include = "hmm-stock-forecast" },
+    { include = "hmm-stock-forecast/**/*.py" },
+]
+
+[tool.poetry.dependencies]
+python = "^3.8"
+numpy = "^1.22.0"
+matplotlib = "^3.5.1"
+hmmlearn = "^0.2.6"
+
+[tool.poetry.dev-dependencies]
+
+[build-system]
+requires = ["poetry-core>=1.0.0"]
+build-backend = "poetry.core.masonry.api"
+
+[tool.poetry.scripts]
+start = "hmm-stock-forecast.main:start"
