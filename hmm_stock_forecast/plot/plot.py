@@ -3,7 +3,7 @@ import pandas as pd
 
 
 def show_plot(real, predicted, title, start):
-    dates = pd.date_range(start, periods=len(real), freq="1D")
+    dates = pd.date_range(start, periods=len(real), freq="B")  # B freq for business days (skip weekends)
     df = pd.DataFrame({"Date": dates, "Real": real, "Predicted": predicted})
 
     ax = plt.gca()
