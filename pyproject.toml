@@ -1,7 +1,7 @@
 [tool.poetry]
 name = "hmm_stock_forecast"
 version = "1.0"
-description = "Stock forecasting based on (gaussian mixture) Hidden Markov Model"
+description = "Stock forecasting based on (gaussian) Hidden Markov Model"
 authors = ["Martin Forejt"]
 license = "MIT"
 
