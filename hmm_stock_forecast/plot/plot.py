@@ -7,7 +7,7 @@ def show_plot(real, predicted, title, start):
     df = pd.DataFrame({"Date": dates, "Real": real, "Predicted": predicted})
 
     ax = plt.gca()
-    df.plot(kind="line", x="Date", y="Real", color="cyan", ax=ax, label="Actual Closing Price")
+    df.plot(kind="line", x="Date", y="Real", color="black", ax=ax, label="Actual Closing Price")
     df.plot(kind="line", x="Date", y="Predicted", color="red", ax=ax, label="Predicted Closing Price")
     plt.ylabel("Closing Price (USD)")
     plt.title("Closing Price of " + title)
