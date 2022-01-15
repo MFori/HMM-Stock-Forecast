@@ -9,30 +9,84 @@ K = 50
 
 class HMMStockForecastModel:
     _hmm: GaussianHMM
+    predicted: np.array
 
-    def __init__(self, train_window=50, test_size=0.33):
-        self.train_window = train_window
-        self.test_size = test_size
+    def __init__(self, data, window=200):
+        self.data = data
+        self.window = window
         pass
 
-    def train(self, data):
-        self._split_dataset(data)
+    def run(self):
+        size = len(self.data)
+        predicted = np.empty([0, 4])
+        hmm = self._hmm = GaussianHMM(n_components=4, algorithm='viterbi', init_params="stmc")
+
+        for i in reversed(range(self.window)):
+            print(i)
+
+            train = self.data[size - self.window - i:size - i, :]
+            hmm.fit(train)
+
+            likelihood = hmm.score(train)
+            likelihoods = []
+            j = i + 1
+            print('first index: ' + str(size - j - 1))
+            while size - self.window - j > 0:
+                obs = self.data[size - self.window - j:size - j, :]
+                likelihoods = np.append(likelihoods, hmm.score(obs))
+                j += 1
+
+            # num_examples = train.shape[0]
+            # iters = 1
+            # past_likelihood = []
+            # curr_likelihood = self._hmm.score(np.flipud(train[0:K - 1, :]))
+
+            # while iters < num_examples / K - 1:
+            #    past_likelihood = np.append(past_likelihood,
+            #                                self._hmm.score(np.flipud(train[iters:iters + K - 1, :])))
+            #    iters = iters + 1
+
+            likelihoods = np.flipud(likelihoods)
+            likelihood_diff_idx = np.argmin(np.absolute(likelihoods - likelihood))
+            likelihood_diff_idx += self.window - 1
+            print('first index c: ' + str())
+            print("index " + str(likelihood_diff_idx))
+            predicted_change = self.data[likelihood_diff_idx, :] - self.data[likelihood_diff_idx+1, :]
+            predicted = np.vstack((predicted, self.data[size - i - 1, :] + predicted_change))
+
+            if i == self.window - 1:
+                # first iteration disable hmm params initialization for next iterations
+                hmm.init_params = ''
+                # hmm = GaussianHMM(n_components=4, algorithm='viterbi', init_params='')
+                # hmm.transmat_ = self._hmm.transmat_
+                # hmm.startprob_ = self._hmm.startprob_
+                # hmm.means_ = self._hmm.means_
+                # hmm.covars_ = self._hmm.covars_
+                # self._hmm = hmm
+
+        return predicted
+
+    def train(self):
         self._hmm = GaussianHMM(n_components=4, covariance_type='full', algorithm='viterbi')
-        self._hmm.fit(self._train[NUM_TEST:, :])
+        self._hmm.fit(self.data[NUM_TEST:, :])
+        # self._hmm.fit(np.ones([4,4], dtype=np.double))
+
+    def _find_optimal_states(self):
+        pass
 
     def get_predicted_data(self):
-        predicted_stock_data = np.empty([0, self._train.shape[1]])
+        predicted_stock_data = np.empty([0, self.data.shape[1]])
 
-        hmm = GaussianHMM(n_components=4, covariance_type='full', algorithm='viterbi', init_params='')
-        hmm.transmat_ = self._hmm.transmat_
-        hmm.startprob_ = self._hmm.startprob_
-        hmm.means_ = self._hmm.means_
-        hmm.covars_ = self._hmm.covars_
-        self._hmm = hmm
+        # hmm = GaussianHMM(n_components=4, covariance_type='full', algorithm='viterbi', init_params='')
+        # hmm.transmat_ = self._hmm.transmat_
+        # hmm.startprob_ = self._hmm.startprob_
+        # hmm.means_ = self._hmm.means_
+        # hmm.covars_ = self._hmm.covars_
+        # self._hmm = hmm
 
         for idx in reversed(range(NUM_TEST)):
-            train_dataset = self._train[idx + 1:, :]
-            test_data = self._train[idx, :]
+            train_dataset = self.data[idx + 1:, :]
+            test_data = self.data[idx, :]
             num_examples = train_dataset.shape[0]
             # model = hmm.GaussianHMM(n_components=opt_states, covariance_type='full', startprob_prior=dirichlet_params, transmat_prior=dirichlet_params, tol=0.0001, n_iter=NUM_ITERS, init_params='mc')
             # if idx == NUM_TEST - 1:
@@ -44,6 +98,9 @@ class HMMStockForecastModel:
             #    self._hmm.startprob_ = startprob_retune_prior
             #    self._hmm.means_ = means_retune_prior
             #    self._hmm.covars_ = covars_retune_prior
+
+            if idx == NUM_TEST - 1:
+                self._hmm.init_params = ''
 
             self._hmm.fit(np.flipud(train_dataset))
 
@@ -62,7 +119,7 @@ class HMMStockForecastModel:
                 iters = iters + 1
             likelihood_diff_idx = np.argmin(np.absolute(past_likelihood - curr_likelihood))
             predicted_change = train_dataset[likelihood_diff_idx, :] - train_dataset[likelihood_diff_idx + 1, :]
-            predicted_stock_data = np.vstack((predicted_stock_data, self._train[idx + 1, :] + predicted_change))
+            predicted_stock_data = np.vstack((predicted_stock_data, self.data[idx + 1, :] + predicted_change))
             print(len(predicted_stock_data))
 
         print(len(predicted_stock_data))
@@ -73,13 +130,4 @@ class HMMStockForecastModel:
         pass
 
     def get_r2(self):
-        pass
-
-    def _split_dataset(self, data):
-        train_data, test_data = train_test_split(data, test_size=self.test_size, shuffle=False)
-
-        self._train = train_data
-        self._test = test_data
-
-    def _find_optimal_states(self):
         pass
