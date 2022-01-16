@@ -21,7 +21,7 @@ class HMMStockForecastModel:
         predicted = np.empty([0, 4])
         hmm = self._hmm = GaussianHMM(n_components=4, algorithm='viterbi', init_params="stmc")
 
-        for i in reversed(range(self.window)):
+        for i in reversed(range(self.window + 1)):
             print(i)
 
             train = self.data[size - self.window - i:size - i, :]
@@ -30,40 +30,24 @@ class HMMStockForecastModel:
             likelihood = hmm.score(train)
             likelihoods = []
             j = i + 1
-            print('first index: ' + str(size - j - 1))
             while size - self.window - j > 0:
                 obs = self.data[size - self.window - j:size - j, :]
                 likelihoods = np.append(likelihoods, hmm.score(obs))
                 j += 1
 
-            # num_examples = train.shape[0]
-            # iters = 1
-            # past_likelihood = []
-            # curr_likelihood = self._hmm.score(np.flipud(train[0:K - 1, :]))
+            likelihood_diff_idx = np.argmin(np.absolute(likelihoods - likelihood)) + 1
+            likelihood_new = likelihoods[likelihood_diff_idx - 1]
+            data_index = size - likelihood_diff_idx - i - 1
 
-            # while iters < num_examples / K - 1:
-            #    past_likelihood = np.append(past_likelihood,
-            #                                self._hmm.score(np.flipud(train[iters:iters + K - 1, :])))
-            #    iters = iters + 1
-
-            likelihoods = np.flipud(likelihoods)
-            likelihood_diff_idx = np.argmin(np.absolute(likelihoods - likelihood))
-            likelihood_diff_idx += self.window - 1
-            print('first index c: ' + str())
-            print("index " + str(likelihood_diff_idx))
-            predicted_change = self.data[likelihood_diff_idx, :] - self.data[likelihood_diff_idx+1, :]
+            predicted_change = (self.data[data_index, :] - self.data[data_index - 1, :]) * np.sign(
+                likelihood - likelihood_new)
+            print("index " + str(likelihood_diff_idx) + " - " + str(data_index) + " - " + str(predicted_change))
             predicted = np.vstack((predicted, self.data[size - i - 1, :] + predicted_change))
 
             if i == self.window - 1:
                 # first iteration disable hmm params initialization for next iterations
                 hmm.init_params = ''
-                # hmm = GaussianHMM(n_components=4, algorithm='viterbi', init_params='')
-                # hmm.transmat_ = self._hmm.transmat_
-                # hmm.startprob_ = self._hmm.startprob_
-                # hmm.means_ = self._hmm.means_
-                # hmm.covars_ = self._hmm.covars_
-                # self._hmm = hmm
-
+       
         return predicted
 
     def train(self):
