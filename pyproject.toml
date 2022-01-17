@@ -12,7 +12,7 @@ packages = [
 
 [tool.poetry.dependencies]
 python = "^3.8"
-numpy = "^1.22.0"
+numpy = "^1.22.1"
 matplotlib = "^3.5.1"
 hmmlearn = "^0.2.6"
 recordclass = "^0.17.1"
