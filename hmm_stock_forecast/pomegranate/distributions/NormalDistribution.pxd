@@ -16,6 +16,6 @@ cdef class NormalDistribution(object):
 	cdef object min_std
 
 	#cdef void _log_probability(self, double* symbol, double* log_probability, int n) nogil
-	cdef double _summarize(self, double* items, double* weights, int n,
-						   int column_idx, int d) nogil
+	#cdef double _summarize(self, double* items, double* weights, int n,
+	#					   int column_idx, int d) nogil
 

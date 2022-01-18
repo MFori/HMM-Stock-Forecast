@@ -104,23 +104,18 @@ cdef class NormalDistribution(object):
 		if weights.sum() <= 0:
 			return
 
-		cdef double* items_p = <double*> (<numpy.ndarray> items).data
-		cdef double* weights_p = <double*> (<numpy.ndarray> weights).data
-		cdef int n = items.shape[0]
-		cdef int d = 1
-		cdef int column_id = <int> column_idx
+		n = items.shape[0]
+		d = 1
 
 		if items.ndim == 2:
 			d = items.shape[1]
 
-		with nogil:
-			self._summarize(items_p, weights_p, n, column_id, d)
+		self._summarize(items, weights, n, column_idx, d)
 
-	cdef double _summarize(self, double* items, double* weights, int n,
-		int column_idx, int d) nogil:
-		cdef int i, j
-		cdef double x_sum = 0.0, x2_sum = 0.0, w_sum = 0.0
-		cdef double item
+	def _summarize(self, items, weights, n, column_idx, d):
+		x_sum = 0.0
+		x2_sum = 0.0
+		w_sum = 0.0
 
 		for i in range(n):
 			item = items[i*d + column_idx]
@@ -131,10 +126,9 @@ cdef class NormalDistribution(object):
 			x_sum += weights[i] * item
 			x2_sum += weights[i] * item * item
 
-		with gil:
-			self.summaries[0] += w_sum
-			self.summaries[1] += x_sum
-			self.summaries[2] += x2_sum
+		self.summaries[0] += w_sum
+		self.summaries[1] += x_sum
+		self.summaries[2] += x2_sum
 
 	def from_summaries(self, inertia=0.0):
 		"""
