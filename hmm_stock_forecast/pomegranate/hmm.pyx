@@ -19,7 +19,7 @@ from .base cimport State
 
 from distributions.distributions cimport Distribution
 
-from .kmeans import Kmeans
+from sklearn.cluster import KMeans
 
 from .utils cimport _log
 from .utils cimport pair_lse
@@ -2614,12 +2614,10 @@ cdef class HiddenMarkovModel(Model):
 				X_concat = X_concat.reshape(-1, 1)
 
 
-			clf = Kmeans(n_components, init=init, n_init=n_init)
-			clf.fit(X_concat, max_iterations=max_kmeans_iterations,
-				batches_per_epoch=batches_per_epoch, random_state=random_state)
-			y = clf.predict(X_concat)
+			kmeans = KMeans(n_clusters=n_components, random_state=0)
+			y_means = kmeans.fit_predict(X_concat)
 
-			X_ = [X_concat[y == i] for i in range(n_components)]
+			X_ = [X_concat[y_means == i] for i in range(n_components)]
 			distributions = _initialize_distributions(X_, distribution)
 
 		k = n_components
