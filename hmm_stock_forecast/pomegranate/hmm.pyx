@@ -39,47 +39,6 @@ DEF NEGINF = float("-inf")
 DEF INF = float("inf")
 DEF SQRT_2_PI = 2.50662827463
 
-def _check_input(sequence, model):
-	n = len(sequence)
-
-	if not isinstance(model, NormalDistribution) and not isinstance(model, Model):
-		return numpy.array(sequence, dtype=numpy.float64)
-
-	if not model.discrete:
-		sequence_ndarray = numpy.array(sequence, dtype=numpy.float64)
-
-	elif model.multivariate and model.discrete:
-		sequence_ndarray = numpy.empty((n, model.d), dtype=numpy.float64)
-
-		for i in range(n):
-			for j in range(model.d):
-				symbol = sequence[i][j]
-				keymap = model.keymap[j]
-
-				if _check_nan(symbol):
-					sequence_ndarray[i, j] = numpy.nan
-				elif symbol in keymap:
-					sequence_ndarray[i, j] = keymap[symbol]
-				else:
-					raise ValueError("Symbol '{}' is not defined in a distribution"
-						.format(symbol))
-	else:
-		sequence_ndarray = numpy.empty(n, dtype=numpy.float64)
-		keymap = model.keymap[0]
-
-		for i in range(n):
-			symbol = sequence[i]
-
-			if _check_nan(symbol):
-				sequence_ndarray[i] = numpy.nan
-			elif sequence[i] in keymap:
-				sequence_ndarray[i] = keymap[symbol]
-			else:
-				raise ValueError("Symbol '{}' is not defined in a distribution"
-					.format(symbol))
-
-	return sequence_ndarray
-
 cdef class HiddenMarkovModel(Model):
 	"""A Hidden Markov Model
 
@@ -132,9 +91,7 @@ cdef class HiddenMarkovModel(Model):
 	cdef double* out_transition_pseudocounts
 	cdef double [:] state_weights
 	cdef public bint discrete
-	cdef public bint multivariate
 	cdef int summaries
-	cdef int cython
 	cdef int* tied_state_count
 	cdef int* tied
 	cdef int* tied_edge_group_size
@@ -653,7 +610,6 @@ cdef class HiddenMarkovModel(Model):
 				break
 
 		self.d = dist.d
-		self.multivariate = self.d > 1
 
 		if self.d > 1:
 			keys = [[] for i in range(self.d)]
@@ -676,11 +632,6 @@ cdef class HiddenMarkovModel(Model):
 				raise ValueError("mis-matching inputs for states")
 
 		self.distributions_ptr = <void**> self.distributions.data
-
-		self.cython = 1
-		for dist in self.distributions:
-			if not isinstance(dist, NormalDistribution) and not isinstance(dist, Model):
-				self.cython = 0
 
 		# This holds the index of the start state
 		try:
@@ -723,12 +674,8 @@ cdef class HiddenMarkovModel(Model):
 		cdef double* sequence_ptr
 		cdef double log_probability
 		cdef int n = len(sequence)
-		cdef int mv = self.multivariate
 
-		if check_input:
-			sequence_ndarray = _check_input(sequence, self)
-		else:
-			sequence_ndarray = sequence
+		sequence_ndarray = sequence
 
 		sequence_ptr = <double*> sequence_ndarray.data
 
@@ -1196,8 +1143,7 @@ cdef class HiddenMarkovModel(Model):
 		self.clear_summaries()
 		return self
 
-	def summarize(self, sequences, weights=None, labels=None, algorithm='baum-welch',
-		check_input=True):
+	def summarize(self, sequences, weights=None):
 		"""Summarize data into stored sufficient statistics for out-of-core
 		training. Only implemented for Baum-Welch training since Viterbi
 		is less memory intensive.
@@ -1210,59 +1156,13 @@ cdef class HiddenMarkovModel(Model):
 			the HMM is a one dimensional array, or multidimensional if the HMM
 			supports multiple dimensions.
 
-		weights : array-like or None, optional
-			An array of weights, one for each sequence to train on. If None,
-			all sequences are equally weighted. Default is None.
-
-		labels : array-like or None, optional
-			An array of state labels for each sequence. This is only used in
-			'labeled' training. If used this must be comprised of n lists where
-			n is the number of sequences to train on, and each of those lists
-			must have one label per observation. Default is None.
-
-		algorithm : 'baum-welch', 'viterbi', 'labeled'
-			The training algorithm to use. Baum-Welch uses the forward-backward
-			algorithm to train using a version of structured EM. Viterbi
-			iteratively runs the sequences through the Viterbi algorithm and
-			then uses hard assignments of observations to states using that.
-			Default is 'baum-welch'. Labeled training requires that labels
-			are provided for each observation in each sequence.
-
-		check_input : bool, optional
-			Check the input. This casts the input sequences as numpy arrays,
-			and converts non-numeric inputs into numeric inputs for faster
-			processing later. Default is True.
-
 		Returns
 		-------
 		logp : double
 			The log probability of the sequences.
 		"""
-
-		cdef int mv = self.multivariate
-		cdef list X = []
-
-		if self.d == 0:
-			raise ValueError("must bake model before summarizing data")
-
-		if check_input:
-			if weights is None:
-				weights = numpy.ones(len(sequences), dtype='float64')
-			else:
-				weights = numpy.array(weights, dtype='float64')
-
-			if labels is not None:
-				labels = numpy.array(labels)
-
-			for sequence in sequences:
-				sequence_ndarray = _check_input(sequence, self)
-				X.append(sequence_ndarray)
-		else:
-			X = sequences
-
-		if algorithm == 'baum-welch':
-			return sum([self._baum_welch_summarize(sequence, weight)
-				for sequence, weight in zip(X, weights)])
+		return sum([self._baum_welch_summarize(sequence, weight)
+			for sequence, weight in zip(sequences, weights)])
 
 	cpdef double _baum_welch_summarize(self, numpy.ndarray sequence_ndarray, double weight):
 		"""Python wrapper for the summarization step.
