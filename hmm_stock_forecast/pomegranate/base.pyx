@@ -3,17 +3,12 @@
 
 from .utils cimport *
 
-from .distributions import Distribution
-
-import json
 import numpy
 import uuid
 
 
 # Define some useful constants
 DEF NEGINF = float("-inf")
-DEF INF = float("inf")
-
 
 cdef class Model(object):
 	"""The abstract building block for all distributions."""
@@ -21,11 +16,16 @@ cdef class Model(object):
 	def __cinit__(self):
 		self.name = "Model"
 
-	def __str__(self):
-		return self.to_json()
+	def __init__(self, name=None):
+		"""
+        Make a new graphical model. Name is an optional string used to name
+        the model when output. Name may not contain spaces or newlines.
+        """
 
-	def __repr__(self):
-		return self.to_json()
+		# Save the name or make up a name.
+		self.name = name or str(id(self))
+		self.states = []
+		self.edges = []
 
 	def get_params(self, *args, **kwargs):
 		return self.__getstate__()
@@ -204,30 +204,6 @@ cdef class Model(object):
 		int column_idx, int d) nogil:
 		pass
 
-
-cdef class GraphModel(Model):
-	"""Represents an generic graphical model."""
-
-	def __init__(self, name=None):
-		"""
-		Make a new graphical model. Name is an optional string used to name
-		the model when output. Name may not contain spaces or newlines.
-		"""
-
-		# Save the name or make up a name.
-		self.name = name or str(id(self))
-		self.states = []
-		self.edges = []
-
-	def __str__(self):
-		"""Represent this model with it's name and states."""
-		if self.states is not None:
-			state_str = "".join(map(str, self.states))
-		else:
-			state_str = ""
-
-		return "{}:{}".format(self.name, state_str)
-
 	def add_node(self, node):
 		"""Add a node to the graph."""
 		self.states.append(node)
@@ -315,18 +291,6 @@ cdef class State(object):
 
 	def __reduce__(self):
 		return self.__class__, (self.distribution, self.name, self.weight)
-
-	def __str__(self):
-		"""
-		The string representation of a state is the json, so call that format.
-		"""
-		return self.to_json()
-
-	def __repr__(self):
-		"""
-		The string representation of a state is the json, so call that format.
-		"""
-		return self.__str__()
 
 	def tie( self, state ):
 		"""

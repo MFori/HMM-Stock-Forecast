@@ -938,8 +938,8 @@ static const char *__pyx_f[] = {
   "hmm_stock_forecast\\pomegranate\\kmeans.pyx",
   "stringsource",
   "__init__.pxd",
-  "type.pxd",
   "hmm_stock_forecast\\pomegranate\\base.pxd",
+  "type.pxd",
 };
 /* NoFastGil.proto */
 #define __Pyx_PyGILState_Ensure PyGILState_Ensure
@@ -1283,7 +1283,6 @@ static CYTHON_INLINE __pyx_t_double_complex __pyx_t_double_complex_from_parts(do
 
 /*--- Type declarations ---*/
 struct __pyx_obj_18hmm_stock_forecast_11pomegranate_4base_Model;
-struct __pyx_obj_18hmm_stock_forecast_11pomegranate_4base_GraphModel;
 struct __pyx_obj_18hmm_stock_forecast_11pomegranate_4base_State;
 struct __pyx_obj_18hmm_stock_forecast_11pomegranate_6kmeans_Kmeans;
 struct __pyx_obj_18hmm_stock_forecast_11pomegranate_6kmeans___pyx_scope_struct__predict;
@@ -1347,8 +1346,8 @@ struct __pyx_opt_args_18hmm_stock_forecast_11pomegranate_6kmeans__initialize_cen
   PyObject *random_state;
 };
 
-/* "base.pxd":6
- * cimport numpy
+/* "base.pxd":4
+ * # Contact: Jacob Schreiber (jmschreiber91@gmail.com)
  * 
  * cdef class Model(object):             # <<<<<<<<<<<<<<
  * 	cdef public str name
@@ -1361,18 +1360,6 @@ struct __pyx_obj_18hmm_stock_forecast_11pomegranate_4base_Model {
   int d;
   int frozen;
   PyObject *model;
-};
-
-
-/* "base.pxd":18
- * 
- * 
- * cdef class GraphModel(Model):             # <<<<<<<<<<<<<<
- * 	cdef public list states, edges
- * 	cdef public object graph
- */
-struct __pyx_obj_18hmm_stock_forecast_11pomegranate_4base_GraphModel {
-  struct __pyx_obj_18hmm_stock_forecast_11pomegranate_4base_Model __pyx_base;
   PyObject *states;
   PyObject *edges;
   PyObject *graph;
@@ -1381,7 +1368,7 @@ struct __pyx_obj_18hmm_stock_forecast_11pomegranate_4base_GraphModel {
 };
 
 
-/* "base.pxd":24
+/* "base.pxd":19
  * 
  * 
  * cdef class State(object):             # <<<<<<<<<<<<<<
@@ -1583,8 +1570,8 @@ struct __pyx_memoryviewslice_obj {
 
 
 
-/* "base.pxd":6
- * cimport numpy
+/* "base.pxd":4
+ * # Contact: Jacob Schreiber (jmschreiber91@gmail.com)
  * 
  * cdef class Model(object):             # <<<<<<<<<<<<<<
  * 	cdef public str name
@@ -1597,20 +1584,6 @@ struct __pyx_vtabstruct_18hmm_stock_forecast_11pomegranate_4base_Model {
   double (*_summarize)(struct __pyx_obj_18hmm_stock_forecast_11pomegranate_4base_Model *, double *, double *, int, int, int);
 };
 static struct __pyx_vtabstruct_18hmm_stock_forecast_11pomegranate_4base_Model *__pyx_vtabptr_18hmm_stock_forecast_11pomegranate_4base_Model;
-
-
-/* "base.pxd":18
- * 
- * 
- * cdef class GraphModel(Model):             # <<<<<<<<<<<<<<
- * 	cdef public list states, edges
- * 	cdef public object graph
- */
-
-struct __pyx_vtabstruct_18hmm_stock_forecast_11pomegranate_4base_GraphModel {
-  struct __pyx_vtabstruct_18hmm_stock_forecast_11pomegranate_4base_Model __pyx_base;
-};
-static struct __pyx_vtabstruct_18hmm_stock_forecast_11pomegranate_4base_GraphModel *__pyx_vtabptr_18hmm_stock_forecast_11pomegranate_4base_GraphModel;
 
 
 /* "hmm_stock_forecast/pomegranate/kmeans.pyx":184
@@ -2594,6 +2567,10 @@ static PyObject *__pyx_memoryviewslice_assign_item_from_object(struct __pyx_memo
 /* Module declarations from 'scipy.linalg.cython_blas' */
 static __pyx_t_5scipy_6linalg_11cython_blas_d (*__pyx_f_5scipy_6linalg_11cython_blas_ddot)(int *, __pyx_t_5scipy_6linalg_11cython_blas_d *, int *, __pyx_t_5scipy_6linalg_11cython_blas_d *, int *); /*proto*/
 
+/* Module declarations from 'hmm_stock_forecast.pomegranate.base' */
+static PyTypeObject *__pyx_ptype_18hmm_stock_forecast_11pomegranate_4base_Model = 0;
+static PyTypeObject *__pyx_ptype_18hmm_stock_forecast_11pomegranate_4base_State = 0;
+
 /* Module declarations from 'cpython.buffer' */
 
 /* Module declarations from 'libc.stdio' */
@@ -2629,11 +2606,6 @@ static PyTypeObject *__pyx_ptype_5numpy_complexfloating = 0;
 static PyTypeObject *__pyx_ptype_5numpy_flexible = 0;
 static PyTypeObject *__pyx_ptype_5numpy_character = 0;
 static PyTypeObject *__pyx_ptype_5numpy_ufunc = 0;
-
-/* Module declarations from 'hmm_stock_forecast.pomegranate.base' */
-static PyTypeObject *__pyx_ptype_18hmm_stock_forecast_11pomegranate_4base_Model = 0;
-static PyTypeObject *__pyx_ptype_18hmm_stock_forecast_11pomegranate_4base_GraphModel = 0;
-static PyTypeObject *__pyx_ptype_18hmm_stock_forecast_11pomegranate_4base_State = 0;
 
 /* Module declarations from 'hmm_stock_forecast.pomegranate.utils' */
 static CYTHON_INLINE int __pyx_f_18hmm_stock_forecast_11pomegranate_5utils_isnan(double); /*proto*/
@@ -26227,9 +26199,6 @@ static void __pyx_tp_dealloc_18hmm_stock_forecast_11pomegranate_6kmeans_Kmeans(P
   Py_CLEAR(p->init);
   Py_CLEAR(p->centroids);
   Py_CLEAR(p->centroids_T);
-  #if CYTHON_USE_TYPE_SLOTS
-  if (PyType_IS_GC(Py_TYPE(o)->tp_base))
-  #endif
   PyObject_GC_Track(o);
   if (likely(__pyx_ptype_18hmm_stock_forecast_11pomegranate_4base_Model)) __pyx_ptype_18hmm_stock_forecast_11pomegranate_4base_Model->tp_dealloc(o); else __Pyx_call_next_tp_dealloc(o, __pyx_tp_dealloc_18hmm_stock_forecast_11pomegranate_6kmeans_Kmeans);
 }
@@ -28521,7 +28490,12 @@ static int __Pyx_modinit_type_import_code(void) {
   int __pyx_clineno = 0;
   __Pyx_RefNannySetupContext("__Pyx_modinit_type_import_code", 0);
   /*--- Type import code ---*/
-  __pyx_t_1 = PyImport_ImportModule(__Pyx_BUILTIN_MODULE_NAME); if (unlikely(!__pyx_t_1)) __PYX_ERR(3, 9, __pyx_L1_error)
+  __pyx_t_1 = PyImport_ImportModule("hmm_stock_forecast.pomegranate.base"); if (unlikely(!__pyx_t_1)) __PYX_ERR(3, 19, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_1);
+  __pyx_ptype_18hmm_stock_forecast_11pomegranate_4base_State = __Pyx_ImportType(__pyx_t_1, "hmm_stock_forecast.pomegranate.base", "State", sizeof(struct __pyx_obj_18hmm_stock_forecast_11pomegranate_4base_State), __Pyx_ImportType_CheckSize_Warn);
+   if (!__pyx_ptype_18hmm_stock_forecast_11pomegranate_4base_State) __PYX_ERR(3, 19, __pyx_L1_error)
+  __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
+  __pyx_t_1 = PyImport_ImportModule(__Pyx_BUILTIN_MODULE_NAME); if (unlikely(!__pyx_t_1)) __PYX_ERR(4, 9, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
   __pyx_ptype_7cpython_4type_type = __Pyx_ImportType(__pyx_t_1, __Pyx_BUILTIN_MODULE_NAME, "type", 
   #if defined(PYPY_VERSION_NUM) && PYPY_VERSION_NUM < 0x050B0000
@@ -28530,7 +28504,7 @@ static int __Pyx_modinit_type_import_code(void) {
   sizeof(PyHeapTypeObject),
   #endif
   __Pyx_ImportType_CheckSize_Warn);
-   if (!__pyx_ptype_7cpython_4type_type) __PYX_ERR(3, 9, __pyx_L1_error)
+   if (!__pyx_ptype_7cpython_4type_type) __PYX_ERR(4, 9, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
   __pyx_t_1 = PyImport_ImportModule("numpy"); if (unlikely(!__pyx_t_1)) __PYX_ERR(2, 200, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
@@ -28564,14 +28538,6 @@ static int __Pyx_modinit_type_import_code(void) {
    if (!__pyx_ptype_5numpy_character) __PYX_ERR(2, 789, __pyx_L1_error)
   __pyx_ptype_5numpy_ufunc = __Pyx_ImportType(__pyx_t_1, "numpy", "ufunc", sizeof(PyUFuncObject), __Pyx_ImportType_CheckSize_Ignore);
    if (!__pyx_ptype_5numpy_ufunc) __PYX_ERR(2, 827, __pyx_L1_error)
-  __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
-  __pyx_t_1 = PyImport_ImportModule("hmm_stock_forecast.pomegranate.base"); if (unlikely(!__pyx_t_1)) __PYX_ERR(4, 18, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_t_1);
-  __pyx_ptype_18hmm_stock_forecast_11pomegranate_4base_GraphModel = __Pyx_ImportType(__pyx_t_1, "hmm_stock_forecast.pomegranate.base", "GraphModel", sizeof(struct __pyx_obj_18hmm_stock_forecast_11pomegranate_4base_GraphModel), __Pyx_ImportType_CheckSize_Warn);
-   if (!__pyx_ptype_18hmm_stock_forecast_11pomegranate_4base_GraphModel) __PYX_ERR(4, 18, __pyx_L1_error)
-  __pyx_vtabptr_18hmm_stock_forecast_11pomegranate_4base_GraphModel = (struct __pyx_vtabstruct_18hmm_stock_forecast_11pomegranate_4base_GraphModel*)__Pyx_GetVtable(__pyx_ptype_18hmm_stock_forecast_11pomegranate_4base_GraphModel->tp_dict); if (unlikely(!__pyx_vtabptr_18hmm_stock_forecast_11pomegranate_4base_GraphModel)) __PYX_ERR(4, 18, __pyx_L1_error)
-  __pyx_ptype_18hmm_stock_forecast_11pomegranate_4base_State = __Pyx_ImportType(__pyx_t_1, "hmm_stock_forecast.pomegranate.base", "State", sizeof(struct __pyx_obj_18hmm_stock_forecast_11pomegranate_4base_State), __Pyx_ImportType_CheckSize_Warn);
-   if (!__pyx_ptype_18hmm_stock_forecast_11pomegranate_4base_State) __PYX_ERR(4, 24, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
   __Pyx_RefNannyFinishContext();
   return 0;

@@ -1284,7 +1284,6 @@ static CYTHON_INLINE __pyx_t_double_complex __pyx_t_double_complex_from_parts(do
 
 /*--- Type declarations ---*/
 struct __pyx_obj_18hmm_stock_forecast_11pomegranate_4base_Model;
-struct __pyx_obj_18hmm_stock_forecast_11pomegranate_4base_GraphModel;
 struct __pyx_obj_18hmm_stock_forecast_11pomegranate_4base_State;
 struct __pyx_obj_18hmm_stock_forecast_11pomegranate_13distributions_13distributions_Distribution;
 struct __pyx_obj_18hmm_stock_forecast_11pomegranate_13distributions_13distributions_MultivariateDistribution;
@@ -1330,8 +1329,8 @@ typedef npy_clongdouble __pyx_t_5numpy_clongdouble_t;
  */
 typedef npy_cdouble __pyx_t_5numpy_complex_t;
 
-/* "base.pxd":6
- * cimport numpy
+/* "base.pxd":4
+ * # Contact: Jacob Schreiber (jmschreiber91@gmail.com)
  * 
  * cdef class Model(object):             # <<<<<<<<<<<<<<
  * 	cdef public str name
@@ -1344,18 +1343,6 @@ struct __pyx_obj_18hmm_stock_forecast_11pomegranate_4base_Model {
   int d;
   int frozen;
   PyObject *model;
-};
-
-
-/* "base.pxd":18
- * 
- * 
- * cdef class GraphModel(Model):             # <<<<<<<<<<<<<<
- * 	cdef public list states, edges
- * 	cdef public object graph
- */
-struct __pyx_obj_18hmm_stock_forecast_11pomegranate_4base_GraphModel {
-  struct __pyx_obj_18hmm_stock_forecast_11pomegranate_4base_Model __pyx_base;
   PyObject *states;
   PyObject *edges;
   PyObject *graph;
@@ -1364,7 +1351,7 @@ struct __pyx_obj_18hmm_stock_forecast_11pomegranate_4base_GraphModel {
 };
 
 
-/* "base.pxd":24
+/* "base.pxd":19
  * 
  * 
  * cdef class State(object):             # <<<<<<<<<<<<<<
@@ -1499,8 +1486,8 @@ struct __pyx_memoryviewslice_obj {
 
 
 
-/* "base.pxd":6
- * cimport numpy
+/* "base.pxd":4
+ * # Contact: Jacob Schreiber (jmschreiber91@gmail.com)
  * 
  * cdef class Model(object):             # <<<<<<<<<<<<<<
  * 	cdef public str name
@@ -1513,20 +1500,6 @@ struct __pyx_vtabstruct_18hmm_stock_forecast_11pomegranate_4base_Model {
   double (*_summarize)(struct __pyx_obj_18hmm_stock_forecast_11pomegranate_4base_Model *, double *, double *, int, int, int);
 };
 static struct __pyx_vtabstruct_18hmm_stock_forecast_11pomegranate_4base_Model *__pyx_vtabptr_18hmm_stock_forecast_11pomegranate_4base_Model;
-
-
-/* "base.pxd":18
- * 
- * 
- * cdef class GraphModel(Model):             # <<<<<<<<<<<<<<
- * 	cdef public list states, edges
- * 	cdef public object graph
- */
-
-struct __pyx_vtabstruct_18hmm_stock_forecast_11pomegranate_4base_GraphModel {
-  struct __pyx_vtabstruct_18hmm_stock_forecast_11pomegranate_4base_Model __pyx_base;
-};
-static struct __pyx_vtabstruct_18hmm_stock_forecast_11pomegranate_4base_GraphModel *__pyx_vtabptr_18hmm_stock_forecast_11pomegranate_4base_GraphModel;
 
 
 /* "distributions.pxd":11
@@ -2420,7 +2393,6 @@ static PyTypeObject *__pyx_ptype_5numpy_ufunc = 0;
 
 /* Module declarations from 'hmm_stock_forecast.pomegranate.base' */
 static PyTypeObject *__pyx_ptype_18hmm_stock_forecast_11pomegranate_4base_Model = 0;
-static PyTypeObject *__pyx_ptype_18hmm_stock_forecast_11pomegranate_4base_GraphModel = 0;
 static PyTypeObject *__pyx_ptype_18hmm_stock_forecast_11pomegranate_4base_State = 0;
 
 /* Module declarations from 'hmm_stock_forecast.pomegranate.distributions.distributions' */
@@ -20063,16 +20035,13 @@ static int __Pyx_modinit_type_import_code(void) {
   __pyx_ptype_5numpy_ufunc = __Pyx_ImportType(__pyx_t_1, "numpy", "ufunc", sizeof(PyUFuncObject), __Pyx_ImportType_CheckSize_Ignore);
    if (!__pyx_ptype_5numpy_ufunc) __PYX_ERR(1, 827, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
-  __pyx_t_1 = PyImport_ImportModule("hmm_stock_forecast.pomegranate.base"); if (unlikely(!__pyx_t_1)) __PYX_ERR(4, 6, __pyx_L1_error)
+  __pyx_t_1 = PyImport_ImportModule("hmm_stock_forecast.pomegranate.base"); if (unlikely(!__pyx_t_1)) __PYX_ERR(4, 4, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
   __pyx_ptype_18hmm_stock_forecast_11pomegranate_4base_Model = __Pyx_ImportType(__pyx_t_1, "hmm_stock_forecast.pomegranate.base", "Model", sizeof(struct __pyx_obj_18hmm_stock_forecast_11pomegranate_4base_Model), __Pyx_ImportType_CheckSize_Warn);
-   if (!__pyx_ptype_18hmm_stock_forecast_11pomegranate_4base_Model) __PYX_ERR(4, 6, __pyx_L1_error)
-  __pyx_vtabptr_18hmm_stock_forecast_11pomegranate_4base_Model = (struct __pyx_vtabstruct_18hmm_stock_forecast_11pomegranate_4base_Model*)__Pyx_GetVtable(__pyx_ptype_18hmm_stock_forecast_11pomegranate_4base_Model->tp_dict); if (unlikely(!__pyx_vtabptr_18hmm_stock_forecast_11pomegranate_4base_Model)) __PYX_ERR(4, 6, __pyx_L1_error)
-  __pyx_ptype_18hmm_stock_forecast_11pomegranate_4base_GraphModel = __Pyx_ImportType(__pyx_t_1, "hmm_stock_forecast.pomegranate.base", "GraphModel", sizeof(struct __pyx_obj_18hmm_stock_forecast_11pomegranate_4base_GraphModel), __Pyx_ImportType_CheckSize_Warn);
-   if (!__pyx_ptype_18hmm_stock_forecast_11pomegranate_4base_GraphModel) __PYX_ERR(4, 18, __pyx_L1_error)
-  __pyx_vtabptr_18hmm_stock_forecast_11pomegranate_4base_GraphModel = (struct __pyx_vtabstruct_18hmm_stock_forecast_11pomegranate_4base_GraphModel*)__Pyx_GetVtable(__pyx_ptype_18hmm_stock_forecast_11pomegranate_4base_GraphModel->tp_dict); if (unlikely(!__pyx_vtabptr_18hmm_stock_forecast_11pomegranate_4base_GraphModel)) __PYX_ERR(4, 18, __pyx_L1_error)
+   if (!__pyx_ptype_18hmm_stock_forecast_11pomegranate_4base_Model) __PYX_ERR(4, 4, __pyx_L1_error)
+  __pyx_vtabptr_18hmm_stock_forecast_11pomegranate_4base_Model = (struct __pyx_vtabstruct_18hmm_stock_forecast_11pomegranate_4base_Model*)__Pyx_GetVtable(__pyx_ptype_18hmm_stock_forecast_11pomegranate_4base_Model->tp_dict); if (unlikely(!__pyx_vtabptr_18hmm_stock_forecast_11pomegranate_4base_Model)) __PYX_ERR(4, 4, __pyx_L1_error)
   __pyx_ptype_18hmm_stock_forecast_11pomegranate_4base_State = __Pyx_ImportType(__pyx_t_1, "hmm_stock_forecast.pomegranate.base", "State", sizeof(struct __pyx_obj_18hmm_stock_forecast_11pomegranate_4base_State), __Pyx_ImportType_CheckSize_Warn);
-   if (!__pyx_ptype_18hmm_stock_forecast_11pomegranate_4base_State) __PYX_ERR(4, 24, __pyx_L1_error)
+   if (!__pyx_ptype_18hmm_stock_forecast_11pomegranate_4base_State) __PYX_ERR(4, 19, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
   __pyx_t_1 = PyImport_ImportModule("hmm_stock_forecast.pomegranate.distributions.distributions"); if (unlikely(!__pyx_t_1)) __PYX_ERR(5, 14, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);

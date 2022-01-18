@@ -14,7 +14,6 @@ import tempfile
 import warnings
 import time
 
-from .base cimport GraphModel
 from .base cimport Model
 from .base cimport State
 
@@ -146,7 +145,7 @@ def _initialize_distributions(X, distribution):
 	return distributions
 
 
-cdef class HiddenMarkovModel(GraphModel):
+cdef class HiddenMarkovModel(Model):
 	"""A Hidden Markov Model
 
 	A Hidden Markov Model (HMM) is a directed graphical model where nodes are
