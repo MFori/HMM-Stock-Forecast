@@ -18,6 +18,7 @@ from distributions.distributions cimport Distribution
 
 from sklearn.cluster import KMeans
 
+from .distributions.NormalDistribution import NormalDistribution
 from .utils cimport _log
 from .utils cimport pair_lse
 from .utils cimport python_log_probability
@@ -158,9 +159,9 @@ cdef class HiddenMarkovModel(Model):
 	cdef numpy.ndarray distributions
 	cdef void** distributions_ptr
 
-	def __init__(self, name=None, start=None, end=None):
+	def __init__(self, start=None, end=None):
 		# Save the name or make up a name.
-		self.name = str(name) or str(id(self))
+		self.name = str(id(self))
 		self.model = "HiddenMarkovModel"
 
 		# This holds a directed graph between states. Nodes in that graph are
@@ -1058,12 +1059,11 @@ cdef class HiddenMarkovModel(Model):
 			free(e)
 		return b
 
-	def fit(self, sequences, weights=None, labels=None, stop_threshold=1E-9,
+	def fit(self, sequences, stop_threshold=1E-9,
 		min_iterations=0, max_iterations=1e8, algorithm='baum-welch',
 		pseudocount=None, transition_pseudocount=0, emission_pseudocount=0.0,
 		use_pseudocount=False, inertia=None, edge_inertia=0.0,
-		distribution_inertia=0.0, batches_per_epoch=None, lr_decay=0.0, 
-		callbacks=[], return_history=False, verbose=False, n_jobs=1,
+		distribution_inertia=0.0, lr_decay=0.0,
 		multiple_check_input=True):
 		"""Fit the model to data using either Baum-Welch, Viterbi, or supervised training.
 
@@ -1083,20 +1083,6 @@ cdef class HiddenMarkovModel(Model):
 			where each sequence is a numpy array, which is 1 dimensional if
 			the HMM is a one dimensional array, or multidimensional if the HMM
 			supports multiple dimensions.
-
-		weights : array-like or None, optional
-			An array of weights, one for each sequence to train on. If None,
-			all sequences are equally weighted. Default is None.
-
-		labels : array-like or None, optional
-			An array of state labels for each sequence. This is only used in
-			'labeled' training. If used this must be comprised of n lists where
-			n is the number of sequences to train on, and each of those lists
-			must have one label per observation. A None in this list corresponds
-			to no labels for the entire sequence and triggers semi-supervised
-			learning, where the labeled sequences are summarized using labeled
-			fitting and the unlabeled are summarized using the specified algorithm.
-			Default is None.
 
 		stop_threshold : double, optional
 			The threshold the improvement ratio of the models log probability
@@ -1154,13 +1140,6 @@ cdef class HiddenMarkovModel(Model):
 			Whether to use inertia when updating the distribution parameters.
 			Default is 0.0.
 
-		batches_per_epoch : int or None, optional
-			The number of batches in an epoch. This is the number of batches to
-			summarize before calling `from_summaries` and updating the model
-			parameters. This allows one to do minibatch updates by updating the
-			model parameters before setting the full dataset. If set to None,
-			uses the full dataset. Default is None.
-
 		lr_decay : double, optional, positive
 			The step size decay as a function of the number of iterations.
 			Functionally, this sets the inertia to be (2+k)^{-lr_decay}
@@ -1169,21 +1148,6 @@ cdef class HiddenMarkovModel(Model):
 			and is frequently used in minibatch learning. This value is
 			suggested to be between 0.5 and 1. Default is 0, meaning no
 			decay.
-
-		callbacks : list, optional
-			A list of callback objects that describe functionality that should
-			be undertaken over the course of training.
-
-		return_history : bool, optional
-			Whether to return the history during training as well as the model.
-
-		verbose : bool, optional
-			Whether to print the improvement in the model fitting at each
-			iteration. Default is True.
-
-		n_jobs : int, optional
-			The number of threads to use when performing training. This
-			leads to exact updates. Default is 1.
 
 		multiple_check_input : bool, optional
 			Whether to check and transcode input at each iteration. This
@@ -1218,7 +1182,7 @@ cdef class HiddenMarkovModel(Model):
 			# use old code, where we only change class of input
 			# checking input will be in `summarize` function
 			if not isinstance(sequences, SequenceGenerator):
-				data_generator = SequenceGenerator(sequences, weights, labels)
+				data_generator = SequenceGenerator(sequences)
 			else:
 				data_generator = sequences
 		else:
@@ -1232,11 +1196,7 @@ cdef class HiddenMarkovModel(Model):
 					sequence_ndarray = _check_input(sequence, self)
 					checked_sequences.append(sequence_ndarray)
 
-				if labels is not None:
-					labels = numpy.array(labels)
-
-				data_generator = SequenceGenerator(checked_sequences, weights, 
-					labels)
+				data_generator = SequenceGenerator(checked_sequences)
 			else:
 				checked_sequences, checked_weights, checked_labels = [], [], []
 
@@ -1255,10 +1215,9 @@ cdef class HiddenMarkovModel(Model):
 
 		n = data_generator.shape[0]
 
-		batches_per_epoch = batches_per_epoch 
 		n_seen_batches = 0
 
-		with Parallel(n_jobs=n_jobs, backend='threading') as parallel:
+		with Parallel(n_jobs=1, backend='threading') as parallel:
 			f = delayed(self.summarize)
 
 			while improvement > stop_threshold or iteration < min_iterations + 1:
@@ -1710,8 +1669,7 @@ cdef class HiddenMarkovModel(Model):
 			state.distribution.clear_summaries()
 
 	@classmethod
-	def from_matrix(cls, transition_probabilities, distributions, starts, ends=None,
-		state_names=None, name=None, verbose=False, merge='None'):
+	def from_matrix(cls, transition_probabilities, distributions, starts):
 		"""Create a model from a more standard matrix format.
 
 		Take in a 2D matrix of floats of size n by n, which are the transition
@@ -1734,24 +1692,6 @@ cdef class HiddenMarkovModel(Model):
 		starts : array-like, shape (n_states)
 			The probabilities of starting in each of the states.
 
-		ends : array-like, shape (n_states), optional
-			If passed in, the probabilities of ending in each of the states.
-			If ends is None, then assumes the model has no explicit end
-			state. Default is None.
-
-		state_names : array-like, shape (n_states), optional
-			The name of the states. If None is passed in, default names are
-			generated. Default is None
-
-		name : str, optional
-			The name of the model. Default is None
-
-		verbose : bool, optional
-			The verbose parameter for the underlying bake method. Default is False.
-
-		merge : 'None', 'Partial', 'All', optional
-			The merge parameter for the underlying bake method. Default is All
-
 		Returns
 		-------
 		model : HiddenMarkovModel
@@ -1770,8 +1710,8 @@ cdef class HiddenMarkovModel(Model):
 		"""
 
 		# Build the initial model
-		model = HiddenMarkovModel(name=name)
-		state_names = state_names or ["s{}".format(i) for i in range(len(distributions))]
+		model = HiddenMarkovModel()
+		state_names = ["s{}".format(i) for i in range(len(distributions))]
 
 		# Build state objects for every state with the appropriate distribution
 		states = [State(distribution, name=name) for name, distribution in
@@ -1794,54 +1734,25 @@ cdef class HiddenMarkovModel(Model):
 				if prob != 0.:
 					model.add_transition(states[i], states[j], prob)
 
-		if ends is not None:
-			# Connect states to the end of the model if a non-zero probability
-			for i, prob in enumerate(ends):
-				if prob != 0:
-					model.add_transition(states[i], model.end, prob)
-
-		model.bake(verbose=verbose, merge=merge)
+		model.bake()
 		return model
 
 	@classmethod
-	def from_samples(cls, distribution, n_components, X):
-		"""Learn the transitions and emissions of a model directly from data.
-
-		This method will learn both the transition matrix, emission distributions,
-		and start probabilities for each state. This will only return a dense
-		graph without any silent states or explicit transitions to an end state.
-		Currently all components must be defined as the same distribution, but
-		soon this restriction will be removed.
-
-		If learning a multinomial HMM over discrete characters, the initial
-		emisison probabilities are initialized randomly. If learning a
-		continuous valued HMM, such as a Gaussian HMM, then kmeans clustering
-		is used first to identify initial clusters.
-
-		Regardless of the type of model, the transition matrix and start
-		probabilities are initialized uniformly. Then the specified learning
-		algorithm (Baum-Welch recommended) is used to refine the parameters
-		of the model.
+	def init_params(cls, n_components, X):
+		"""Create HHM model based on number of states and sample data.
 
 		Parameters
 		----------
-		distribution : callable
-			The emission distribution of the components of the model.
 
 		n_components : int
-			The number of states (or components) to initialize.
+			number of states
 
-		X : array-like or generator
-			An array of some sort (list, numpy.ndarray, tuple..) of sequences,
-			where each sequence is a numpy array, which is 1 dimensional if
-			the HMM is a one dimensional array, or multidimensional if the HMM
-			supports multiple dimensions. Alternatively, a data generator
-			object that yields sequences.
+		X : array
+			sample data
 
 		Returns
 		-------
-		model : HiddenMarkovModel
-			The model fit to the data.
+		initialized model
 		"""
 
 		data_for_clustering = [item for item in X]
@@ -1854,10 +1765,10 @@ cdef class HiddenMarkovModel(Model):
 		X_ = [data_for_clustering[y_means == i] for i in range(n_components)]
 
 		distributions = []
-		if callable(distribution):
-			for i in range(n_components):
-				dist = distribution.from_samples(X_[i])
-				distributions.append(dist)
+		for i in range(n_components):
+			dist = NormalDistribution.blank()
+			dist.fit(X_[i])
+			distributions.append(dist)
 
 		k = n_components
 		transition_matrix = numpy.ones((k, k)) / k

@@ -164,21 +164,3 @@ cdef class Distribution(object):
 	cdef double _summarize(self, double* items, double* weights, int n,
 		int column_idx, int d) nogil:
 		pass
-
-	def from_summaries(self, inertia=0.0):
-		"""Fit the distribution to the stored sufficient statistics.
-		"""
-		pass
-
-	def clear_summaries(self):
-		"""Clear the summary statistics stored in the object.
-		"""
-		pass
-
-	@classmethod
-	def from_samples(cls, items, weights=None, **kwargs):
-		"""Fit a distribution to some data without pre-specifying it."""
-
-		distribution = cls.blank()
-		distribution.fit(items, weights, **kwargs)
-		return distribution

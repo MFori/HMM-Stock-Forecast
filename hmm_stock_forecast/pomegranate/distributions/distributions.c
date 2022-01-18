@@ -1597,14 +1597,6 @@ static PyObject *__Pyx_Import(PyObject *name, PyObject *from_list, int level);
 /* ImportFrom.proto */
 static PyObject* __Pyx_ImportFrom(PyObject* module, PyObject* name);
 
-/* ClassMethod.proto */
-#include "descrobject.h"
-static CYTHON_UNUSED PyObject* __Pyx_Method_ClassMethod(PyObject *method);
-
-/* GetNameInClass.proto */
-#define __Pyx_GetNameInClass(var, nmspace, name)  (var) = __Pyx__GetNameInClass(nmspace, name)
-static PyObject *__Pyx__GetNameInClass(PyObject *nmspace, PyObject *name);
-
 /* CLineInTraceback.proto */
 #ifdef CYTHON_CLINE_IN_TRACEBACK
 #define __Pyx_CLineForTraceback(tstate, c_line)  (((CYTHON_CLINE_IN_TRACEBACK)) ? c_line : 0)
@@ -1816,14 +1808,12 @@ int __pyx_module_is_main_hmm_stock_forecast__pomegranate__distributions__distrib
 /* Implementation of 'hmm_stock_forecast.pomegranate.distributions.distributions' */
 static PyObject *__pyx_builtin_TypeError;
 static PyObject *__pyx_builtin_ImportError;
-static const char __pyx_k_fit[] = "fit";
 static const char __pyx_k_sum[] = "sum";
 static const char __pyx_k_sys[] = "sys";
 static const char __pyx_k_main[] = "__main__";
 static const char __pyx_k_name[] = "__name__";
 static const char __pyx_k_ndim[] = "ndim";
 static const char __pyx_k_test[] = "__test__";
-static const char __pyx_k_blank[] = "blank";
 static const char __pyx_k_class[] = "__class__";
 static const char __pyx_k_dtype[] = "dtype";
 static const char __pyx_k_empty[] = "empty";
@@ -1848,7 +1838,6 @@ static const char __pyx_k_pyx_vtable[] = "__pyx_vtable__";
 static const char __pyx_k_weight_set[] = "weight_set";
 static const char __pyx_k_ImportError[] = "ImportError";
 static const char __pyx_k_Distribution[] = "Distribution";
-static const char __pyx_k_from_samples[] = "from_samples";
 static const char __pyx_k_reduce_cython[] = "__reduce_cython__";
 static const char __pyx_k_from_summaries[] = "from_summaries";
 static const char __pyx_k_setstate_cython[] = "__setstate_cython__";
@@ -1860,15 +1849,12 @@ static PyObject *__pyx_n_s_Distribution;
 static PyObject *__pyx_n_s_ImportError;
 static PyObject *__pyx_n_s_TypeError;
 static PyObject *__pyx_n_s_asarray;
-static PyObject *__pyx_n_s_blank;
 static PyObject *__pyx_n_s_class;
 static PyObject *__pyx_n_s_cline_in_traceback;
 static PyObject *__pyx_n_s_column_idx;
 static PyObject *__pyx_n_s_dtype;
 static PyObject *__pyx_n_s_empty;
-static PyObject *__pyx_n_s_fit;
 static PyObject *__pyx_n_s_float64;
-static PyObject *__pyx_n_s_from_samples;
 static PyObject *__pyx_n_s_from_summaries;
 static PyObject *__pyx_n_s_getstate;
 static PyObject *__pyx_n_s_import;
@@ -1902,9 +1888,6 @@ static PyObject *__pyx_pf_18hmm_stock_forecast_11pomegranate_13distributions_13d
 static PyObject *__pyx_pf_18hmm_stock_forecast_11pomegranate_13distributions_13distributions_12Distribution_6log_probability(struct __pyx_obj_18hmm_stock_forecast_11pomegranate_13distributions_13distributions_Distribution *__pyx_v_self, PyObject *__pyx_v_X); /* proto */
 static PyObject *__pyx_pf_18hmm_stock_forecast_11pomegranate_13distributions_13distributions_12Distribution_8fit(struct __pyx_obj_18hmm_stock_forecast_11pomegranate_13distributions_13distributions_Distribution *__pyx_v_self, PyObject *__pyx_v_items, PyObject *__pyx_v_weights, PyObject *__pyx_v_inertia, PyObject *__pyx_v_column_idx); /* proto */
 static PyObject *__pyx_pf_18hmm_stock_forecast_11pomegranate_13distributions_13distributions_12Distribution_10summarize(struct __pyx_obj_18hmm_stock_forecast_11pomegranate_13distributions_13distributions_Distribution *__pyx_v_self, PyObject *__pyx_v_items, PyObject *__pyx_v_weights, PyObject *__pyx_v_column_idx); /* proto */
-static PyObject *__pyx_pf_18hmm_stock_forecast_11pomegranate_13distributions_13distributions_12Distribution_12from_summaries(CYTHON_UNUSED struct __pyx_obj_18hmm_stock_forecast_11pomegranate_13distributions_13distributions_Distribution *__pyx_v_self, CYTHON_UNUSED PyObject *__pyx_v_inertia); /* proto */
-static PyObject *__pyx_pf_18hmm_stock_forecast_11pomegranate_13distributions_13distributions_12Distribution_14clear_summaries(CYTHON_UNUSED struct __pyx_obj_18hmm_stock_forecast_11pomegranate_13distributions_13distributions_Distribution *__pyx_v_self); /* proto */
-static PyObject *__pyx_pf_18hmm_stock_forecast_11pomegranate_13distributions_13distributions_12Distribution_16from_samples(PyTypeObject *__pyx_v_cls, PyObject *__pyx_v_items, PyObject *__pyx_v_weights, PyObject *__pyx_v_kwargs); /* proto */
 static PyObject *__pyx_pf_18hmm_stock_forecast_11pomegranate_13distributions_13distributions_12Distribution_4name___get__(struct __pyx_obj_18hmm_stock_forecast_11pomegranate_13distributions_13distributions_Distribution *__pyx_v_self); /* proto */
 static int __pyx_pf_18hmm_stock_forecast_11pomegranate_13distributions_13distributions_12Distribution_4name_2__set__(struct __pyx_obj_18hmm_stock_forecast_11pomegranate_13distributions_13distributions_Distribution *__pyx_v_self, PyObject *__pyx_v_value); /* proto */
 static int __pyx_pf_18hmm_stock_forecast_11pomegranate_13distributions_13distributions_12Distribution_4name_4__del__(struct __pyx_obj_18hmm_stock_forecast_11pomegranate_13distributions_13distributions_Distribution *__pyx_v_self); /* proto */
@@ -1918,8 +1901,8 @@ static int __pyx_pf_18hmm_stock_forecast_11pomegranate_13distributions_13distrib
 static PyObject *__pyx_pf_18hmm_stock_forecast_11pomegranate_13distributions_13distributions_12Distribution_9summaries___get__(struct __pyx_obj_18hmm_stock_forecast_11pomegranate_13distributions_13distributions_Distribution *__pyx_v_self); /* proto */
 static int __pyx_pf_18hmm_stock_forecast_11pomegranate_13distributions_13distributions_12Distribution_9summaries_2__set__(struct __pyx_obj_18hmm_stock_forecast_11pomegranate_13distributions_13distributions_Distribution *__pyx_v_self, PyObject *__pyx_v_value); /* proto */
 static int __pyx_pf_18hmm_stock_forecast_11pomegranate_13distributions_13distributions_12Distribution_9summaries_4__del__(struct __pyx_obj_18hmm_stock_forecast_11pomegranate_13distributions_13distributions_Distribution *__pyx_v_self); /* proto */
-static PyObject *__pyx_pf_18hmm_stock_forecast_11pomegranate_13distributions_13distributions_12Distribution_18__reduce_cython__(CYTHON_UNUSED struct __pyx_obj_18hmm_stock_forecast_11pomegranate_13distributions_13distributions_Distribution *__pyx_v_self); /* proto */
-static PyObject *__pyx_pf_18hmm_stock_forecast_11pomegranate_13distributions_13distributions_12Distribution_20__setstate_cython__(CYTHON_UNUSED struct __pyx_obj_18hmm_stock_forecast_11pomegranate_13distributions_13distributions_Distribution *__pyx_v_self, CYTHON_UNUSED PyObject *__pyx_v___pyx_state); /* proto */
+static PyObject *__pyx_pf_18hmm_stock_forecast_11pomegranate_13distributions_13distributions_12Distribution_12__reduce_cython__(CYTHON_UNUSED struct __pyx_obj_18hmm_stock_forecast_11pomegranate_13distributions_13distributions_Distribution *__pyx_v_self); /* proto */
+static PyObject *__pyx_pf_18hmm_stock_forecast_11pomegranate_13distributions_13distributions_12Distribution_14__setstate_cython__(CYTHON_UNUSED struct __pyx_obj_18hmm_stock_forecast_11pomegranate_13distributions_13distributions_Distribution *__pyx_v_self, CYTHON_UNUSED PyObject *__pyx_v___pyx_state); /* proto */
 static PyObject *__pyx_tp_new_18hmm_stock_forecast_11pomegranate_13distributions_13distributions_Distribution(PyTypeObject *t, PyObject *a, PyObject *k); /*proto*/
 static PyObject *__pyx_float_0_0;
 static PyObject *__pyx_int_0;
@@ -3145,300 +3128,6 @@ static double __pyx_f_18hmm_stock_forecast_11pomegranate_13distributions_13distr
   return __pyx_r;
 }
 
-/* "hmm_stock_forecast/pomegranate/distributions/distributions.pyx":168
- * 		pass
- * 
- * 	def from_summaries(self, inertia=0.0):             # <<<<<<<<<<<<<<
- * 		"""Fit the distribution to the stored sufficient statistics.
- * 		"""
- */
-
-/* Python wrapper */
-static PyObject *__pyx_pw_18hmm_stock_forecast_11pomegranate_13distributions_13distributions_12Distribution_13from_summaries(PyObject *__pyx_v_self, PyObject *__pyx_args, PyObject *__pyx_kwds); /*proto*/
-static char __pyx_doc_18hmm_stock_forecast_11pomegranate_13distributions_13distributions_12Distribution_12from_summaries[] = "Fit the distribution to the stored sufficient statistics.\n\t\t";
-static PyObject *__pyx_pw_18hmm_stock_forecast_11pomegranate_13distributions_13distributions_12Distribution_13from_summaries(PyObject *__pyx_v_self, PyObject *__pyx_args, PyObject *__pyx_kwds) {
-  CYTHON_UNUSED PyObject *__pyx_v_inertia = 0;
-  int __pyx_lineno = 0;
-  const char *__pyx_filename = NULL;
-  int __pyx_clineno = 0;
-  PyObject *__pyx_r = 0;
-  __Pyx_RefNannyDeclarations
-  __Pyx_RefNannySetupContext("from_summaries (wrapper)", 0);
-  {
-    static PyObject **__pyx_pyargnames[] = {&__pyx_n_s_inertia,0};
-    PyObject* values[1] = {0};
-    values[0] = ((PyObject *)__pyx_float_0_0);
-    if (unlikely(__pyx_kwds)) {
-      Py_ssize_t kw_args;
-      const Py_ssize_t pos_args = PyTuple_GET_SIZE(__pyx_args);
-      switch (pos_args) {
-        case  1: values[0] = PyTuple_GET_ITEM(__pyx_args, 0);
-        CYTHON_FALLTHROUGH;
-        case  0: break;
-        default: goto __pyx_L5_argtuple_error;
-      }
-      kw_args = PyDict_Size(__pyx_kwds);
-      switch (pos_args) {
-        case  0:
-        if (kw_args > 0) {
-          PyObject* value = __Pyx_PyDict_GetItemStr(__pyx_kwds, __pyx_n_s_inertia);
-          if (value) { values[0] = value; kw_args--; }
-        }
-      }
-      if (unlikely(kw_args > 0)) {
-        if (unlikely(__Pyx_ParseOptionalKeywords(__pyx_kwds, __pyx_pyargnames, 0, values, pos_args, "from_summaries") < 0)) __PYX_ERR(1, 168, __pyx_L3_error)
-      }
-    } else {
-      switch (PyTuple_GET_SIZE(__pyx_args)) {
-        case  1: values[0] = PyTuple_GET_ITEM(__pyx_args, 0);
-        CYTHON_FALLTHROUGH;
-        case  0: break;
-        default: goto __pyx_L5_argtuple_error;
-      }
-    }
-    __pyx_v_inertia = values[0];
-  }
-  goto __pyx_L4_argument_unpacking_done;
-  __pyx_L5_argtuple_error:;
-  __Pyx_RaiseArgtupleInvalid("from_summaries", 0, 0, 1, PyTuple_GET_SIZE(__pyx_args)); __PYX_ERR(1, 168, __pyx_L3_error)
-  __pyx_L3_error:;
-  __Pyx_AddTraceback("hmm_stock_forecast.pomegranate.distributions.distributions.Distribution.from_summaries", __pyx_clineno, __pyx_lineno, __pyx_filename);
-  __Pyx_RefNannyFinishContext();
-  return NULL;
-  __pyx_L4_argument_unpacking_done:;
-  __pyx_r = __pyx_pf_18hmm_stock_forecast_11pomegranate_13distributions_13distributions_12Distribution_12from_summaries(((struct __pyx_obj_18hmm_stock_forecast_11pomegranate_13distributions_13distributions_Distribution *)__pyx_v_self), __pyx_v_inertia);
-
-  /* function exit code */
-  __Pyx_RefNannyFinishContext();
-  return __pyx_r;
-}
-
-static PyObject *__pyx_pf_18hmm_stock_forecast_11pomegranate_13distributions_13distributions_12Distribution_12from_summaries(CYTHON_UNUSED struct __pyx_obj_18hmm_stock_forecast_11pomegranate_13distributions_13distributions_Distribution *__pyx_v_self, CYTHON_UNUSED PyObject *__pyx_v_inertia) {
-  PyObject *__pyx_r = NULL;
-  __Pyx_RefNannyDeclarations
-  __Pyx_RefNannySetupContext("from_summaries", 0);
-
-  /* function exit code */
-  __pyx_r = Py_None; __Pyx_INCREF(Py_None);
-  __Pyx_XGIVEREF(__pyx_r);
-  __Pyx_RefNannyFinishContext();
-  return __pyx_r;
-}
-
-/* "hmm_stock_forecast/pomegranate/distributions/distributions.pyx":173
- * 		pass
- * 
- * 	def clear_summaries(self):             # <<<<<<<<<<<<<<
- * 		"""Clear the summary statistics stored in the object.
- * 		"""
- */
-
-/* Python wrapper */
-static PyObject *__pyx_pw_18hmm_stock_forecast_11pomegranate_13distributions_13distributions_12Distribution_15clear_summaries(PyObject *__pyx_v_self, CYTHON_UNUSED PyObject *unused); /*proto*/
-static char __pyx_doc_18hmm_stock_forecast_11pomegranate_13distributions_13distributions_12Distribution_14clear_summaries[] = "Clear the summary statistics stored in the object.\n\t\t";
-static PyObject *__pyx_pw_18hmm_stock_forecast_11pomegranate_13distributions_13distributions_12Distribution_15clear_summaries(PyObject *__pyx_v_self, CYTHON_UNUSED PyObject *unused) {
-  PyObject *__pyx_r = 0;
-  __Pyx_RefNannyDeclarations
-  __Pyx_RefNannySetupContext("clear_summaries (wrapper)", 0);
-  __pyx_r = __pyx_pf_18hmm_stock_forecast_11pomegranate_13distributions_13distributions_12Distribution_14clear_summaries(((struct __pyx_obj_18hmm_stock_forecast_11pomegranate_13distributions_13distributions_Distribution *)__pyx_v_self));
-
-  /* function exit code */
-  __Pyx_RefNannyFinishContext();
-  return __pyx_r;
-}
-
-static PyObject *__pyx_pf_18hmm_stock_forecast_11pomegranate_13distributions_13distributions_12Distribution_14clear_summaries(CYTHON_UNUSED struct __pyx_obj_18hmm_stock_forecast_11pomegranate_13distributions_13distributions_Distribution *__pyx_v_self) {
-  PyObject *__pyx_r = NULL;
-  __Pyx_RefNannyDeclarations
-  __Pyx_RefNannySetupContext("clear_summaries", 0);
-
-  /* function exit code */
-  __pyx_r = Py_None; __Pyx_INCREF(Py_None);
-  __Pyx_XGIVEREF(__pyx_r);
-  __Pyx_RefNannyFinishContext();
-  return __pyx_r;
-}
-
-/* "hmm_stock_forecast/pomegranate/distributions/distributions.pyx":179
- * 
- * 	@classmethod
- * 	def from_samples(cls, items, weights=None, **kwargs):             # <<<<<<<<<<<<<<
- * 		"""Fit a distribution to some data without pre-specifying it."""
- * 
- */
-
-/* Python wrapper */
-static PyObject *__pyx_pw_18hmm_stock_forecast_11pomegranate_13distributions_13distributions_12Distribution_17from_samples(PyObject *__pyx_v_cls, PyObject *__pyx_args, PyObject *__pyx_kwds); /*proto*/
-static char __pyx_doc_18hmm_stock_forecast_11pomegranate_13distributions_13distributions_12Distribution_16from_samples[] = "Fit a distribution to some data without pre-specifying it.";
-static PyObject *__pyx_pw_18hmm_stock_forecast_11pomegranate_13distributions_13distributions_12Distribution_17from_samples(PyObject *__pyx_v_cls, PyObject *__pyx_args, PyObject *__pyx_kwds) {
-  PyObject *__pyx_v_items = 0;
-  PyObject *__pyx_v_weights = 0;
-  PyObject *__pyx_v_kwargs = 0;
-  int __pyx_lineno = 0;
-  const char *__pyx_filename = NULL;
-  int __pyx_clineno = 0;
-  PyObject *__pyx_r = 0;
-  __Pyx_RefNannyDeclarations
-  __Pyx_RefNannySetupContext("from_samples (wrapper)", 0);
-  __pyx_v_kwargs = PyDict_New(); if (unlikely(!__pyx_v_kwargs)) return NULL;
-  __Pyx_GOTREF(__pyx_v_kwargs);
-  {
-    static PyObject **__pyx_pyargnames[] = {&__pyx_n_s_items,&__pyx_n_s_weights,0};
-    PyObject* values[2] = {0,0};
-    values[1] = ((PyObject *)Py_None);
-    if (unlikely(__pyx_kwds)) {
-      Py_ssize_t kw_args;
-      const Py_ssize_t pos_args = PyTuple_GET_SIZE(__pyx_args);
-      switch (pos_args) {
-        case  2: values[1] = PyTuple_GET_ITEM(__pyx_args, 1);
-        CYTHON_FALLTHROUGH;
-        case  1: values[0] = PyTuple_GET_ITEM(__pyx_args, 0);
-        CYTHON_FALLTHROUGH;
-        case  0: break;
-        default: goto __pyx_L5_argtuple_error;
-      }
-      kw_args = PyDict_Size(__pyx_kwds);
-      switch (pos_args) {
-        case  0:
-        if (likely((values[0] = __Pyx_PyDict_GetItemStr(__pyx_kwds, __pyx_n_s_items)) != 0)) kw_args--;
-        else goto __pyx_L5_argtuple_error;
-        CYTHON_FALLTHROUGH;
-        case  1:
-        if (kw_args > 0) {
-          PyObject* value = __Pyx_PyDict_GetItemStr(__pyx_kwds, __pyx_n_s_weights);
-          if (value) { values[1] = value; kw_args--; }
-        }
-      }
-      if (unlikely(kw_args > 0)) {
-        if (unlikely(__Pyx_ParseOptionalKeywords(__pyx_kwds, __pyx_pyargnames, __pyx_v_kwargs, values, pos_args, "from_samples") < 0)) __PYX_ERR(1, 179, __pyx_L3_error)
-      }
-    } else {
-      switch (PyTuple_GET_SIZE(__pyx_args)) {
-        case  2: values[1] = PyTuple_GET_ITEM(__pyx_args, 1);
-        CYTHON_FALLTHROUGH;
-        case  1: values[0] = PyTuple_GET_ITEM(__pyx_args, 0);
-        break;
-        default: goto __pyx_L5_argtuple_error;
-      }
-    }
-    __pyx_v_items = values[0];
-    __pyx_v_weights = values[1];
-  }
-  goto __pyx_L4_argument_unpacking_done;
-  __pyx_L5_argtuple_error:;
-  __Pyx_RaiseArgtupleInvalid("from_samples", 0, 1, 2, PyTuple_GET_SIZE(__pyx_args)); __PYX_ERR(1, 179, __pyx_L3_error)
-  __pyx_L3_error:;
-  __Pyx_DECREF(__pyx_v_kwargs); __pyx_v_kwargs = 0;
-  __Pyx_AddTraceback("hmm_stock_forecast.pomegranate.distributions.distributions.Distribution.from_samples", __pyx_clineno, __pyx_lineno, __pyx_filename);
-  __Pyx_RefNannyFinishContext();
-  return NULL;
-  __pyx_L4_argument_unpacking_done:;
-  __pyx_r = __pyx_pf_18hmm_stock_forecast_11pomegranate_13distributions_13distributions_12Distribution_16from_samples(((PyTypeObject*)__pyx_v_cls), __pyx_v_items, __pyx_v_weights, __pyx_v_kwargs);
-
-  /* function exit code */
-  __Pyx_XDECREF(__pyx_v_kwargs);
-  __Pyx_RefNannyFinishContext();
-  return __pyx_r;
-}
-
-static PyObject *__pyx_pf_18hmm_stock_forecast_11pomegranate_13distributions_13distributions_12Distribution_16from_samples(PyTypeObject *__pyx_v_cls, PyObject *__pyx_v_items, PyObject *__pyx_v_weights, PyObject *__pyx_v_kwargs) {
-  PyObject *__pyx_v_distribution = NULL;
-  PyObject *__pyx_r = NULL;
-  __Pyx_RefNannyDeclarations
-  PyObject *__pyx_t_1 = NULL;
-  PyObject *__pyx_t_2 = NULL;
-  PyObject *__pyx_t_3 = NULL;
-  PyObject *__pyx_t_4 = NULL;
-  int __pyx_lineno = 0;
-  const char *__pyx_filename = NULL;
-  int __pyx_clineno = 0;
-  __Pyx_RefNannySetupContext("from_samples", 0);
-
-  /* "hmm_stock_forecast/pomegranate/distributions/distributions.pyx":182
- * 		"""Fit a distribution to some data without pre-specifying it."""
- * 
- * 		distribution = cls.blank()             # <<<<<<<<<<<<<<
- * 		distribution.fit(items, weights, **kwargs)
- * 		return distribution
- */
-  __pyx_t_2 = __Pyx_PyObject_GetAttrStr(((PyObject *)__pyx_v_cls), __pyx_n_s_blank); if (unlikely(!__pyx_t_2)) __PYX_ERR(1, 182, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_t_2);
-  __pyx_t_3 = NULL;
-  if (CYTHON_UNPACK_METHODS && likely(PyMethod_Check(__pyx_t_2))) {
-    __pyx_t_3 = PyMethod_GET_SELF(__pyx_t_2);
-    if (likely(__pyx_t_3)) {
-      PyObject* function = PyMethod_GET_FUNCTION(__pyx_t_2);
-      __Pyx_INCREF(__pyx_t_3);
-      __Pyx_INCREF(function);
-      __Pyx_DECREF_SET(__pyx_t_2, function);
-    }
-  }
-  __pyx_t_1 = (__pyx_t_3) ? __Pyx_PyObject_CallOneArg(__pyx_t_2, __pyx_t_3) : __Pyx_PyObject_CallNoArg(__pyx_t_2);
-  __Pyx_XDECREF(__pyx_t_3); __pyx_t_3 = 0;
-  if (unlikely(!__pyx_t_1)) __PYX_ERR(1, 182, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_t_1);
-  __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
-  __pyx_v_distribution = __pyx_t_1;
-  __pyx_t_1 = 0;
-
-  /* "hmm_stock_forecast/pomegranate/distributions/distributions.pyx":183
- * 
- * 		distribution = cls.blank()
- * 		distribution.fit(items, weights, **kwargs)             # <<<<<<<<<<<<<<
- * 		return distribution
- */
-  __pyx_t_1 = __Pyx_PyObject_GetAttrStr(__pyx_v_distribution, __pyx_n_s_fit); if (unlikely(!__pyx_t_1)) __PYX_ERR(1, 183, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_t_1);
-  __pyx_t_2 = PyTuple_New(2); if (unlikely(!__pyx_t_2)) __PYX_ERR(1, 183, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_t_2);
-  __Pyx_INCREF(__pyx_v_items);
-  __Pyx_GIVEREF(__pyx_v_items);
-  PyTuple_SET_ITEM(__pyx_t_2, 0, __pyx_v_items);
-  __Pyx_INCREF(__pyx_v_weights);
-  __Pyx_GIVEREF(__pyx_v_weights);
-  PyTuple_SET_ITEM(__pyx_t_2, 1, __pyx_v_weights);
-  __pyx_t_3 = PyDict_Copy(__pyx_v_kwargs); if (unlikely(!__pyx_t_3)) __PYX_ERR(1, 183, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_t_3);
-  __pyx_t_4 = __Pyx_PyObject_Call(__pyx_t_1, __pyx_t_2, __pyx_t_3); if (unlikely(!__pyx_t_4)) __PYX_ERR(1, 183, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_t_4);
-  __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
-  __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
-  __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
-  __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
-
-  /* "hmm_stock_forecast/pomegranate/distributions/distributions.pyx":184
- * 		distribution = cls.blank()
- * 		distribution.fit(items, weights, **kwargs)
- * 		return distribution             # <<<<<<<<<<<<<<
- */
-  __Pyx_XDECREF(__pyx_r);
-  __Pyx_INCREF(__pyx_v_distribution);
-  __pyx_r = __pyx_v_distribution;
-  goto __pyx_L0;
-
-  /* "hmm_stock_forecast/pomegranate/distributions/distributions.pyx":179
- * 
- * 	@classmethod
- * 	def from_samples(cls, items, weights=None, **kwargs):             # <<<<<<<<<<<<<<
- * 		"""Fit a distribution to some data without pre-specifying it."""
- * 
- */
-
-  /* function exit code */
-  __pyx_L1_error:;
-  __Pyx_XDECREF(__pyx_t_1);
-  __Pyx_XDECREF(__pyx_t_2);
-  __Pyx_XDECREF(__pyx_t_3);
-  __Pyx_XDECREF(__pyx_t_4);
-  __Pyx_AddTraceback("hmm_stock_forecast.pomegranate.distributions.distributions.Distribution.from_samples", __pyx_clineno, __pyx_lineno, __pyx_filename);
-  __pyx_r = NULL;
-  __pyx_L0:;
-  __Pyx_XDECREF(__pyx_v_distribution);
-  __Pyx_XGIVEREF(__pyx_r);
-  __Pyx_RefNannyFinishContext();
-  return __pyx_r;
-}
-
 /* "hmm_stock_forecast/pomegranate/distributions/distributions.pxd":10
  * 
  * cdef class Distribution(object):
@@ -3934,19 +3623,19 @@ static int __pyx_pf_18hmm_stock_forecast_11pomegranate_13distributions_13distrib
  */
 
 /* Python wrapper */
-static PyObject *__pyx_pw_18hmm_stock_forecast_11pomegranate_13distributions_13distributions_12Distribution_19__reduce_cython__(PyObject *__pyx_v_self, CYTHON_UNUSED PyObject *unused); /*proto*/
-static PyObject *__pyx_pw_18hmm_stock_forecast_11pomegranate_13distributions_13distributions_12Distribution_19__reduce_cython__(PyObject *__pyx_v_self, CYTHON_UNUSED PyObject *unused) {
+static PyObject *__pyx_pw_18hmm_stock_forecast_11pomegranate_13distributions_13distributions_12Distribution_13__reduce_cython__(PyObject *__pyx_v_self, CYTHON_UNUSED PyObject *unused); /*proto*/
+static PyObject *__pyx_pw_18hmm_stock_forecast_11pomegranate_13distributions_13distributions_12Distribution_13__reduce_cython__(PyObject *__pyx_v_self, CYTHON_UNUSED PyObject *unused) {
   PyObject *__pyx_r = 0;
   __Pyx_RefNannyDeclarations
   __Pyx_RefNannySetupContext("__reduce_cython__ (wrapper)", 0);
-  __pyx_r = __pyx_pf_18hmm_stock_forecast_11pomegranate_13distributions_13distributions_12Distribution_18__reduce_cython__(((struct __pyx_obj_18hmm_stock_forecast_11pomegranate_13distributions_13distributions_Distribution *)__pyx_v_self));
+  __pyx_r = __pyx_pf_18hmm_stock_forecast_11pomegranate_13distributions_13distributions_12Distribution_12__reduce_cython__(((struct __pyx_obj_18hmm_stock_forecast_11pomegranate_13distributions_13distributions_Distribution *)__pyx_v_self));
 
   /* function exit code */
   __Pyx_RefNannyFinishContext();
   return __pyx_r;
 }
 
-static PyObject *__pyx_pf_18hmm_stock_forecast_11pomegranate_13distributions_13distributions_12Distribution_18__reduce_cython__(CYTHON_UNUSED struct __pyx_obj_18hmm_stock_forecast_11pomegranate_13distributions_13distributions_Distribution *__pyx_v_self) {
+static PyObject *__pyx_pf_18hmm_stock_forecast_11pomegranate_13distributions_13distributions_12Distribution_12__reduce_cython__(CYTHON_UNUSED struct __pyx_obj_18hmm_stock_forecast_11pomegranate_13distributions_13distributions_Distribution *__pyx_v_self) {
   PyObject *__pyx_r = NULL;
   __Pyx_RefNannyDeclarations
   PyObject *__pyx_t_1 = NULL;
@@ -3991,19 +3680,19 @@ static PyObject *__pyx_pf_18hmm_stock_forecast_11pomegranate_13distributions_13d
  */
 
 /* Python wrapper */
-static PyObject *__pyx_pw_18hmm_stock_forecast_11pomegranate_13distributions_13distributions_12Distribution_21__setstate_cython__(PyObject *__pyx_v_self, PyObject *__pyx_v___pyx_state); /*proto*/
-static PyObject *__pyx_pw_18hmm_stock_forecast_11pomegranate_13distributions_13distributions_12Distribution_21__setstate_cython__(PyObject *__pyx_v_self, PyObject *__pyx_v___pyx_state) {
+static PyObject *__pyx_pw_18hmm_stock_forecast_11pomegranate_13distributions_13distributions_12Distribution_15__setstate_cython__(PyObject *__pyx_v_self, PyObject *__pyx_v___pyx_state); /*proto*/
+static PyObject *__pyx_pw_18hmm_stock_forecast_11pomegranate_13distributions_13distributions_12Distribution_15__setstate_cython__(PyObject *__pyx_v_self, PyObject *__pyx_v___pyx_state) {
   PyObject *__pyx_r = 0;
   __Pyx_RefNannyDeclarations
   __Pyx_RefNannySetupContext("__setstate_cython__ (wrapper)", 0);
-  __pyx_r = __pyx_pf_18hmm_stock_forecast_11pomegranate_13distributions_13distributions_12Distribution_20__setstate_cython__(((struct __pyx_obj_18hmm_stock_forecast_11pomegranate_13distributions_13distributions_Distribution *)__pyx_v_self), ((PyObject *)__pyx_v___pyx_state));
+  __pyx_r = __pyx_pf_18hmm_stock_forecast_11pomegranate_13distributions_13distributions_12Distribution_14__setstate_cython__(((struct __pyx_obj_18hmm_stock_forecast_11pomegranate_13distributions_13distributions_Distribution *)__pyx_v_self), ((PyObject *)__pyx_v___pyx_state));
 
   /* function exit code */
   __Pyx_RefNannyFinishContext();
   return __pyx_r;
 }
 
-static PyObject *__pyx_pf_18hmm_stock_forecast_11pomegranate_13distributions_13distributions_12Distribution_20__setstate_cython__(CYTHON_UNUSED struct __pyx_obj_18hmm_stock_forecast_11pomegranate_13distributions_13distributions_Distribution *__pyx_v_self, CYTHON_UNUSED PyObject *__pyx_v___pyx_state) {
+static PyObject *__pyx_pf_18hmm_stock_forecast_11pomegranate_13distributions_13distributions_12Distribution_14__setstate_cython__(CYTHON_UNUSED struct __pyx_obj_18hmm_stock_forecast_11pomegranate_13distributions_13distributions_Distribution *__pyx_v_self, CYTHON_UNUSED PyObject *__pyx_v___pyx_state) {
   PyObject *__pyx_r = NULL;
   __Pyx_RefNannyDeclarations
   PyObject *__pyx_t_1 = NULL;
@@ -5184,11 +4873,8 @@ static PyMethodDef __pyx_methods_18hmm_stock_forecast_11pomegranate_13distributi
   {"log_probability", (PyCFunction)__pyx_pw_18hmm_stock_forecast_11pomegranate_13distributions_13distributions_12Distribution_7log_probability, METH_O, __pyx_doc_18hmm_stock_forecast_11pomegranate_13distributions_13distributions_12Distribution_6log_probability},
   {"fit", (PyCFunction)(void*)(PyCFunctionWithKeywords)__pyx_pw_18hmm_stock_forecast_11pomegranate_13distributions_13distributions_12Distribution_9fit, METH_VARARGS|METH_KEYWORDS, __pyx_doc_18hmm_stock_forecast_11pomegranate_13distributions_13distributions_12Distribution_8fit},
   {"summarize", (PyCFunction)(void*)(PyCFunctionWithKeywords)__pyx_pw_18hmm_stock_forecast_11pomegranate_13distributions_13distributions_12Distribution_11summarize, METH_VARARGS|METH_KEYWORDS, __pyx_doc_18hmm_stock_forecast_11pomegranate_13distributions_13distributions_12Distribution_10summarize},
-  {"from_summaries", (PyCFunction)(void*)(PyCFunctionWithKeywords)__pyx_pw_18hmm_stock_forecast_11pomegranate_13distributions_13distributions_12Distribution_13from_summaries, METH_VARARGS|METH_KEYWORDS, __pyx_doc_18hmm_stock_forecast_11pomegranate_13distributions_13distributions_12Distribution_12from_summaries},
-  {"clear_summaries", (PyCFunction)__pyx_pw_18hmm_stock_forecast_11pomegranate_13distributions_13distributions_12Distribution_15clear_summaries, METH_NOARGS, __pyx_doc_18hmm_stock_forecast_11pomegranate_13distributions_13distributions_12Distribution_14clear_summaries},
-  {"from_samples", (PyCFunction)(void*)(PyCFunctionWithKeywords)__pyx_pw_18hmm_stock_forecast_11pomegranate_13distributions_13distributions_12Distribution_17from_samples, METH_VARARGS|METH_KEYWORDS, __pyx_doc_18hmm_stock_forecast_11pomegranate_13distributions_13distributions_12Distribution_16from_samples},
-  {"__reduce_cython__", (PyCFunction)__pyx_pw_18hmm_stock_forecast_11pomegranate_13distributions_13distributions_12Distribution_19__reduce_cython__, METH_NOARGS, 0},
-  {"__setstate_cython__", (PyCFunction)__pyx_pw_18hmm_stock_forecast_11pomegranate_13distributions_13distributions_12Distribution_21__setstate_cython__, METH_O, 0},
+  {"__reduce_cython__", (PyCFunction)__pyx_pw_18hmm_stock_forecast_11pomegranate_13distributions_13distributions_12Distribution_13__reduce_cython__, METH_NOARGS, 0},
+  {"__setstate_cython__", (PyCFunction)__pyx_pw_18hmm_stock_forecast_11pomegranate_13distributions_13distributions_12Distribution_15__setstate_cython__, METH_O, 0},
   {0, 0, 0, 0}
 };
 
@@ -5323,15 +5009,12 @@ static __Pyx_StringTabEntry __pyx_string_tab[] = {
   {&__pyx_n_s_ImportError, __pyx_k_ImportError, sizeof(__pyx_k_ImportError), 0, 0, 1, 1},
   {&__pyx_n_s_TypeError, __pyx_k_TypeError, sizeof(__pyx_k_TypeError), 0, 0, 1, 1},
   {&__pyx_n_s_asarray, __pyx_k_asarray, sizeof(__pyx_k_asarray), 0, 0, 1, 1},
-  {&__pyx_n_s_blank, __pyx_k_blank, sizeof(__pyx_k_blank), 0, 0, 1, 1},
   {&__pyx_n_s_class, __pyx_k_class, sizeof(__pyx_k_class), 0, 0, 1, 1},
   {&__pyx_n_s_cline_in_traceback, __pyx_k_cline_in_traceback, sizeof(__pyx_k_cline_in_traceback), 0, 0, 1, 1},
   {&__pyx_n_s_column_idx, __pyx_k_column_idx, sizeof(__pyx_k_column_idx), 0, 0, 1, 1},
   {&__pyx_n_s_dtype, __pyx_k_dtype, sizeof(__pyx_k_dtype), 0, 0, 1, 1},
   {&__pyx_n_s_empty, __pyx_k_empty, sizeof(__pyx_k_empty), 0, 0, 1, 1},
-  {&__pyx_n_s_fit, __pyx_k_fit, sizeof(__pyx_k_fit), 0, 0, 1, 1},
   {&__pyx_n_s_float64, __pyx_k_float64, sizeof(__pyx_k_float64), 0, 0, 1, 1},
-  {&__pyx_n_s_from_samples, __pyx_k_from_samples, sizeof(__pyx_k_from_samples), 0, 0, 1, 1},
   {&__pyx_n_s_from_summaries, __pyx_k_from_summaries, sizeof(__pyx_k_from_summaries), 0, 0, 1, 1},
   {&__pyx_n_s_getstate, __pyx_k_getstate, sizeof(__pyx_k_getstate), 0, 0, 1, 1},
   {&__pyx_n_s_import, __pyx_k_import, sizeof(__pyx_k_import), 0, 0, 1, 1},
@@ -5813,39 +5496,15 @@ if (!__Pyx_RefNanny) {
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
   __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
 
-  /* "hmm_stock_forecast/pomegranate/distributions/distributions.pyx":179
- * 
- * 	@classmethod
- * 	def from_samples(cls, items, weights=None, **kwargs):             # <<<<<<<<<<<<<<
- * 		"""Fit a distribution to some data without pre-specifying it."""
- * 
- */
-  __Pyx_GetNameInClass(__pyx_t_2, (PyObject *)__pyx_ptype_18hmm_stock_forecast_11pomegranate_13distributions_13distributions_Distribution, __pyx_n_s_from_samples); if (unlikely(!__pyx_t_2)) __PYX_ERR(1, 179, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_t_2);
-
-  /* "hmm_stock_forecast/pomegranate/distributions/distributions.pyx":178
- * 		pass
- * 
- * 	@classmethod             # <<<<<<<<<<<<<<
- * 	def from_samples(cls, items, weights=None, **kwargs):
- * 		"""Fit a distribution to some data without pre-specifying it."""
- */
-  __pyx_t_1 = __Pyx_Method_ClassMethod(__pyx_t_2); if (unlikely(!__pyx_t_1)) __PYX_ERR(1, 178, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_t_1);
-  __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
-  if (PyDict_SetItem((PyObject *)__pyx_ptype_18hmm_stock_forecast_11pomegranate_13distributions_13distributions_Distribution->tp_dict, __pyx_n_s_from_samples, __pyx_t_1) < 0) __PYX_ERR(1, 179, __pyx_L1_error)
-  __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
-  PyType_Modified(__pyx_ptype_18hmm_stock_forecast_11pomegranate_13distributions_13distributions_Distribution);
-
   /* "hmm_stock_forecast/pomegranate/distributions/distributions.pyx":1
  * #!python             # <<<<<<<<<<<<<<
  * #cython: boundscheck=False
  * #cython: cdivision=True
  */
-  __pyx_t_1 = __Pyx_PyDict_NewPresized(0); if (unlikely(!__pyx_t_1)) __PYX_ERR(1, 1, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_t_1);
-  if (PyDict_SetItem(__pyx_d, __pyx_n_s_test, __pyx_t_1) < 0) __PYX_ERR(1, 1, __pyx_L1_error)
-  __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
+  __pyx_t_2 = __Pyx_PyDict_NewPresized(0); if (unlikely(!__pyx_t_2)) __PYX_ERR(1, 1, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_2);
+  if (PyDict_SetItem(__pyx_d, __pyx_n_s_test, __pyx_t_2) < 0) __PYX_ERR(1, 1, __pyx_L1_error)
+  __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
 
   /* "../../../../../AppData/Local/pypoetry/Cache/virtualenvs/hmm-stock-forecast-jScAJTSi-py3.8/lib/site-packages/numpy/__init__.pxd":1014
  * 
@@ -7319,67 +6978,6 @@ static PyObject* __Pyx_ImportFrom(PyObject* module, PyObject* name) {
         #endif
     }
     return value;
-}
-
-/* ClassMethod */
-static PyObject* __Pyx_Method_ClassMethod(PyObject *method) {
-#if CYTHON_COMPILING_IN_PYPY && PYPY_VERSION_NUM <= 0x05080000
-    if (PyObject_TypeCheck(method, &PyWrapperDescr_Type)) {
-        return PyClassMethod_New(method);
-    }
-#else
-#if CYTHON_COMPILING_IN_PYSTON || CYTHON_COMPILING_IN_PYPY
-    if (PyMethodDescr_Check(method))
-#else
-    #if PY_MAJOR_VERSION == 2
-    static PyTypeObject *methoddescr_type = NULL;
-    if (methoddescr_type == NULL) {
-       PyObject *meth = PyObject_GetAttrString((PyObject*)&PyList_Type, "append");
-       if (!meth) return NULL;
-       methoddescr_type = Py_TYPE(meth);
-       Py_DECREF(meth);
-    }
-    #else
-    PyTypeObject *methoddescr_type = &PyMethodDescr_Type;
-    #endif
-    if (__Pyx_TypeCheck(method, methoddescr_type))
-#endif
-    {
-        PyMethodDescrObject *descr = (PyMethodDescrObject *)method;
-        #if PY_VERSION_HEX < 0x03020000
-        PyTypeObject *d_type = descr->d_type;
-        #else
-        PyTypeObject *d_type = descr->d_common.d_type;
-        #endif
-        return PyDescr_NewClassMethod(d_type, descr->d_method);
-    }
-#endif
-    else if (PyMethod_Check(method)) {
-        return PyClassMethod_New(PyMethod_GET_FUNCTION(method));
-    }
-    else {
-        return PyClassMethod_New(method);
-    }
-}
-
-/* GetNameInClass */
-static PyObject *__Pyx_GetGlobalNameAfterAttributeLookup(PyObject *name) {
-    PyObject *result;
-    __Pyx_PyThreadState_declare
-    __Pyx_PyThreadState_assign
-    if (unlikely(!__Pyx_PyErr_ExceptionMatches(PyExc_AttributeError)))
-        return NULL;
-    __Pyx_PyErr_Clear();
-    __Pyx_GetModuleGlobalNameUncached(result, name);
-    return result;
-}
-static PyObject *__Pyx__GetNameInClass(PyObject *nmspace, PyObject *name) {
-    PyObject *result;
-    result = __Pyx_PyObject_GetAttrStr(nmspace, name);
-    if (!result) {
-        result = __Pyx_GetGlobalNameAfterAttributeLookup(name);
-    }
-    return result;
 }
 
 /* CLineInTraceback */

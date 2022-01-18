@@ -1,7 +1,6 @@
 import numpy as np
 
 from hmm_stock_forecast.pomegranate import HiddenMarkovModel
-from hmm_stock_forecast.pomegranate.distributions.NormalDistribution import NormalDistribution
 
 # number of hmm states to test (and choose) using criteria
 TEST_STATES = [2, 3, 4, 5, 6]
@@ -23,8 +22,7 @@ class HMMStockForecastModel:
 
         size = len(self.data)
         predicted = np.empty([0, 4])
-        # hmm = self._hmm = GaussianHMM(n_components=states, algorithm='viterbi', init_params="stmc")
-        hmm = HiddenMarkovModel.from_samples(NormalDistribution, n_components=states, X=self.data[:self.window, :])
+        hmm = HiddenMarkovModel.init_params(n_components=states, X=self.data[:self.window, :])
 
         for i in reversed(range(self.window + 1)):
             print(i)
@@ -48,10 +46,6 @@ class HMMStockForecastModel:
                 likelihood - likelihood_new)
             predicted = np.vstack((predicted, self.data[size - i - 1, :] + predicted_change))
 
-            # if i == self.window:
-            # first iteration disable hmm params initialization for next iterations
-            # hmm.init_params = ''
-
         return predicted
 
     def _find_optimal_states(self):
@@ -59,10 +53,7 @@ class HMMStockForecastModel:
         state_likelihood = []
 
         for states in TEST_STATES:
-            hmm = HiddenMarkovModel.from_samples(NormalDistribution, n_components=states, X=self.data[:self.window, :])
-            # hmm = GaussianHMM(n_components=states, algorithm='viterbi', init_params='tmc')
-            # hmm.fit(self.data)
-            # hmm.init_params = ''
+            hmm = HiddenMarkovModel.init_params(n_components=states, X=self.data[:self.window, :])
             offset = 0
             likelihoods = []
             invalid_states = False
@@ -75,8 +66,6 @@ class HMMStockForecastModel:
                 except ValueError:
                     invalid_states = True
                     break
-                # if offset == 0:
-                #    hmm.init_params = ''
                 offset += self.window
 
             if invalid_states:
