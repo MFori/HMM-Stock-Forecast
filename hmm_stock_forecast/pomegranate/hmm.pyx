@@ -11,12 +11,12 @@ from operator import attrgetter
 import networkx
 import time
 
+from . import NormalDistribution
 from .base cimport Model
 from .base cimport State
 
 from sklearn.cluster import KMeans
 
-from .distributions.NormalDistribution import NormalDistribution
 from .utils cimport _log
 from .utils cimport pair_lse
 from .utils cimport python_log_probability
@@ -695,7 +695,7 @@ cdef class HiddenMarkovModel(Model):
 			raise SyntaxError("Model.end has been deleted, leaving the \
 				model with no end. Please ensure it has an end.")
 
-	cpdef double log_probability(self, sequence, check_input=True):
+	def log_probability(self, sequence, check_input=True):
 		"""Calculate the log probability of a single sequence.
 
 		If a path is provided, calculate the log probability of that sequence

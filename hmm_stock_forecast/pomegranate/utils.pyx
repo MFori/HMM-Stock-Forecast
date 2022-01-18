@@ -1,5 +1,6 @@
 # utils.pyx
 # Contact: Jacob Schreiber ( jmschreiber91@gmail.com )
+import math
 
 from libc.math cimport log as clog
 from libc.math cimport exp as cexp
@@ -73,6 +74,13 @@ cdef double pair_lse(double x, double y) nogil:
 	if x > y:
 		return x + clog(cexp(y-x) + 1)
 	return y + clog(cexp(x-y) + 1)
+
+def log(double x):
+	"""
+	A wrapper for the c log function, by returning negative infinity if the
+	input is 0.
+	"""
+	return math.log(x) if x > 0 else NEGINF
 
 def weight_set(items, weights):
 	"""Converts both items and weights to appropriate numpy arrays.

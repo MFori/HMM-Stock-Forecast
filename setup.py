@@ -50,8 +50,8 @@ if not use_cython:
                  ] + [Extension("hmm_stock_forecast.pomegranate.distributions.{}".format(dist), ["hmm_stock_forecast/pomegranate/distributions/{}.{}".format(dist, ext)]) for dist in distributions]
 else:
     extensions = [
-        Extension("hmm_stock_forecast.pomegranate.*", ["hmm_stock_forecast/pomegranate/*.pyx"]),
-        Extension("hmm_stock_forecast.pomegranate.distributions.*", ["hmm_stock_forecast/pomegranate/distributions/*.pyx"])
+        Extension("hmm_stock_forecast.pomegranate.*", ["hmm_stock_forecast/pomegranate/*.pyx"])
+        #Extension("hmm_stock_forecast.pomegranate.distributions.*", ["hmm_stock_forecast/pomegranate/distributions/*.pyx"])
     ]
 
     extensions = cythonize(extensions, compiler_directives={'language_level' : "2"})
@@ -71,8 +71,8 @@ setup(
     author='Jacob Schreiber',
     author_email='jmschreiber91@gmail.com',
     packages=[
-        'pomegranate',
-        'pomegranate/distributions',
+        'pomegranate'
+        #'pomegranate/distributions',
     ],
     url='http://pypi.python.org/pypi/pomegranate/',
     license='MIT',
@@ -95,8 +95,8 @@ setup(
     },
     test_suite = 'nose.collector',
     package_data={
-        'hmm_stock_forecast/pomegranate': ['*.pyd', '*.pxd'],
-        'hmm_stock_forecast/pomegranate/distributions': ['*.pyd', '*.pxd'],
+        'hmm_stock_forecast/pomegranate': ['*.pyd', '*.pxd']
+        #'hmm_stock_forecast/pomegranate/distributions': ['*.pyd', '*.pxd'],
     },
     include_package_data=True,
     zip_safe=False,

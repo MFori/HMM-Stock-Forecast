@@ -1,3 +1,3 @@
 from .base import *
-from .distributions import *
+from .distribution import NormalDistribution
 from .hmm import HiddenMarkovModel
