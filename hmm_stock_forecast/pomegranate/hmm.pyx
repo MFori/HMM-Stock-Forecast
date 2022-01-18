@@ -8,10 +8,7 @@ from __future__ import print_function
 
 from libc.math cimport exp as cexp
 from operator import attrgetter
-import math
 import networkx
-import tempfile
-import warnings
 import time
 
 from .base cimport Model
@@ -26,7 +23,6 @@ from .utils cimport pair_lse
 from .utils cimport python_log_probability
 from .utils cimport python_summarize
 
-from .utils import check_random_state
 from .utils import _check_nan
 
 from .io import SequenceGenerator
@@ -87,62 +83,6 @@ def _check_input(sequence, model):
 					.format(symbol))
 
 	return sequence_ndarray
-
-def _initialize_distributions(X, distribution):
-	"""This function initializes the distribution to labeled data.
-
-	At the beginning of training, the distributions in an HMM must be
-	initialized. Because of the flexibility of how these distributions
-	can be specified, the specific user inputs must be decoded into
-	the precise probability distributions they intended, and these
-	distributions must be fit to the data. This function takes in
-	data that has been labeled, either through user-specified labels
-	or through a clustering algorithm run on unlabeled data, and
-	decodes the user input and fits that to the data using a MLE
-	fit.
-
-	Parameters
-	----------
-	X: list
-		A list of data partitions, where each partition is the data
-		associated with one component of the model.
-
-	distribution: flexible
-		The user input for the type of probability distribution to
-		fit.
-
-	Returns
-	-------
-	distributons: list
-		A list of distributions initialized to the given data.
-	"""
-
-	print('_initialize_distributions #1')
-	n_components = len(X)
-	d = X[0].shape[1]
-	distributions = []
-
-	if callable(distribution):
-		print('_initialize_distributions #2')
-		for i in range(n_components):
-			if d == 1:
-				print('_initialize_distributions #3')
-				dist = distribution.from_samples(X[i])
-			else:
-				print('_initialize_distributions #4')
-				dist = distribution.from_samples(X[i])
-			#else:
-			#	dist = IndependentComponentsDistribution.from_samples(
-			#		X[i], distributions=distribution)
-
-			distributions.append(dist)
-
-	else:
-		raise ValueError("distribution must be either a callable (e.g., " /
-			"NormalDistribution) or a list of callables.")
-
-	return distributions
-
 
 cdef class HiddenMarkovModel(Model):
 	"""A Hidden Markov Model
@@ -1912,7 +1852,12 @@ cdef class HiddenMarkovModel(Model):
 		y_means = kmeans.fit_predict(data_for_clustering)
 
 		X_ = [data_for_clustering[y_means == i] for i in range(n_components)]
-		distributions = _initialize_distributions(X_, distribution)
+
+		distributions = []
+		if callable(distribution):
+			for i in range(n_components):
+				dist = distribution.from_samples(X_[i])
+				distributions.append(dist)
 
 		k = n_components
 		transition_matrix = numpy.ones((k, k)) / k
