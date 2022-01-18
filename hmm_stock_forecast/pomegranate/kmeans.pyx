@@ -679,18 +679,6 @@ cdef class Kmeans(Model):
 		memset(self.summary_sizes, 0, self.k*self.d*sizeof(double))
 		memset(self.summary_weights, 0, self.k*self.d*sizeof(double))
 
-	def to_dict(self):
-		return {
-			'class' : 'Kmeans',
-			'k' : self.k,
-			'centroids'  : self.centroids.tolist()
-		}
-
-	@classmethod
-	def from_dict(cls, d):
-		model = cls(d['k'], d['centroids'])
-		return model
-
 	@classmethod
 	def from_samples(cls, k, X, weights=None, init='kmeans++', n_init=10,
 		inertia=0.0, stop_threshold=0.1, max_iterations=1e3, batch_size=None,
