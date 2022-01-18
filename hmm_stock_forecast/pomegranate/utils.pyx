@@ -2,35 +2,17 @@
 # Contact: Jacob Schreiber ( jmschreiber91@gmail.com )
 
 from libc.math cimport log as clog
-from libc.math cimport log2 as clog2
 from libc.math cimport exp as cexp
-from libc.math cimport floor
-from libc.math cimport fabs
-from libc.stdlib cimport rand, RAND_MAX
 from libc.math cimport isnan
 
-from scipy.linalg.cython_blas cimport dgemm
-
-
-cimport cython
 import numpy
 cimport numpy
 
-import numbers
-
-import heapq
-
 numpy.import_array()
-
-cdef extern from "numpy/ndarraytypes.h":
-	void PyArray_ENABLEFLAGS(numpy.ndarray X, int flags)
 
 # Define some useful constants
 DEF NEGINF = float("-inf")
 DEF INF = float("inf")
-DEF SQRT_2_PI = 2.50662827463
-DEF GAMMA = 0.577215664901532860606512090
-DEF HALF_LOG2_PI = 0.91893853320467274178032973640562
 
 cdef python_log_probability(model, double* X, double* log_probability, int n):
 	cdef int i

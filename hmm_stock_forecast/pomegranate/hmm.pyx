@@ -14,8 +14,6 @@ import time
 from .base cimport Model
 from .base cimport State
 
-from distributions.distributions cimport Distribution
-
 from sklearn.cluster import KMeans
 
 from .distributions.NormalDistribution import NormalDistribution
@@ -44,7 +42,7 @@ DEF SQRT_2_PI = 2.50662827463
 def _check_input(sequence, model):
 	n = len(sequence)
 
-	if not isinstance(model, Distribution) and not isinstance(model, Model):
+	if not isinstance(model, NormalDistribution) and not isinstance(model, Model):
 		return numpy.array(sequence, dtype=numpy.float64)
 
 	if not model.discrete:
@@ -681,7 +679,7 @@ cdef class HiddenMarkovModel(Model):
 
 		self.cython = 1
 		for dist in self.distributions:
-			if not isinstance(dist, Distribution) and not isinstance(dist, Model):
+			if not isinstance(dist, NormalDistribution) and not isinstance(dist, Model):
 				self.cython = 0
 
 		# This holds the index of the start state

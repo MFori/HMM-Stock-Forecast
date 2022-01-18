@@ -6,7 +6,5 @@
 For detailed documentation and examples, see the README.
 """
 
-from .distributions import *
-
 from .NormalDistribution import NormalDistribution
 

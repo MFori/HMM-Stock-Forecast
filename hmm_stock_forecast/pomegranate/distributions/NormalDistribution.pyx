@@ -8,6 +8,7 @@ import numpy
 
 from ..utils cimport _log
 from ..utils cimport isnan
+from ..utils import weight_set
 
 from libc.math cimport sqrt as csqrt
 
@@ -17,8 +18,14 @@ DEF INF = float("inf")
 DEF SQRT_2_PI = 2.50662827463
 DEF LOG_2_PI = 1.83787706641
 
-cdef class NormalDistribution(Distribution):
+cdef class NormalDistribution(object):
 	"""A normal distribution based on a mean and standard deviation."""
+
+	def __cinit__(self):
+		self.name = "Distribution"
+		self.frozen = False
+		self.summaries = []
+		self.d = 1
 
 	property parameters:
 		def __get__(self):
@@ -40,6 +47,43 @@ cdef class NormalDistribution(Distribution):
 		"""Serialize distribution for pickling."""
 		return self.__class__, (self.mu, self.sigma, self.frozen)
 
+	def log_probability(self, X):
+		"""Return the log probability of the given X under this distribution.
+
+		Parameters
+		----------
+		X : double
+			The X to calculate the log probability of (overridden for
+			DiscreteDistributions)
+
+		Returns
+		-------
+		logp : double
+			The log probability of that point under the distribution.
+		"""
+
+		cdef int i, n
+		cdef double logp
+		cdef numpy.ndarray logp_array
+		cdef numpy.ndarray X_ndarray
+		cdef double* X_ptr
+		cdef double* logp_ptr
+
+		n = 1 if isinstance(X, (int, float)) else len(X)
+
+		logp_array = numpy.empty(n, dtype='float64')
+		logp_ptr = <double*> logp_array.data
+
+		X_ndarray = numpy.asarray(X, dtype='float64')
+		X_ptr = <double*> X_ndarray.data
+
+		self._log_probability(X_ptr, logp_ptr, n)
+
+		if n == 1:
+			return logp_array[0]
+		else:
+			return logp_array
+
 	cdef void _log_probability(self, double* X, double* log_probability, int n) nogil:
 		cdef int i
 		for i in range(n):
@@ -48,6 +92,41 @@ cdef class NormalDistribution(Distribution):
 			else:
 				log_probability[i] = self.log_sigma_sqrt_2_pi - ((X[i] - self.mu) ** 2) *\
 					self.two_sigma_squared
+
+	def fit(self, items, weights=None, inertia=0.0, column_idx=0):
+		"""
+		Set the parameters of this Distribution to maximize the likelihood of
+		the given sample. Items holds some sort of sequence. If weights is
+		specified, it holds a sequence of value to weight each item by.
+		"""
+
+		if self.frozen:
+			return
+
+		self.summarize(items, weights, column_idx)
+		self.from_summaries(inertia)
+
+	def summarize(self, items, weights=None, column_idx=0):
+		"""
+		Take in a series of items and their weights and reduce it down to a
+		summary statistic to be used in training later.
+		"""
+
+		items, weights = weight_set(items, weights)
+		if weights.sum() <= 0:
+			return
+
+		cdef double* items_p = <double*> (<numpy.ndarray> items).data
+		cdef double* weights_p = <double*> (<numpy.ndarray> weights).data
+		cdef int n = items.shape[0]
+		cdef int d = 1
+		cdef int column_id = <int> column_idx
+
+		if items.ndim == 2:
+			d = items.shape[1]
+
+		with nogil:
+			self._summarize(items_p, weights_p, n, column_id, d)
 
 	cdef double _summarize(self, double* items, double* weights, int n,
 		int column_idx, int d) nogil:

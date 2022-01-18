@@ -1,8 +1,6 @@
 # utils.pxd
 # Contact: Jacob Schreiber ( jmschreiber91@gmail.com )
 
-cimport numpy
-
 cdef extern from "numpy/npy_math.h":
 	bint npy_isnan(double x) nogil
 
