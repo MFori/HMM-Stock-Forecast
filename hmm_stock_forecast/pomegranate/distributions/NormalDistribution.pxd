@@ -15,7 +15,7 @@ cdef class NormalDistribution(object):
 	cdef double mu, sigma, two_sigma_squared, log_sigma_sqrt_2_pi
 	cdef object min_std
 
-	cdef void _log_probability(self, double* symbol, double* log_probability, int n) nogil
+	#cdef void _log_probability(self, double* symbol, double* log_probability, int n) nogil
 	cdef double _summarize(self, double* items, double* weights, int n,
 						   int column_idx, int d) nogil
 

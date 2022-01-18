@@ -61,31 +61,19 @@ cdef class NormalDistribution(object):
 		logp : double
 			The log probability of that point under the distribution.
 		"""
-
-		cdef int i, n
-		cdef double logp
-		cdef numpy.ndarray logp_array
-		cdef numpy.ndarray X_ndarray
-		cdef double* X_ptr
-		cdef double* logp_ptr
-
 		n = 1 if isinstance(X, (int, float)) else len(X)
 
 		logp_array = numpy.empty(n, dtype='float64')
-		logp_ptr = <double*> logp_array.data
-
 		X_ndarray = numpy.asarray(X, dtype='float64')
-		X_ptr = <double*> X_ndarray.data
 
-		self._log_probability(X_ptr, logp_ptr, n)
+		self._log_probability(X_ndarray, logp_array, n)
 
 		if n == 1:
 			return logp_array[0]
 		else:
 			return logp_array
 
-	cdef void _log_probability(self, double* X, double* log_probability, int n) nogil:
-		cdef int i
+	def _log_probability(self, X, log_probability, n):
 		for i in range(n):
 			if isnan(X[i]):
 				log_probability[i] = 0.
