@@ -1,33 +1,7 @@
 import numpy
 
 
-class BaseGenerator(object):
-    """The base data generator class.
-
-    This object is inherited by data generator objects in order to specify that
-    they are data generators. Do not use this object directly.
-    """
-
-    def __init__(self):
-        pass
-
-    def __len__(self):
-        return NotImplementedError
-
-    @property
-    def shape(self):
-        return NotImplementedError
-
-    @property
-    def classes(self):
-        return NotImplementedError
-
-    @property
-    def ndim(self):
-        return NotImplementedError
-
-
-class SequenceGenerator(BaseGenerator):
+class SequenceGenerator(object):
     """A generator that returns batches of sequences from a data set.
 
     This object will wrap a data set and optionally a set of labels and will
@@ -61,9 +35,6 @@ class SequenceGenerator(BaseGenerator):
         else:
             self.batches_per_epoch = batches_per_epoch
 
-    def __len__(self):
-        return len(self.X)
-
     @property
     def shape(self):
         x_ = numpy.asarray(self.X[0])
@@ -87,23 +58,8 @@ class SequenceGenerator(BaseGenerator):
         return numpy.unique(self.y)
 
     def batches(self):
-        for idx in range(len(self)):
+        for idx in range(len(self.X)):
             if self.y is not None:
                 yield self.X[idx:idx + 1], self.weights[idx:idx + 1], self.y[idx:idx + 1]
             else:
                 yield self.X[idx:idx + 1], self.weights[idx:idx + 1]
-
-    def labeled_batches(self):
-        X = [x for x, y in zip(self.X, self.y) if y is not None]
-        weights = [w for w, y in zip(self.weights, self.y) if y is not None]
-        y = [y for y in self.y if y is not None]
-
-        for idx in range(len(X)):
-            yield X[idx:idx + 1], weights[idx:idx + 1], y[idx:idx + 1]
-
-    def unlabeled_batches(self):
-        X = [x for x, y in zip(self.X, self.y) if y is None]
-        weights = [w for w, y in zip(self.weights, self.y) if y is None]
-
-        for idx in range(len(X)):
-            yield X[idx:idx + 1], weights[idx:idx + 1]

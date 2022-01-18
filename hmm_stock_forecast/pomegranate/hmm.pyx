@@ -29,7 +29,6 @@ from .utils cimport python_summarize
 from .utils import check_random_state
 from .utils import _check_nan
 
-from .io import BaseGenerator
 from .io import SequenceGenerator
 
 from libc.stdlib cimport calloc
@@ -121,7 +120,7 @@ def _initialize_distributions(X, distribution):
 	print('_initialize_distributions #1')
 	n_components = len(X)
 	d = X[0].shape[1]
-	distributions = [] 
+	distributions = []
 
 	if callable(distribution):
 		print('_initialize_distributions #2')
@@ -135,7 +134,7 @@ def _initialize_distributions(X, distribution):
 			#else:
 			#	dist = IndependentComponentsDistribution.from_samples(
 			#		X[i], distributions=distribution)
-			
+
 			distributions.append(dist)
 
 	else:
@@ -1700,12 +1699,12 @@ cdef class HiddenMarkovModel(Model):
 			# if we should check input multiple times
 			# use old code, where we only change class of input
 			# checking input will be in `summarize` function
-			if not isinstance(sequences, BaseGenerator):
+			if not isinstance(sequences, SequenceGenerator):
 				data_generator = SequenceGenerator(sequences, weights, labels)
 			else:
 				data_generator = sequences
 		else:
-			if not isinstance(sequences, BaseGenerator):
+			if not isinstance(sequences, SequenceGenerator):
 				#check_input:
 				#sequences have elements which are ndarrays. For each dimension in
 				#our HMM model we have one row in this array, so we have to
@@ -1738,13 +1737,6 @@ cdef class HiddenMarkovModel(Model):
 
 		n = data_generator.shape[0]
 
-		semisupervised = False
-		if labels is not None:
-			for l in labels:
-				if l is None:
-					semisupervised = True
-					break
-
 		batches_per_epoch = batches_per_epoch 
 		n_seen_batches = 0
 
@@ -1762,21 +1754,8 @@ cdef class HiddenMarkovModel(Model):
 				if iteration >= max_iterations + 1:
 					break
 
-				if semisupervised:
-					log_probability_sum = sum(parallel(f(*batch, algorithm='labeled', 
-						check_input=multiple_check_input) for batch in data_generator.labeled_batches()))
-
-					log_probability_sum += sum(parallel(f(*batch, algorithm=algorithm, 
-						check_input=multiple_check_input) for batch in data_generator.unlabeled_batches()))
-
-
-				elif labels is not None:
-					log_probability_sum = sum(parallel(f(*batch, 
-						algorithm=algorithm, check_input=multiple_check_input) for batch in data_generator.batches()))
-
-				else:
-					log_probability_sum = sum(parallel(f(*batch, algorithm=algorithm,
-						check_input=multiple_check_input) for batch in data_generator.batches()))
+				log_probability_sum = sum(parallel(f(*batch, algorithm=algorithm,
+					check_input=multiple_check_input) for batch in data_generator.batches()))
 
 				if iteration == 0:
 					initial_log_probability_sum = log_probability_sum
@@ -2347,23 +2326,14 @@ cdef class HiddenMarkovModel(Model):
 			The model fit to the data.
 		"""
 
-		data_generator = SequenceGenerator(X)
-		initialization_batch_size = len(data_generator)
-
-		X_ = []
-		data = data_generator.batches()
-		for i in range(initialization_batch_size):
-			batch = next(data)
-			X_.extend(batch[0])
-
-		X_concat = numpy.concatenate(X_)
-		if X_concat.ndim == 1:
-			X_concat = X_concat.reshape(-1, 1)
+		data_for_clustering = [item for item in X]
+		data_for_clustering = numpy.array(data_for_clustering)
+		data_for_clustering = numpy.concatenate(data_for_clustering).reshape(-1, 1)
 
 		kmeans = KMeans(n_clusters=n_components, random_state=0)
-		y_means = kmeans.fit_predict(X_concat)
+		y_means = kmeans.fit_predict(data_for_clustering)
 
-		X_ = [X_concat[y_means == i] for i in range(n_components)]
+		X_ = [data_for_clustering[y_means == i] for i in range(n_components)]
 		distributions = _initialize_distributions(X_, distribution)
 
 		k = n_components
