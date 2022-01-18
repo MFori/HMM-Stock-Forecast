@@ -8732,7 +8732,7 @@ static CYTHON_INLINE int __pyx_f_18hmm_stock_forecast_11pomegranate_5utils_isnan
  * cdef inline bint isnan(double x) nogil:
  * 	return npy_isnan(x)             # <<<<<<<<<<<<<<
  * 
- * cdef bint _is_gpu_enabled() nogil
+ * cdef python_log_probability(model, double* X, double* log_probability, int n)
  */
   __pyx_r = npy_isnan(__pyx_v_x);
   goto __pyx_L0;
