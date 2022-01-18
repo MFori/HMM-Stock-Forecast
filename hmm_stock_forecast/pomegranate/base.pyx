@@ -85,21 +85,6 @@ cdef class Model(object):
 
 		raise NotImplementedError
 
-	def score(self, X, y):
-		"""Return the accuracy of the model on a data set.
-
-		Parameters
-		----------
-		X : numpy.ndarray, shape=(n, d)
-			The values of the data set
-
-		y : numpy.ndarray, shape=(n,)
-			The labels of each value
-		"""
-
-		return (self.predict(X) == y).mean()
-
-
 	def sample(self, n=None):
 		"""Return a random item sampled from this distribution.
 
@@ -236,10 +221,6 @@ cdef class Model(object):
 	def add_transition(self, a, b):
 		"""Transitions and edges are the same."""
 		self.add_edge(a, b)
-
-	def node_count(self):
-		"""Returns the number of nodes/states in the model"""
-		return self.n_states
 
 	def state_count(self):
 		"""Returns the number of states present in the model."""

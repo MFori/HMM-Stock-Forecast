@@ -1157,11 +1157,8 @@ cdef class HiddenMarkovModel(Model):
 			e = <double*> malloc(n*self.silent_start*sizeof(double))
 			for l in range(self.silent_start):
 				for i in range(n):
-					if self.cython == 1:
-						(<Model> distributions[l])._log_probability(sequence+i*dim, e+l*n+i, 1)
-					else:
-						with gil:
-							python_log_probability(self.distributions[l], sequence+i*dim, e+l*n+i, 1)
+					with gil:
+						python_log_probability(self.distributions[l], sequence+i*dim, e+l*n+i, 1)
 
 					e[l*n + i] += self.state_weights[l]
 		else:
@@ -1273,11 +1270,8 @@ cdef class HiddenMarkovModel(Model):
 			e = <double*> malloc(n*self.silent_start*sizeof(double))
 			for l in range(self.silent_start):
 				for i in range(n):
-					if self.cython == 1:
-						(<Model> distributions[l])._log_probability(sequence+i*dim, e+l*n+i, 1)
-					else:
-						with gil:
-							python_log_probability(self.distributions[l], sequence+i*dim, e+l*n+i, 1)
+					with gil:
+						python_log_probability(self.distributions[l], sequence+i*dim, e+l*n+i, 1)
 
 					e[l*n + i] += self.state_weights[l]
 		else:
@@ -1504,11 +1498,8 @@ cdef class HiddenMarkovModel(Model):
 			e = <double*> malloc(n*self.silent_start*sizeof(double))
 			for l in range(self.silent_start):
 				for i in range(n):
-					if self.cython == 1:
-						(<Model> distributions[l])._log_probability(sequence+i*dim, e+l*n+i, 1)
-					else:
-						with gil:
-							python_log_probability(self.distributions[l], sequence+i*dim, e+l*n+i, 1)
+					with gil:
+						python_log_probability(self.distributions[l], sequence+i*dim, e+l*n+i, 1)
 
 					e[l*n + i] += self.state_weights[l]
 		else:
@@ -1888,34 +1879,12 @@ cdef class HiddenMarkovModel(Model):
 					time_spent = epoch_end_time - epoch_start_time
 					improvement = log_probability_sum - last_log_probability_sum
 
-					if verbose:
-						print("[{}] Improvement: {}\tTime (s): {:.4}".format(
-							iteration, improvement, time_spent))
-
 					total_improvement += improvement
-
-					logs = {'learning_rate': step_size,
-							'n_seen_batches' : n_seen_batches,
-							'epoch' : iteration,
-							'improvement' : improvement,
-							'total_improvement' : total_improvement,
-							'log_probability' : log_probability_sum,
-							'last_log_probability' : last_log_probability_sum,
-							'initial_log_probability' : initial_log_probability_sum,
-							'epoch_start_time' : epoch_start_time,
-							'epoch_end_time' : epoch_end_time,
-							'duration' : time_spent }
 
 				iteration += 1
 				last_log_probability_sum = log_probability_sum
 
 		self.clear_summaries()
-
-		if verbose:
-			print("Total Training Improvement: {}".format(total_improvement))
-			total_training_time = time.time() - training_start_time
-			print("Total Training Time (s): {:.4f}".format(total_training_time))
-
 		return self
 
 	def summarize(self, sequences, weights=None, labels=None, algorithm='baum-welch',
@@ -2030,11 +1999,8 @@ cdef class HiddenMarkovModel(Model):
 		e = <double*> malloc(n*self.silent_start*sizeof(double))
 		for l in range(self.silent_start):
 			for i in range(n):
-				if self.cython == 1:
-					(<Model> distributions[l])._log_probability(sequence+i*d, e+l*n+i, 1)
-				else:
-					with gil:
-						python_log_probability(self.distributions[l], sequence+i*d, e+l*n+i, 1)
+				with gil:
+					python_log_probability(self.distributions[l], sequence+i*d, e+l*n+i, 1)
 
 				e[l*n + i] += self.state_weights[l]
 
@@ -2125,13 +2091,9 @@ cdef class HiddenMarkovModel(Model):
 						weights[i] = cexp(f[(i+1)*m + k] + b[(i+1)*m + k] -
 							log_sequence_probability) * weight[0]
 
-					if self.cython == 0:
-						with gil:
-							python_summarize(self.distributions[k], sequence, 
-								weights, n)
-					else:
-						(<Model>distributions[k])._summarize(sequence, weights, 
-							n, 0, self.d)
+					with gil:
+						python_summarize(self.distributions[k], sequence,
+							weights, n)
 
 			# Update the master expected transitions vector representing the sparse matrix.
 			with gil:

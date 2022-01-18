@@ -9,8 +9,9 @@ import numpy
 import sys
 
 from ..utils import weight_set
+DEF NEGINF = float("-inf")
 
-cdef class Distribution(Model):
+cdef class Distribution(object):
 	"""A probability distribution.
 
 	Represents a probability distribution over the defined support. This is
@@ -117,6 +118,13 @@ cdef class Distribution(Model):
 			return logp_array[0]
 		else:
 			return logp_array
+
+	cdef void _log_probability(self, double* symbol, double* log_probability,
+							   int n) nogil:
+		pass
+
+	cdef double _vl_log_probability(self, double* symbol, int n) nogil:
+		return NEGINF
 
 	def fit(self, items, weights=None, inertia=0.0, column_idx=0):
 		"""
