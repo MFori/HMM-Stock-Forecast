@@ -19,7 +19,6 @@ from .base cimport Model
 from .base cimport State
 
 from distributions.distributions cimport Distribution
-from distributions.NeuralNetworkWrapper import NeuralNetworkWrapper
 
 from .kmeans import Kmeans
 
@@ -120,41 +119,25 @@ def _initialize_distributions(X, distribution):
 		A list of distributions initialized to the given data.
 	"""
 
+	print('_initialize_distributions #1')
 	n_components = len(X)
 	d = X[0].shape[1]
 	distributions = [] 
 
 	if callable(distribution):
+		print('_initialize_distributions #2')
 		for i in range(n_components):
-			if d == 1: 
-				dist = distribution.from_samples(X[i]) 
+			if d == 1:
+				print('_initialize_distributions #3')
+				dist = distribution.from_samples(X[i])
 			else:
+				print('_initialize_distributions #4')
 				dist = distribution.from_samples(X[i])
 			#else:
 			#	dist = IndependentComponentsDistribution.from_samples(
 			#		X[i], distributions=distribution)
 			
 			distributions.append(dist)
-
-	elif isinstance(distribution, list) and isinstance(distribution[0], 
-		NeuralNetworkWrapper):
-		distributions = distribution
-
-	elif isinstance(distribution, list):
-		if len(distribution) == d:
-			for i in range(n_components):
-				pass
-				#dist = IndependentComponentsDistribution.from_samples(
-				#	X[i], distributions=distribution)
-				#distributions.append(dist)
-		elif len(distribution) == n_components:
-			for i, dist in enumerate(distribution):
-				dist = dist.from_samples(X[i])
-				distributions.append(dist)
-		else:
-			raise ValueError("When passing in a list of distributions, the " / 
-				"list must either have one distribution per dimension " /
-				"(preferentially chosen) or one distribution per component.")
 
 	else:
 		raise ValueError("distribution must be either a callable (e.g., " /
@@ -2464,8 +2447,8 @@ cdef class HiddenMarkovModel(GraphModel):
 		use_pseudocount=False, stop_threshold=1e-9, min_iterations=0,
 		max_iterations=1e8, n_init=1, init='kmeans++', max_kmeans_iterations=1,
 		initialization_batch_size=None, batches_per_epoch=None, lr_decay=0.0, 
-		end_state=False, state_names=None, name=None, keys=None, random_state=None,
-		return_history=False, verbose=False, n_jobs=1,
+		end_state=False, keys=None, random_state=None,
+		verbose=False, n_jobs=1,
 		multiple_check_input=True):
 		"""Learn the transitions and emissions of a model directly from data.
 
@@ -2605,13 +2588,6 @@ cdef class HiddenMarkovModel(GraphModel):
 			Whether to calculate the probability of ending in each state or not.
 			Default is False.
 
-		state_names : array-like, shape (n_states), optional
-			The name of the states. If None is passed in, default names are
-			generated. Default is None
-
-		name : str, optional
-			The name of the model. Default is None
-
 		keys : list
 			A list of sets where each set is the keys present in that column.
 			If there are d columns in the data set then this list should have
@@ -2621,9 +2597,6 @@ cdef class HiddenMarkovModel(GraphModel):
 			The random state used for generating samples. If set to none, a
 			random seed will be used. If set to either an integer or a
 			random seed, will produce deterministic outputs.
-
-		return_history : bool, optional
-			Whether to return the history during training as well as the model.
 
 		verbose : bool, optional
 			Whether to print the improvement in the model fitting at each
@@ -2646,7 +2619,6 @@ cdef class HiddenMarkovModel(GraphModel):
 			The model fit to the data.
 		"""
 
-		print('from sample #1')
 		random_state = check_random_state(random_state)
 
 		if not isinstance(X, BaseGenerator):
@@ -2672,17 +2644,6 @@ cdef class HiddenMarkovModel(GraphModel):
 		# If labels are provided, use them to initialize the distributions
 		if labels is not None:
 			print('from sample #6')
-			X_concat = [x for x, label in zip(X_, labels_) if label is not None]
-			X_concat = numpy.concatenate(X_concat)
-			if X_concat.ndim == 1:
-				X_concat = X_concat.reshape(-1, 1)
-
-			labels_concat = numpy.concatenate([l for l in labels if l is not None])
-			labels_concat = numpy.array([l for l in labels_concat if l != str(name)+"-start" and l != str(name)+"-end"])
-			label_set = numpy.unique(labels_concat)
-
-			X_ = [X_concat[labels_concat == label] for label in label_set]
-			distributions = _initialize_distributions(X_, distribution)
 
 		# If labels are not provided, run K-means to initialize the distributions
 		else:
@@ -2702,14 +2663,10 @@ cdef class HiddenMarkovModel(GraphModel):
 
 		k = n_components
 		transition_matrix = numpy.ones((k, k)) / k
-		start_probabilities = numpy.ones(k) / k
+		start_probabilities = numpy.zeros(k)
+		start_probabilities[0] = 1
 
-		end_probabilities = None
-		if end_state:
-			end_probabilities = numpy.ones(k) / k
-
-		model = cls.from_matrix(transition_matrix, distributions, 
-			start_probabilities, state_names=state_names, name=name, 
-			ends=end_probabilities)
+		print('from sample #9')
+		model = cls.from_matrix(transition_matrix, distributions, start_probabilities)
 
 		return model

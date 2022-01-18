@@ -159,37 +159,13 @@ cdef class Distribution(Model):
 
 	def from_summaries(self, inertia=0.0):
 		"""Fit the distribution to the stored sufficient statistics.
-		Parameters
-		----------
-		inertia : double, optional
-			The weight of the previous parameters of the model. The new
-			parameters will roughly be old_param*inertia + new_param*(1-inertia),
-			so an inertia of 0 means ignore the old parameters, whereas an
-			inertia of 1 means ignore the new parameters. Default is 0.0.
-
-		Returns
-		-------
-		None
 		"""
-
-		# If the distribution is frozen, don't bother with any calculation
-		if self.frozen == True:
-			return
-
-		self.fit(*self.summaries, inertia=inertia)
-		self.summaries = []
+		pass
 
 	def clear_summaries(self):
 		"""Clear the summary statistics stored in the object.
-		Parameters
-		----------
-		None
-		Returns
-		-------
-		None
 		"""
-
-		self.summaries = []
+		pass
 
 	@classmethod
 	def from_samples(cls, items, weights=None, **kwargs):
