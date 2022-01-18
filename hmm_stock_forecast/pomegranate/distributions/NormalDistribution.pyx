@@ -8,7 +8,6 @@ import numpy
 
 from ..utils cimport _log
 from ..utils cimport isnan
-from ..utils import check_random_state
 
 from libc.math cimport sqrt as csqrt
 
@@ -49,10 +48,6 @@ cdef class NormalDistribution(Distribution):
 			else:
 				log_probability[i] = self.log_sigma_sqrt_2_pi - ((X[i] - self.mu) ** 2) *\
 					self.two_sigma_squared
-
-	def sample(self, n=None, random_state=None):
-		random_state = check_random_state(random_state)
-		return random_state.normal(self.mu, self.sigma, n)
 
 	cdef double _summarize(self, double* items, double* weights, int n,
 		int column_idx, int d) nogil:

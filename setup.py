@@ -86,10 +86,8 @@ setup(
     ],
     install_requires=[
         "numpy >= 1.20.0",
-        "joblib >= 0.9.0b4",
         "networkx >= 2.4",
-        "scipy >= 0.17.0",
-        "pyyaml"
+        "scipy >= 0.17.0"
     ],
     extras_require={
         "Plotting": ["pygraphviz", "matplotlib"],

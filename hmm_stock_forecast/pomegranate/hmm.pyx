@@ -36,9 +36,6 @@ from libc.string cimport memset
 import numpy
 cimport numpy
 
-from joblib import Parallel
-from joblib import delayed
-
 # Define some useful constants
 DEF NEGINF = float("-inf")
 DEF INF = float("inf")
@@ -1063,8 +1060,7 @@ cdef class HiddenMarkovModel(Model):
 		min_iterations=0, max_iterations=1e8, algorithm='baum-welch',
 		pseudocount=None, transition_pseudocount=0, emission_pseudocount=0.0,
 		use_pseudocount=False, inertia=None, edge_inertia=0.0,
-		distribution_inertia=0.0, lr_decay=0.0,
-		multiple_check_input=True):
+		distribution_inertia=0.0, lr_decay=0.0):
 		"""Fit the model to data using either Baum-Welch, Viterbi, or supervised training.
 
 		Given a list of sequences, performs re-estimation on the model
@@ -1166,85 +1162,38 @@ cdef class HiddenMarkovModel(Model):
 			raise ValueError("must bake model before fitting")
 
 		cdef int iteration = 0
-		cdef int mv = self.multivariate
 		cdef double improvement = INF
-		cdef double total_improvement = 0
 		cdef double initial_log_probability_sum
 		cdef double log_probability_sum
 		cdef double last_log_probability_sum
-		cdef str alg = algorithm.lower()
-		cdef bint check_input = alg == 'viterbi'
 
-		training_start_time = time.time()
-
-		if multiple_check_input:
-			# if we should check input multiple times
-			# use old code, where we only change class of input
-			# checking input will be in `summarize` function
-			if not isinstance(sequences, SequenceGenerator):
-				data_generator = SequenceGenerator(sequences)
-			else:
-				data_generator = sequences
+		if not isinstance(sequences, SequenceGenerator):
+			data_generator = SequenceGenerator(sequences)
 		else:
-			if not isinstance(sequences, SequenceGenerator):
-				#check_input:
-				#sequences have elements which are ndarrays. For each dimension in
-				#our HMM model we have one row in this array, so we have to
-				#iterate over all sequences for all dimensions
-				checked_sequences = []
-				for sequence in sequences:
-					sequence_ndarray = _check_input(sequence, self)
-					checked_sequences.append(sequence_ndarray)
+			data_generator = sequences
 
-				data_generator = SequenceGenerator(checked_sequences)
+		while improvement > stop_threshold or iteration < min_iterations + 1:
+			epoch_start_time = time.time()
+			step_size = None if inertia is None else 1 - ((1 - inertia) * (2 + iteration) ** -lr_decay)
+
+			self.from_summaries(step_size, pseudocount, transition_pseudocount,
+				emission_pseudocount, use_pseudocount,
+				edge_inertia, distribution_inertia)
+
+			if iteration >= max_iterations + 1:
+				break
+
+			log_probability_sum = 0
+			for batch in data_generator.batches():
+				log_probability_sum += self.summarize(*batch)
+
+			if iteration == 0:
+				initial_log_probability_sum = log_probability_sum
 			else:
-				checked_sequences, checked_weights, checked_labels = [], [], []
+				improvement = log_probability_sum - last_log_probability_sum
 
-				for batch in sequences.batches():
-					sequence_ndarray= _check_input(batch[0][0],self)
-					checked_sequences.append(sequence_ndarray)
-					checked_weights.append(batch[1])
-
-					if len(batch) == 3:
-						checked_labels.append(batch[2][0])
-					else:
-						checked_labels = None
-
-				data_generator = SequenceGenerator(checked_sequences, checked_weights,
-					checked_labels)
-
-		n = data_generator.shape[0]
-
-		n_seen_batches = 0
-
-		with Parallel(n_jobs=1, backend='threading') as parallel:
-			f = delayed(self.summarize)
-
-			while improvement > stop_threshold or iteration < min_iterations + 1:
-				epoch_start_time = time.time()
-				step_size = None if inertia is None else 1 - ((1 - inertia) * (2 + iteration) ** -lr_decay)
-
-				self.from_summaries(step_size, pseudocount, transition_pseudocount,
-					emission_pseudocount, use_pseudocount,
-					edge_inertia, distribution_inertia)
-
-				if iteration >= max_iterations + 1:
-					break
-
-				log_probability_sum = sum(parallel(f(*batch, algorithm=algorithm,
-					check_input=multiple_check_input) for batch in data_generator.batches()))
-
-				if iteration == 0:
-					initial_log_probability_sum = log_probability_sum
-				else:
-					epoch_end_time = time.time()
-					time_spent = epoch_end_time - epoch_start_time
-					improvement = log_probability_sum - last_log_probability_sum
-
-					total_improvement += improvement
-
-				iteration += 1
-				last_log_probability_sum = log_probability_sum
+			iteration += 1
+			last_log_probability_sum = log_probability_sum
 
 		self.clear_summaries()
 		return self

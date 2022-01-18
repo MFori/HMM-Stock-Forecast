@@ -85,24 +85,6 @@ cdef class Model(object):
 
 		raise NotImplementedError
 
-	def sample(self, n=None):
-		"""Return a random item sampled from this distribution.
-
-		Parameters
-		----------
-		n : int or None, optional
-			The number of samples to return. Default is None, which is to
-			generate a single sample.
-
-		Returns
-		-------
-		sample : double or object
-			Returns a sample from the distribution of a type in the support
-			of the distribution.
-		"""
-
-		raise NotImplementedError
-
 	def fit(self, items, weights=None, inertia=0.0):
 		"""Fit the distribution to new data using MLE estimates.
 
