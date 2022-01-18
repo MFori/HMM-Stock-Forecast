@@ -90,7 +90,6 @@ cdef class HiddenMarkovModel(Model):
 	cdef double* in_transition_pseudocounts
 	cdef double* out_transition_pseudocounts
 	cdef double [:] state_weights
-	cdef public bint discrete
 	cdef int summaries
 	cdef int* tied_state_count
 	cdef int* tied
@@ -104,10 +103,7 @@ cdef class HiddenMarkovModel(Model):
 	cdef int* in_transitions
 	cdef int* out_edge_count
 	cdef int* out_transitions
-	cdef int finite, n_tied_edge_groups
-	cdef public list keymap
-	cdef object state_names
-	cdef dict state_name_mapping
+	cdef int n_tied_edge_groups
 	cdef numpy.ndarray distributions
 	cdef void** distributions_ptr
 
@@ -128,9 +124,6 @@ cdef class HiddenMarkovModel(Model):
 		# Put start and end in the graph
 		self.graph.add_node(self.start)
 		self.graph.add_node(self.end)
-
-		self.state_names = set()
-		self.state_name_mapping = {}
 
 	def __dealloc__(self):
 		self.free_bake_buffers()
@@ -153,26 +146,7 @@ cdef class HiddenMarkovModel(Model):
 
 
 	def add_state(self, state):
-		"""Add a state to the given model.
-
-		The state must not already be in the model, nor may it be part of any
-		other model that will eventually be combined with this one.
-
-		Parameters
-		----------
-		state : State
-			A state object to be added to the model.
-
-		Returns
-		-------
-		None
-		"""
-
-		if state.name in self.state_names:
-			raise ValueError("A state with name '{}' already exists".format(state.name))
-
 		self.graph.add_node(state)
-		self.state_names.add(state.name)
 
 	def add_transition(self, a, b, probability, pseudocount=None, group=None):
 		"""Add a transition from state a to state b.
@@ -516,12 +490,6 @@ cdef class HiddenMarkovModel(Model):
 			# Increment the total number of edges leaving node a.
 			self.out_edge_count[indices[a]+1] += 1
 
-		# Determine if the model is infinite or not based on the number of edges
-		# to the end state
-		if self.in_edge_count[indices[self.end]+1] == 0:
-			self.finite = 0
-		else:
-			self.finite = 1
 		# Take the cumulative sum so that we can associate array indices with
 		# in or out transitions
 		for i in range(1, n+1):
@@ -612,19 +580,9 @@ cdef class HiddenMarkovModel(Model):
 		self.d = dist.d
 
 		if self.d > 1:
-			keys = [[] for i in range(self.d)]
-			self.keymap = [{} for i in range(self.d)]
 			for state in self.states[:self.silent_start]:
 				d = state.distribution
 
-			for i in range(self.d):
-				keys[i] = tuple(set(keys[i]))
-				self.keymap[i] = {key: j for j, key in enumerate(keys[i])}
-
-			for state in self.states[:self.silent_start]:
-				d = state.distribution
-
-		self.state_name_mapping = {state.name: i for i, state in enumerate(self.states)}
 		self.distributions = numpy.empty(self.silent_start, dtype='object')
 		for i in range(self.silent_start):
 			self.distributions[i] = self.states[i].distribution
@@ -689,12 +647,9 @@ cdef class HiddenMarkovModel(Model):
 		cdef double log_probability
 		cdef int i, m = self.n_states
 
-		if self.finite == 1:
-			log_probability = f[n*m + self.end_index]
-		else:
-			log_probability = NEGINF
-			for i in range(self.silent_start):
-				log_probability = pair_lse(log_probability, f[n*m + i])
+		log_probability = NEGINF
+		for i in range(self.silent_start):
+			log_probability = pair_lse(log_probability, f[n*m + i])
 
 		free(f)
 		return log_probability
@@ -839,72 +794,10 @@ cdef class HiddenMarkovModel(Model):
 			e = emissions
 
 		# We must end in the end state, having emitted len(sequence) symbols
-		if self.finite == 1:
-			for i in range(m):
-				b[n*m + i] = NEGINF
-			b[n*m + self.end_index] = 0
-		else:
-			for i in range(self.silent_start):
-				b[n*m + i] = 0.
-			for i in range(self.silent_start, m):
-				b[n*m + i] = NEGINF
-
-		for kr in range(m-self.silent_start):
-			if self.finite == 0:
-				break
-			# Cython arrays cannot go backwards, so modify the loop to account
-			# for this.
-			k = m - kr - 1
-
-			# Do the silent states' dependencies on each other.
-			# Doing it in reverse order ensures that anything we can
-			# possibly transition to is already done.
-
-			if k == self.end_index:
-				# We already set the log-probability for this, so skip it
-				continue
-
-			# This holds the log total probability that we go to
-			# current-step silent states and then continue from there to
-			# finish the sequence.
-			log_probability = NEGINF
-			for l in range(out_edges[k], out_edges[k+1]):
-				li = self.out_transitions[l]
-				if li < k+1:
-					continue
-
-				# For each possible current-step silent state we can go to,
-				# take into account just transition probability
-				log_probability = pair_lse(log_probability,
-					b[n*m + li] + self.out_transition_log_probabilities[l])
-
-			# Now this is the probability of reaching the end state given we are
-			# in this silent state.
-			b[n*m + k] = log_probability
-
-		for k in range(self.silent_start):
-			if self.finite == 0:
-				break
-			# Do the non-silent states in the last step, which depend on
-			# current-step silent states.
-
-			# This holds the total accumulated log probability of going
-			# to such states and continuing from there to the end.
-			log_probability = NEGINF
-			for l in range(out_edges[k], out_edges[k+1]):
-				li = self.out_transitions[l]
-				if li < self.silent_start:
-					continue
-
-				# For each current-step silent state, add in the probability
-				# of going from here to there and then continuing on to the
-				# end of the sequence.
-				log_probability = pair_lse(log_probability,
-					b[n*m + li] + self.out_transition_log_probabilities[l])
-
-			# Now we have summed the probabilities of all the ways we can
-			# get from here to the end, so we can fill in the table entry.
-			b[n*m + k] = log_probability
+		for i in range(self.silent_start):
+			b[n*m + i] = 0.
+		for i in range(self.silent_start, m):
+			b[n*m + i] = NEGINF
 
 		# Now that we're done with the base case, move on to the recurrence
 		for ir in range(n):
@@ -1216,13 +1109,10 @@ cdef class HiddenMarkovModel(Model):
 		f = self._forward(sequence, n, e)
 		b = self._backward(sequence, n, e)
 
-		if self.finite == 1:
-			log_sequence_probability = f[n*m + self.end_index]
-		else:
-			log_sequence_probability = NEGINF
-			for i in range(self.silent_start):
-				log_sequence_probability = pair_lse(f[n*m + i],
-					log_sequence_probability)
+		log_sequence_probability = NEGINF
+		for i in range(self.silent_start):
+			log_sequence_probability = pair_lse(f[n*m + i],
+				log_sequence_probability)
 
 		# Is the sequence impossible? If so, we can't train on it, so skip
 		# it
@@ -1481,12 +1371,7 @@ cdef class HiddenMarkovModel(Model):
 				# states by only training that distribution one time, since many
 				# states are pointing to the same distribution object.
 				with gil:
-					if self.discrete:
-						self.states[k].distribution.from_summaries(
-							distribution_inertia, emission_pseudocount)
-					else:
-						self.states[k].distribution.from_summaries(
-							distribution_inertia)
+					self.states[k].distribution.from_summaries(distribution_inertia)
 
 		for k in range(self.n_states):
 			for l in range(self.out_edge_count[k], self.out_edge_count[k+1]):
