@@ -19,7 +19,7 @@ def main():
     model = HMMStockForecastModel(data)
     predicted = model.run()[:, 2]
 
-    show_plot(np.append((data[-200:, 2]), None), predicted, args.ticker if args.ticker else args.file, args.start)
+    show_plot(np.append((data[-50:, 2]), None), predicted, args.ticker if args.ticker else args.file, args.start)
     # show_plot(np.append(np.flipud(data[range(100), 2])[1:], None), predicted,
     #           args.ticker if args.ticker else args.file, args.start)
     # show_plot(np.append(np.flipud(data[range(100 + 1), 2])[:100], None), predicted,

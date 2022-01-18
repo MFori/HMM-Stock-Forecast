@@ -11,7 +11,7 @@ class HMMStockForecastModel:
     _hmm: HiddenMarkovModel
     predicted: np.array
 
-    def __init__(self, data, window=200):
+    def __init__(self, data, window=50):
         self.data = data
         self.window = window
         # TODO validate if window is not too small for small dataset
@@ -40,7 +40,7 @@ class HMMStockForecastModel:
                 likelihoods = np.append(likelihoods, hmm.log_probability(obs))
                 j += 1
 
-            likelihood_diff_idx = np.argmin(np.absolute(likelihoods - likelihood)) + 1
+            likelihood_diff_idx = np.nanargmin(np.absolute(likelihoods - likelihood)) + 1
             likelihood_new = likelihoods[likelihood_diff_idx - 1]
             data_index = size - likelihood_diff_idx - i - 1
 
@@ -87,7 +87,7 @@ class HMMStockForecastModel:
                 print('states: ' + str(states) + ' likelihood=' + str(likelihood))
                 state_likelihood = np.append(state_likelihood, likelihood)
 
-        return TEST_STATES[np.argmin(state_likelihood)]
+        return TEST_STATES[np.nanargmin(state_likelihood)]
 
     def get_mean_error(self):
         pass
