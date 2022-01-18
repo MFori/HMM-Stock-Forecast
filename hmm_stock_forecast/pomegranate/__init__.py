@@ -11,7 +11,6 @@ import os
 from .base import *
 
 from .distributions import *
-from .kmeans import Kmeans
 from .hmm import HiddenMarkovModel
 
 __version__ = '1.0'
