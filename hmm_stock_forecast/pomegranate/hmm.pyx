@@ -243,100 +243,6 @@ cdef class HiddenMarkovModel(Model):
 	def __dealloc__(self):
 		self.free_bake_buffers()
 
-	def __getstate__(self):
-		"""Return model representation in a dictionary."""
-
-		state = {
-			'class' :  'HiddenMarkovModel',
-			'name' :   self.name,
-			'start' :  self.start,
-			'end' :    self.end,
-			'states' : self.states,
-			'end_index' :    self.end_index,
-			'start_index' :  self.start_index,
-			'silent_index' : self.silent_start
-		}
-
-		indices = { state: i for i, state in enumerate(self.states)}
-
-		# Get the number of groups of edges which are tied
-		groups = []
-		n = self.n_tied_edge_groups-1
-
-		# Go through each group one at a time
-		for i in range(n):
-			# Create an empty list for that group
-			groups.append([])
-
-			# Go through each edge in that group
-			start, end = self.tied_edge_group_size[i], self.tied_edge_group_size[i+1]
-
-			# Add each edge as a tuple of indices
-			for j in range(start, end):
-				groups[i].append((self.tied_edges_starts[j], self.tied_edges_ends[j]))
-
-		# Now reverse this into a dictionary, such that each pair of edges points
-		# to a label (a number in this case)
-		d = { tup : i for i in range(n) for tup in groups[i] }
-
-		# Get all the edges from the graph
-		edges = []
-		for start, end, data in self.graph.edges(data=True):
-			# If this edge is part of a group of tied edges, annotate this group
-			# it is a part of
-			s, e = indices[start], indices[end]
-			prob, pseudocount = math.e**data['probability'], data['pseudocount']
-			edge = (s, e)
-			edges.append((s, e, prob, pseudocount, d.get(edge, None)))
-
-		state['edges'] = edges
-
-		# Get distribution tie information
-		ties = []
-		for i in range(self.silent_start):
-			start, end = self.tied_state_count[i], self.tied_state_count[i+1]
-
-			for j in range(start, end):
-				ties.append((i, self.tied[j]))
-
-		state['distribution ties'] = ties
-
-		return state
-
-	def __reduce__(self):
-		return self.__class__, tuple(), self.__getstate__()
-
-	def __setstate__(self, state):
-		"""Deserialize object for unpickling.
-
-		Parameters
-		----------
-		state :
-			The model state, (see `__reduce__()` documentation from the pickle protocol).
-		"""
-
-		self.name = state['name']
-
-		states = state['states']
-		for i, j in state['distribution ties']:
-			# Tie appropriate states together
-			states[i].tie(states[j])
-
-		# Add all the states to the model
-		self.add_states(states)
-
-		# Indicate appropriate start and end states
-		self.start = states[state['start_index']]
-		self.end = states[state['end_index']]
-
-		# Add all the edges to the model
-		for start, end, probability, pseudocount, group in state['edges']:
-			self.add_transition(states[start], states[end], probability,
-				pseudocount, group)
-
-		# Bake the model
-		self.bake(verbose=False)
-
 	def free_bake_buffers(self):
 		free(self.in_transition_pseudocounts)
 		free(self.out_transition_pseudocounts)
@@ -2401,16 +2307,7 @@ cdef class HiddenMarkovModel(Model):
 		return model
 
 	@classmethod
-	def from_samples(cls, distribution, n_components, X, weights=None,
-		labels=None, algorithm='baum-welch', inertia=None, edge_inertia=0.0,
-		distribution_inertia=0.0, pseudocount=None,
-		transition_pseudocount=0, emission_pseudocount=0.0,
-		use_pseudocount=False, stop_threshold=1e-9, min_iterations=0,
-		max_iterations=1e8, n_init=1, init='kmeans++', max_kmeans_iterations=1,
-		initialization_batch_size=None, batches_per_epoch=None, lr_decay=0.0, 
-		end_state=False, keys=None, random_state=None,
-		verbose=False, n_jobs=1,
-		multiple_check_input=True):
+	def from_samples(cls, distribution, n_components, X):
 		"""Learn the transitions and emissions of a model directly from data.
 
 		This method will learn both the transition matrix, emission distributions,
@@ -2444,188 +2341,36 @@ cdef class HiddenMarkovModel(Model):
 			supports multiple dimensions. Alternatively, a data generator
 			object that yields sequences.
 
-		weights : array-like or None, optional
-			An array of weights, one for each sequence to train on. If None,
-			all sequences are equally weighted. Default is None.
-
-		labels : array-like or None, optional
-			An array of state labels for each sequence. This is only used in
-			'labeled' training. If used this must be comprised of n lists where
-			n is the number of sequences to train on, and each of those lists
-			must have one label per observation. A None in this list corresponds
-			to no labels for the entire sequence and triggers semi-supervised
-			learning, where the labeled sequences are summarized using labeled
-			fitting and the unlabeled are summarized using the specified algorithm.
-			Default is None.
-
-		algorithm : 'baum-welch', 'viterbi', 'labeled'
-			The training algorithm to use. Baum-Welch uses the forward-backward
-			algorithm to train using a version of structured EM. Viterbi
-			iteratively runs the sequences through the Viterbi algorithm and
-			then uses hard assignments of observations to states using that.
-			Default is 'baum-welch'. Labeled training requires that labels
-			are provided for each observation in each sequence.
-
-		inertia : double or None, optional, range [0, 1]
-			If double, will set both edge_inertia and distribution_inertia to
-			be that value. If None, will not override those values. Default is
-			None.
-
-		edge_inertia : bool, optional, range [0, 1]
-			Whether to use inertia when updating the transition probability
-			parameters. Default is 0.0.
-
-		distribution_inertia : double, optional, range [0, 1]
-			Whether to use inertia when updating the distribution parameters.
-			Default is 0.0.
-
-		pseudocount : double, optional
-			A pseudocount to add to both transitions and emissions. If supplied,
-			it will override both transition_pseudocount and emission_pseudocount
-			in the same way that specifying `inertia` will override both
-			`edge_inertia` and `distribution_inertia`. Default is None.
-
-		transition_pseudocount : double, optional
-			A pseudocount to add to all transitions to add a prior to the
-			MLE estimate of the transition probability. Default is 0.
-
-		emission_pseudocount : double, optional
-			A pseudocount to add to the emission of each distribution. This
-			effectively smoothes the states to prevent 0. probability symbols
-			if they don't happen to occur in the data. Only effects hidden
-			Markov models defined over discrete distributions. Default is 0.
-
-		use_pseudocount : bool, optional
-			Whether to use the pseudocounts defined in the `add_edge` method
-			for edge-specific pseudocounts when updating the transition
-			probability parameters. Does not effect the `transition_pseudocount`
-			and `emission_pseudocount` parameters, but can be used in addition
-			to them. Default is False.
-
-		stop_threshold : double, optional
-			The threshold the improvement ratio of the models log probability
-			in fitting the scores. Default is 1e-9.
-
-		min_iterations : int, optional
-			The minimum number of iterations to run Baum-Welch training for.
-			Default is 0.
-
-		max_iterations : int, optional
-			The maximum number of iterations to run Baum-Welch training for.
-			Default is 1e8.
-
-		n_init : int, optional
-			The number of times to initialize the k-means clustering before
-			taking the best value. Default is 1.
-
-		init : str, optional
-			The initialization method for kmeans. Must be one of 'first-k',
-			'random', 'kmeans++', or 'kmeans||'. Default is kmeans++.
-
-		max_kmeans_iterations : int, optional
-			The number of iterations to run k-means for before starting EM.
-
-		initialization_batch_size : int or None, optional
-			The number of batches to use to initialize the model. None means
-			use the entire data set. Default is None. 
-
-		batches_per_epoch : int or None, optional
-			The number of batches in an epoch. This is the number of batches to
-			summarize before calling `from_summaries` and updating the model
-			parameters. This allows one to do minibatch updates by updating the
-			model parameters before setting the full dataset. If set to None,
-			uses the full dataset. Default is None.
-
-		lr_decay : double, optional, positive
-			The step size decay as a function of the number of iterations.
-			Functionally, this sets the inertia to be (2+k)^{-lr_decay}
-			where k is the number of iterations. This causes initial
-			iterations to have more of an impact than later iterations,
-			and is frequently used in minibatch learning. This value is
-			suggested to be between 0.5 and 1. Default is 0, meaning no
-			decay.
-
-		end_state : bool, optional
-			Whether to calculate the probability of ending in each state or not.
-			Default is False.
-
-		keys : list
-			A list of sets where each set is the keys present in that column.
-			If there are d columns in the data set then this list should have
-			d sets and each set should have at least two keys in it.
-
-		random_state : int, numpy.random.RandomState, or None
-			The random state used for generating samples. If set to none, a
-			random seed will be used. If set to either an integer or a
-			random seed, will produce deterministic outputs.
-
-		verbose : bool, optional
-			Whether to print the improvement in the model fitting at each
-			iteration. Default is True.
-
-		n_jobs : int, optional
-			The number of threads to use when performing training. This
-			leads to exact updates. Default is 1.
-
-		multiple_check_input : bool, optional
-			Whether to check and transcode input at each iteration. This
-			leads to copying whole input data in each iteration. Which 
-			can introduce significant overhead (up to 2 times slower) so 
-			should be turned off when you know that data won't be changed 
-			between fitting iteration. Default is True.
-
 		Returns
 		-------
 		model : HiddenMarkovModel
 			The model fit to the data.
 		"""
 
-		random_state = check_random_state(random_state)
+		data_generator = SequenceGenerator(X)
+		initialization_batch_size = len(data_generator)
 
-		if not isinstance(X, BaseGenerator):
-			print('from sample #2')
-			data_generator = SequenceGenerator(X, weights, labels)
-		else:
-			print('from sample #3')
-			data_generator = X
-
-		if initialization_batch_size is None:
-			print('from sample #4')
-			initialization_batch_size = len(data_generator)
-
-		X_, labels_ = [], []
+		X_ = []
 		data = data_generator.batches()
 		for i in range(initialization_batch_size):
 			batch = next(data)
 			X_.extend(batch[0])
-			if labels is not None:
-				labels_.extend(batch[2])
 
-		print('from sample #5')
-		# If labels are provided, use them to initialize the distributions
-		if labels is not None:
-			print('from sample #6')
+		X_concat = numpy.concatenate(X_)
+		if X_concat.ndim == 1:
+			X_concat = X_concat.reshape(-1, 1)
 
-		# If labels are not provided, run K-means to initialize the distributions
-		else:
-			print('from sample #7')
-			X_concat = numpy.concatenate(X_)
-			if X_concat.ndim == 1:
-				X_concat = X_concat.reshape(-1, 1)
+		kmeans = KMeans(n_clusters=n_components, random_state=0)
+		y_means = kmeans.fit_predict(X_concat)
 
-
-			kmeans = KMeans(n_clusters=n_components, random_state=0)
-			y_means = kmeans.fit_predict(X_concat)
-
-			X_ = [X_concat[y_means == i] for i in range(n_components)]
-			distributions = _initialize_distributions(X_, distribution)
+		X_ = [X_concat[y_means == i] for i in range(n_components)]
+		distributions = _initialize_distributions(X_, distribution)
 
 		k = n_components
 		transition_matrix = numpy.ones((k, k)) / k
 		start_probabilities = numpy.zeros(k)
 		start_probabilities[0] = 1
 
-		print('from sample #9')
 		model = HiddenMarkovModel.from_matrix(transition_matrix, distributions, start_probabilities)
 
 		return model
