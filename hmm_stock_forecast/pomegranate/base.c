@@ -1733,43 +1733,6 @@ static CYTHON_INLINE int __Pyx_PyList_Append(PyObject* list, PyObject* x) {
 #define __Pyx_PyList_Append(L,x) PyList_Append(L,x)
 #endif
 
-/* GetItemInt.proto */
-#define __Pyx_GetItemInt(o, i, type, is_signed, to_py_func, is_list, wraparound, boundscheck)\
-    (__Pyx_fits_Py_ssize_t(i, type, is_signed) ?\
-    __Pyx_GetItemInt_Fast(o, (Py_ssize_t)i, is_list, wraparound, boundscheck) :\
-    (is_list ? (PyErr_SetString(PyExc_IndexError, "list index out of range"), (PyObject*)NULL) :\
-               __Pyx_GetItemInt_Generic(o, to_py_func(i))))
-#define __Pyx_GetItemInt_List(o, i, type, is_signed, to_py_func, is_list, wraparound, boundscheck)\
-    (__Pyx_fits_Py_ssize_t(i, type, is_signed) ?\
-    __Pyx_GetItemInt_List_Fast(o, (Py_ssize_t)i, wraparound, boundscheck) :\
-    (PyErr_SetString(PyExc_IndexError, "list index out of range"), (PyObject*)NULL))
-static CYTHON_INLINE PyObject *__Pyx_GetItemInt_List_Fast(PyObject *o, Py_ssize_t i,
-                                                              int wraparound, int boundscheck);
-#define __Pyx_GetItemInt_Tuple(o, i, type, is_signed, to_py_func, is_list, wraparound, boundscheck)\
-    (__Pyx_fits_Py_ssize_t(i, type, is_signed) ?\
-    __Pyx_GetItemInt_Tuple_Fast(o, (Py_ssize_t)i, wraparound, boundscheck) :\
-    (PyErr_SetString(PyExc_IndexError, "tuple index out of range"), (PyObject*)NULL))
-static CYTHON_INLINE PyObject *__Pyx_GetItemInt_Tuple_Fast(PyObject *o, Py_ssize_t i,
-                                                              int wraparound, int boundscheck);
-static PyObject *__Pyx_GetItemInt_Generic(PyObject *o, PyObject* j);
-static CYTHON_INLINE PyObject *__Pyx_GetItemInt_Fast(PyObject *o, Py_ssize_t i,
-                                                     int is_list, int wraparound, int boundscheck);
-
-/* ObjectGetItem.proto */
-#if CYTHON_USE_TYPE_SLOTS
-static CYTHON_INLINE PyObject *__Pyx_PyObject_GetItem(PyObject *obj, PyObject* key);
-#else
-#define __Pyx_PyObject_GetItem(obj, key)  PyObject_GetItem(obj, key)
-#endif
-
-/* PyIntBinop.proto */
-#if !CYTHON_COMPILING_IN_PYPY
-static PyObject* __Pyx_PyInt_AddObjC(PyObject *op1, PyObject *op2, long intval, int inplace, int zerodivision_check);
-#else
-#define __Pyx_PyInt_AddObjC(op1, op2, intval, inplace, zerodivision_check)\
-    (inplace ? PyNumber_InPlaceAdd(op1, op2) : PyNumber_Add(op1, op2))
-#endif
-
 /* PyObjectSetAttrStr.proto */
 #if CYTHON_USE_TYPE_SLOTS
 #define __Pyx_PyObject_DelAttrStr(o,n) __Pyx_PyObject_SetAttrStr(o, n, NULL)
@@ -1844,6 +1807,35 @@ static CYTHON_UNUSED int __pyx_array_getbuffer(PyObject *__pyx_v_self, Py_buffer
 static PyObject *__pyx_array_get_memview(struct __pyx_array_obj *); /*proto*/
 /* GetAttr.proto */
 static CYTHON_INLINE PyObject *__Pyx_GetAttr(PyObject *, PyObject *);
+
+/* GetItemInt.proto */
+#define __Pyx_GetItemInt(o, i, type, is_signed, to_py_func, is_list, wraparound, boundscheck)\
+    (__Pyx_fits_Py_ssize_t(i, type, is_signed) ?\
+    __Pyx_GetItemInt_Fast(o, (Py_ssize_t)i, is_list, wraparound, boundscheck) :\
+    (is_list ? (PyErr_SetString(PyExc_IndexError, "list index out of range"), (PyObject*)NULL) :\
+               __Pyx_GetItemInt_Generic(o, to_py_func(i))))
+#define __Pyx_GetItemInt_List(o, i, type, is_signed, to_py_func, is_list, wraparound, boundscheck)\
+    (__Pyx_fits_Py_ssize_t(i, type, is_signed) ?\
+    __Pyx_GetItemInt_List_Fast(o, (Py_ssize_t)i, wraparound, boundscheck) :\
+    (PyErr_SetString(PyExc_IndexError, "list index out of range"), (PyObject*)NULL))
+static CYTHON_INLINE PyObject *__Pyx_GetItemInt_List_Fast(PyObject *o, Py_ssize_t i,
+                                                              int wraparound, int boundscheck);
+#define __Pyx_GetItemInt_Tuple(o, i, type, is_signed, to_py_func, is_list, wraparound, boundscheck)\
+    (__Pyx_fits_Py_ssize_t(i, type, is_signed) ?\
+    __Pyx_GetItemInt_Tuple_Fast(o, (Py_ssize_t)i, wraparound, boundscheck) :\
+    (PyErr_SetString(PyExc_IndexError, "tuple index out of range"), (PyObject*)NULL))
+static CYTHON_INLINE PyObject *__Pyx_GetItemInt_Tuple_Fast(PyObject *o, Py_ssize_t i,
+                                                              int wraparound, int boundscheck);
+static PyObject *__Pyx_GetItemInt_Generic(PyObject *o, PyObject* j);
+static CYTHON_INLINE PyObject *__Pyx_GetItemInt_Fast(PyObject *o, Py_ssize_t i,
+                                                     int is_list, int wraparound, int boundscheck);
+
+/* ObjectGetItem.proto */
+#if CYTHON_USE_TYPE_SLOTS
+static CYTHON_INLINE PyObject *__Pyx_PyObject_GetItem(PyObject *obj, PyObject* key);
+#else
+#define __Pyx_PyObject_GetItem(obj, key)  PyObject_GetItem(obj, key)
+#endif
 
 /* decode_c_string_utf16.proto */
 static CYTHON_INLINE PyObject *__Pyx_PyUnicode_DecodeUTF16(const char *s, Py_ssize_t size, const char *errors) {
@@ -1920,6 +1912,14 @@ static CYTHON_INLINE int __Pyx_ListComp_Append(PyObject* list, PyObject* x) {
 }
 #else
 #define __Pyx_ListComp_Append(L,x) PyList_Append(L,x)
+#endif
+
+/* PyIntBinop.proto */
+#if !CYTHON_COMPILING_IN_PYPY
+static PyObject* __Pyx_PyInt_AddObjC(PyObject *op1, PyObject *op2, long intval, int inplace, int zerodivision_check);
+#else
+#define __Pyx_PyInt_AddObjC(op1, op2, intval, inplace, zerodivision_check)\
+    (inplace ? PyNumber_InPlaceAdd(op1, op2) : PyNumber_Add(op1, op2))
 #endif
 
 /* ListExtend.proto */
@@ -2306,12 +2306,12 @@ int __pyx_module_is_main_hmm_stock_forecast__pomegranate__base = 0;
 /* Implementation of 'hmm_stock_forecast.pomegranate.base' */
 static PyObject *__pyx_builtin_id;
 static PyObject *__pyx_builtin_NotImplementedError;
-static PyObject *__pyx_builtin_range;
 static PyObject *__pyx_builtin_TypeError;
 static PyObject *__pyx_builtin_ImportError;
 static PyObject *__pyx_builtin_ValueError;
 static PyObject *__pyx_builtin_MemoryError;
 static PyObject *__pyx_builtin_enumerate;
+static PyObject *__pyx_builtin_range;
 static PyObject *__pyx_builtin_Ellipsis;
 static PyObject *__pyx_builtin_IndexError;
 static const char __pyx_k_O[] = "O";
@@ -2327,7 +2327,6 @@ static const char __pyx_k_Node[] = "Node";
 static const char __pyx_k_base[] = "base";
 static const char __pyx_k_copy[] = "copy";
 static const char __pyx_k_dict[] = "__dict__";
-static const char __pyx_k_full[] = "full";
 static const char __pyx_k_main[] = "__main__";
 static const char __pyx_k_mode[] = "mode";
 static const char __pyx_k_name[] = "name";
@@ -2366,14 +2365,11 @@ static const char __pyx_k_inertia[] = "inertia";
 static const char __pyx_k_memview[] = "memview";
 static const char __pyx_k_weights[] = "weights";
 static const char __pyx_k_Ellipsis[] = "Ellipsis";
-static const char __pyx_k_add_edge[] = "add_edge";
-static const char __pyx_k_add_node[] = "add_node";
 static const char __pyx_k_getstate[] = "__getstate__";
 static const char __pyx_k_itemsize[] = "itemsize";
 static const char __pyx_k_pyx_type[] = "__pyx_type";
 static const char __pyx_k_setstate[] = "__setstate__";
 static const char __pyx_k_TypeError[] = "TypeError";
-static const char __pyx_k_add_state[] = "add_state";
 static const char __pyx_k_enumerate[] = "enumerate";
 static const char __pyx_k_pyx_state[] = "__pyx_state";
 static const char __pyx_k_reduce_ex[] = "__reduce_ex__";
@@ -2389,12 +2385,10 @@ static const char __pyx_k_pyx_checksum[] = "__pyx_checksum";
 static const char __pyx_k_stringsource[] = "stringsource";
 static const char __pyx_k_pyx_getbuffer[] = "__pyx_getbuffer";
 static const char __pyx_k_reduce_cython[] = "__reduce_cython__";
-static const char __pyx_k_out_edge_count[] = "out_edge_count";
 static const char __pyx_k_View_MemoryView[] = "View.MemoryView";
 static const char __pyx_k_allocate_buffer[] = "allocate_buffer";
 static const char __pyx_k_dtype_is_object[] = "dtype_is_object";
 static const char __pyx_k_log_probability[] = "log_probability";
-static const char __pyx_k_out_transitions[] = "out_transitions";
 static const char __pyx_k_pyx_PickleError[] = "__pyx_PickleError";
 static const char __pyx_k_setstate_cython[] = "__setstate_cython__";
 static const char __pyx_k_pyx_unpickle_Enum[] = "__pyx_unpickle_Enum";
@@ -2425,7 +2419,6 @@ static const char __pyx_k_Unable_to_convert_item_to_object[] = "Unable to conver
 static const char __pyx_k_got_differing_extents_in_dimensi[] = "got differing extents in dimension %d (got %d and %d)";
 static const char __pyx_k_no_default___reduce___due_to_non[] = "no default __reduce__ due to non-trivial __cinit__";
 static const char __pyx_k_numpy_core_umath_failed_to_impor[] = "numpy.core.umath failed to import";
-static const char __pyx_k_out_transition_log_probabilities[] = "out_transition_log_probabilities";
 static const char __pyx_k_unable_to_allocate_shape_and_str[] = "unable to allocate shape and strides.";
 static PyObject *__pyx_n_s_ASCII;
 static PyObject *__pyx_kp_s_Buffer_view_does_not_expose_stri;
@@ -2456,9 +2449,6 @@ static PyObject *__pyx_kp_s_Unable_to_convert_item_to_object;
 static PyObject *__pyx_n_s_ValueError;
 static PyObject *__pyx_n_s_View_MemoryView;
 static PyObject *__pyx_n_s_a;
-static PyObject *__pyx_n_s_add_edge;
-static PyObject *__pyx_n_s_add_node;
-static PyObject *__pyx_n_s_add_state;
 static PyObject *__pyx_n_s_allocate_buffer;
 static PyObject *__pyx_n_s_b;
 static PyObject *__pyx_n_s_base;
@@ -2480,7 +2470,6 @@ static PyObject *__pyx_n_s_flags;
 static PyObject *__pyx_n_s_format;
 static PyObject *__pyx_n_s_fortran;
 static PyObject *__pyx_n_u_fortran;
-static PyObject *__pyx_n_s_full;
 static PyObject *__pyx_n_s_getstate;
 static PyObject *__pyx_kp_s_got_differing_extents_in_dimensi;
 static PyObject *__pyx_n_s_id;
@@ -2503,9 +2492,6 @@ static PyObject *__pyx_n_s_numpy;
 static PyObject *__pyx_kp_s_numpy_core_multiarray_failed_to;
 static PyObject *__pyx_kp_s_numpy_core_umath_failed_to_impor;
 static PyObject *__pyx_n_s_obj;
-static PyObject *__pyx_n_s_out_edge_count;
-static PyObject *__pyx_n_s_out_transition_log_probabilities;
-static PyObject *__pyx_n_s_out_transitions;
 static PyObject *__pyx_n_s_pack;
 static PyObject *__pyx_n_s_pickle;
 static PyObject *__pyx_n_s_pyx_PickleError;
@@ -2554,15 +2540,7 @@ static PyObject *__pyx_pf_18hmm_stock_forecast_11pomegranate_4base_5Model_16fit(
 static PyObject *__pyx_pf_18hmm_stock_forecast_11pomegranate_4base_5Model_18summarize(CYTHON_UNUSED struct __pyx_obj_18hmm_stock_forecast_11pomegranate_4base_Model *__pyx_v_self, CYTHON_UNUSED PyObject *__pyx_v_items, CYTHON_UNUSED PyObject *__pyx_v_weights); /* proto */
 static PyObject *__pyx_pf_18hmm_stock_forecast_11pomegranate_4base_5Model_20from_summaries(CYTHON_UNUSED struct __pyx_obj_18hmm_stock_forecast_11pomegranate_4base_Model *__pyx_v_self, CYTHON_UNUSED PyObject *__pyx_v_inertia); /* proto */
 static PyObject *__pyx_pf_18hmm_stock_forecast_11pomegranate_4base_5Model_22clear_summaries(CYTHON_UNUSED struct __pyx_obj_18hmm_stock_forecast_11pomegranate_4base_Model *__pyx_v_self); /* proto */
-static PyObject *__pyx_pf_18hmm_stock_forecast_11pomegranate_4base_5Model_24add_node(struct __pyx_obj_18hmm_stock_forecast_11pomegranate_4base_Model *__pyx_v_self, PyObject *__pyx_v_node); /* proto */
-static PyObject *__pyx_pf_18hmm_stock_forecast_11pomegranate_4base_5Model_26add_nodes(struct __pyx_obj_18hmm_stock_forecast_11pomegranate_4base_Model *__pyx_v_self, PyObject *__pyx_v_nodes); /* proto */
-static PyObject *__pyx_pf_18hmm_stock_forecast_11pomegranate_4base_5Model_28add_state(struct __pyx_obj_18hmm_stock_forecast_11pomegranate_4base_Model *__pyx_v_self, PyObject *__pyx_v_state); /* proto */
-static PyObject *__pyx_pf_18hmm_stock_forecast_11pomegranate_4base_5Model_30add_states(struct __pyx_obj_18hmm_stock_forecast_11pomegranate_4base_Model *__pyx_v_self, PyObject *__pyx_v_states); /* proto */
-static PyObject *__pyx_pf_18hmm_stock_forecast_11pomegranate_4base_5Model_32add_edge(struct __pyx_obj_18hmm_stock_forecast_11pomegranate_4base_Model *__pyx_v_self, PyObject *__pyx_v_a, PyObject *__pyx_v_b); /* proto */
-static PyObject *__pyx_pf_18hmm_stock_forecast_11pomegranate_4base_5Model_34add_transition(struct __pyx_obj_18hmm_stock_forecast_11pomegranate_4base_Model *__pyx_v_self, PyObject *__pyx_v_a, PyObject *__pyx_v_b); /* proto */
-static PyObject *__pyx_pf_18hmm_stock_forecast_11pomegranate_4base_5Model_36state_count(struct __pyx_obj_18hmm_stock_forecast_11pomegranate_4base_Model *__pyx_v_self); /* proto */
-static PyObject *__pyx_pf_18hmm_stock_forecast_11pomegranate_4base_5Model_38edge_count(struct __pyx_obj_18hmm_stock_forecast_11pomegranate_4base_Model *__pyx_v_self); /* proto */
-static PyObject *__pyx_pf_18hmm_stock_forecast_11pomegranate_4base_5Model_40dense_transition_matrix(struct __pyx_obj_18hmm_stock_forecast_11pomegranate_4base_Model *__pyx_v_self); /* proto */
+static PyObject *__pyx_pf_18hmm_stock_forecast_11pomegranate_4base_5Model_24add_edge(struct __pyx_obj_18hmm_stock_forecast_11pomegranate_4base_Model *__pyx_v_self, PyObject *__pyx_v_a, PyObject *__pyx_v_b); /* proto */
 static PyObject *__pyx_pf_18hmm_stock_forecast_11pomegranate_4base_5Model_4name___get__(struct __pyx_obj_18hmm_stock_forecast_11pomegranate_4base_Model *__pyx_v_self); /* proto */
 static int __pyx_pf_18hmm_stock_forecast_11pomegranate_4base_5Model_4name_2__set__(struct __pyx_obj_18hmm_stock_forecast_11pomegranate_4base_Model *__pyx_v_self, PyObject *__pyx_v_value); /* proto */
 static int __pyx_pf_18hmm_stock_forecast_11pomegranate_4base_5Model_4name_4__del__(struct __pyx_obj_18hmm_stock_forecast_11pomegranate_4base_Model *__pyx_v_self); /* proto */
@@ -2582,8 +2560,8 @@ static int __pyx_pf_18hmm_stock_forecast_11pomegranate_4base_5Model_5edges_4__de
 static PyObject *__pyx_pf_18hmm_stock_forecast_11pomegranate_4base_5Model_5graph___get__(struct __pyx_obj_18hmm_stock_forecast_11pomegranate_4base_Model *__pyx_v_self); /* proto */
 static int __pyx_pf_18hmm_stock_forecast_11pomegranate_4base_5Model_5graph_2__set__(struct __pyx_obj_18hmm_stock_forecast_11pomegranate_4base_Model *__pyx_v_self, PyObject *__pyx_v_value); /* proto */
 static int __pyx_pf_18hmm_stock_forecast_11pomegranate_4base_5Model_5graph_4__del__(struct __pyx_obj_18hmm_stock_forecast_11pomegranate_4base_Model *__pyx_v_self); /* proto */
-static PyObject *__pyx_pf_18hmm_stock_forecast_11pomegranate_4base_5Model_42__reduce_cython__(CYTHON_UNUSED struct __pyx_obj_18hmm_stock_forecast_11pomegranate_4base_Model *__pyx_v_self); /* proto */
-static PyObject *__pyx_pf_18hmm_stock_forecast_11pomegranate_4base_5Model_44__setstate_cython__(CYTHON_UNUSED struct __pyx_obj_18hmm_stock_forecast_11pomegranate_4base_Model *__pyx_v_self, CYTHON_UNUSED PyObject *__pyx_v___pyx_state); /* proto */
+static PyObject *__pyx_pf_18hmm_stock_forecast_11pomegranate_4base_5Model_26__reduce_cython__(CYTHON_UNUSED struct __pyx_obj_18hmm_stock_forecast_11pomegranate_4base_Model *__pyx_v_self); /* proto */
+static PyObject *__pyx_pf_18hmm_stock_forecast_11pomegranate_4base_5Model_28__setstate_cython__(CYTHON_UNUSED struct __pyx_obj_18hmm_stock_forecast_11pomegranate_4base_Model *__pyx_v_self, CYTHON_UNUSED PyObject *__pyx_v___pyx_state); /* proto */
 static int __pyx_pf_18hmm_stock_forecast_11pomegranate_4base_5State___init__(struct __pyx_obj_18hmm_stock_forecast_11pomegranate_4base_State *__pyx_v_self, PyObject *__pyx_v_distribution, PyObject *__pyx_v_name, PyObject *__pyx_v_weight); /* proto */
 static PyObject *__pyx_pf_18hmm_stock_forecast_11pomegranate_4base_5State_2__reduce__(struct __pyx_obj_18hmm_stock_forecast_11pomegranate_4base_State *__pyx_v_self); /* proto */
 static PyObject *__pyx_pf_18hmm_stock_forecast_11pomegranate_4base_5State_4tie(struct __pyx_obj_18hmm_stock_forecast_11pomegranate_4base_State *__pyx_v_self, PyObject *__pyx_v_state); /* proto */
@@ -2647,7 +2625,6 @@ static PyObject *__pyx_tp_new_Enum(PyTypeObject *t, PyObject *a, PyObject *k); /
 static PyObject *__pyx_tp_new_memoryview(PyTypeObject *t, PyObject *a, PyObject *k); /*proto*/
 static PyObject *__pyx_tp_new__memoryviewslice(PyTypeObject *t, PyObject *a, PyObject *k); /*proto*/
 static PyObject *__pyx_float_0_0;
-static PyObject *__pyx_float_neg_inf;
 static PyObject *__pyx_int_0;
 static PyObject *__pyx_int_1;
 static PyObject *__pyx_int_184977713;
@@ -3900,412 +3877,15 @@ static double __pyx_f_18hmm_stock_forecast_11pomegranate_4base_5Model__summarize
 /* "hmm_stock_forecast/pomegranate/base.pyx":192
  * 		pass
  * 
- * 	def add_node(self, node):             # <<<<<<<<<<<<<<
- * 		"""Add a node to the graph."""
- * 		self.states.append(node)
- */
-
-/* Python wrapper */
-static PyObject *__pyx_pw_18hmm_stock_forecast_11pomegranate_4base_5Model_25add_node(PyObject *__pyx_v_self, PyObject *__pyx_v_node); /*proto*/
-static char __pyx_doc_18hmm_stock_forecast_11pomegranate_4base_5Model_24add_node[] = "Add a node to the graph.";
-static PyObject *__pyx_pw_18hmm_stock_forecast_11pomegranate_4base_5Model_25add_node(PyObject *__pyx_v_self, PyObject *__pyx_v_node) {
-  PyObject *__pyx_r = 0;
-  __Pyx_RefNannyDeclarations
-  __Pyx_RefNannySetupContext("add_node (wrapper)", 0);
-  __pyx_r = __pyx_pf_18hmm_stock_forecast_11pomegranate_4base_5Model_24add_node(((struct __pyx_obj_18hmm_stock_forecast_11pomegranate_4base_Model *)__pyx_v_self), ((PyObject *)__pyx_v_node));
-
-  /* function exit code */
-  __Pyx_RefNannyFinishContext();
-  return __pyx_r;
-}
-
-static PyObject *__pyx_pf_18hmm_stock_forecast_11pomegranate_4base_5Model_24add_node(struct __pyx_obj_18hmm_stock_forecast_11pomegranate_4base_Model *__pyx_v_self, PyObject *__pyx_v_node) {
-  PyObject *__pyx_r = NULL;
-  __Pyx_RefNannyDeclarations
-  int __pyx_t_1;
-  int __pyx_lineno = 0;
-  const char *__pyx_filename = NULL;
-  int __pyx_clineno = 0;
-  __Pyx_RefNannySetupContext("add_node", 0);
-
-  /* "hmm_stock_forecast/pomegranate/base.pyx":194
- * 	def add_node(self, node):
- * 		"""Add a node to the graph."""
- * 		self.states.append(node)             # <<<<<<<<<<<<<<
- * 		self.n_states += 1
- * 
- */
-  if (unlikely(__pyx_v_self->states == Py_None)) {
-    PyErr_Format(PyExc_AttributeError, "'NoneType' object has no attribute '%.30s'", "append");
-    __PYX_ERR(0, 194, __pyx_L1_error)
-  }
-  __pyx_t_1 = __Pyx_PyList_Append(__pyx_v_self->states, __pyx_v_node); if (unlikely(__pyx_t_1 == ((int)-1))) __PYX_ERR(0, 194, __pyx_L1_error)
-
-  /* "hmm_stock_forecast/pomegranate/base.pyx":195
- * 		"""Add a node to the graph."""
- * 		self.states.append(node)
- * 		self.n_states += 1             # <<<<<<<<<<<<<<
- * 
- * 	def add_nodes(self, *nodes):
- */
-  __pyx_v_self->n_states = (__pyx_v_self->n_states + 1);
-
-  /* "hmm_stock_forecast/pomegranate/base.pyx":192
- * 		pass
- * 
- * 	def add_node(self, node):             # <<<<<<<<<<<<<<
- * 		"""Add a node to the graph."""
- * 		self.states.append(node)
- */
-
-  /* function exit code */
-  __pyx_r = Py_None; __Pyx_INCREF(Py_None);
-  goto __pyx_L0;
-  __pyx_L1_error:;
-  __Pyx_AddTraceback("hmm_stock_forecast.pomegranate.base.Model.add_node", __pyx_clineno, __pyx_lineno, __pyx_filename);
-  __pyx_r = NULL;
-  __pyx_L0:;
-  __Pyx_XGIVEREF(__pyx_r);
-  __Pyx_RefNannyFinishContext();
-  return __pyx_r;
-}
-
-/* "hmm_stock_forecast/pomegranate/base.pyx":197
- * 		self.n_states += 1
- * 
- * 	def add_nodes(self, *nodes):             # <<<<<<<<<<<<<<
- * 		"""Add multiple states to the graph."""
- * 		for node in nodes:
- */
-
-/* Python wrapper */
-static PyObject *__pyx_pw_18hmm_stock_forecast_11pomegranate_4base_5Model_27add_nodes(PyObject *__pyx_v_self, PyObject *__pyx_args, PyObject *__pyx_kwds); /*proto*/
-static char __pyx_doc_18hmm_stock_forecast_11pomegranate_4base_5Model_26add_nodes[] = "Add multiple states to the graph.";
-static PyObject *__pyx_pw_18hmm_stock_forecast_11pomegranate_4base_5Model_27add_nodes(PyObject *__pyx_v_self, PyObject *__pyx_args, PyObject *__pyx_kwds) {
-  PyObject *__pyx_v_nodes = 0;
-  PyObject *__pyx_r = 0;
-  __Pyx_RefNannyDeclarations
-  __Pyx_RefNannySetupContext("add_nodes (wrapper)", 0);
-  if (unlikely(__pyx_kwds) && unlikely(PyDict_Size(__pyx_kwds) > 0) && unlikely(!__Pyx_CheckKeywordStrings(__pyx_kwds, "add_nodes", 0))) return NULL;
-  __Pyx_INCREF(__pyx_args);
-  __pyx_v_nodes = __pyx_args;
-  __pyx_r = __pyx_pf_18hmm_stock_forecast_11pomegranate_4base_5Model_26add_nodes(((struct __pyx_obj_18hmm_stock_forecast_11pomegranate_4base_Model *)__pyx_v_self), __pyx_v_nodes);
-
-  /* function exit code */
-  __Pyx_XDECREF(__pyx_v_nodes);
-  __Pyx_RefNannyFinishContext();
-  return __pyx_r;
-}
-
-static PyObject *__pyx_pf_18hmm_stock_forecast_11pomegranate_4base_5Model_26add_nodes(struct __pyx_obj_18hmm_stock_forecast_11pomegranate_4base_Model *__pyx_v_self, PyObject *__pyx_v_nodes) {
-  PyObject *__pyx_v_node = NULL;
-  PyObject *__pyx_r = NULL;
-  __Pyx_RefNannyDeclarations
-  PyObject *__pyx_t_1 = NULL;
-  Py_ssize_t __pyx_t_2;
-  PyObject *__pyx_t_3 = NULL;
-  PyObject *__pyx_t_4 = NULL;
-  PyObject *__pyx_t_5 = NULL;
-  int __pyx_lineno = 0;
-  const char *__pyx_filename = NULL;
-  int __pyx_clineno = 0;
-  __Pyx_RefNannySetupContext("add_nodes", 0);
-
-  /* "hmm_stock_forecast/pomegranate/base.pyx":199
- * 	def add_nodes(self, *nodes):
- * 		"""Add multiple states to the graph."""
- * 		for node in nodes:             # <<<<<<<<<<<<<<
- * 			self.add_node(node)
- * 
- */
-  __pyx_t_1 = __pyx_v_nodes; __Pyx_INCREF(__pyx_t_1); __pyx_t_2 = 0;
-  for (;;) {
-    if (__pyx_t_2 >= PyTuple_GET_SIZE(__pyx_t_1)) break;
-    #if CYTHON_ASSUME_SAFE_MACROS && !CYTHON_AVOID_BORROWED_REFS
-    __pyx_t_3 = PyTuple_GET_ITEM(__pyx_t_1, __pyx_t_2); __Pyx_INCREF(__pyx_t_3); __pyx_t_2++; if (unlikely(0 < 0)) __PYX_ERR(0, 199, __pyx_L1_error)
-    #else
-    __pyx_t_3 = PySequence_ITEM(__pyx_t_1, __pyx_t_2); __pyx_t_2++; if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 199, __pyx_L1_error)
-    __Pyx_GOTREF(__pyx_t_3);
-    #endif
-    __Pyx_XDECREF_SET(__pyx_v_node, __pyx_t_3);
-    __pyx_t_3 = 0;
-
-    /* "hmm_stock_forecast/pomegranate/base.pyx":200
- * 		"""Add multiple states to the graph."""
- * 		for node in nodes:
- * 			self.add_node(node)             # <<<<<<<<<<<<<<
- * 
- * 	def add_state(self, state):
- */
-    __pyx_t_4 = __Pyx_PyObject_GetAttrStr(((PyObject *)__pyx_v_self), __pyx_n_s_add_node); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 200, __pyx_L1_error)
-    __Pyx_GOTREF(__pyx_t_4);
-    __pyx_t_5 = NULL;
-    if (CYTHON_UNPACK_METHODS && likely(PyMethod_Check(__pyx_t_4))) {
-      __pyx_t_5 = PyMethod_GET_SELF(__pyx_t_4);
-      if (likely(__pyx_t_5)) {
-        PyObject* function = PyMethod_GET_FUNCTION(__pyx_t_4);
-        __Pyx_INCREF(__pyx_t_5);
-        __Pyx_INCREF(function);
-        __Pyx_DECREF_SET(__pyx_t_4, function);
-      }
-    }
-    __pyx_t_3 = (__pyx_t_5) ? __Pyx_PyObject_Call2Args(__pyx_t_4, __pyx_t_5, __pyx_v_node) : __Pyx_PyObject_CallOneArg(__pyx_t_4, __pyx_v_node);
-    __Pyx_XDECREF(__pyx_t_5); __pyx_t_5 = 0;
-    if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 200, __pyx_L1_error)
-    __Pyx_GOTREF(__pyx_t_3);
-    __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
-    __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
-
-    /* "hmm_stock_forecast/pomegranate/base.pyx":199
- * 	def add_nodes(self, *nodes):
- * 		"""Add multiple states to the graph."""
- * 		for node in nodes:             # <<<<<<<<<<<<<<
- * 			self.add_node(node)
- * 
- */
-  }
-  __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
-
-  /* "hmm_stock_forecast/pomegranate/base.pyx":197
- * 		self.n_states += 1
- * 
- * 	def add_nodes(self, *nodes):             # <<<<<<<<<<<<<<
- * 		"""Add multiple states to the graph."""
- * 		for node in nodes:
- */
-
-  /* function exit code */
-  __pyx_r = Py_None; __Pyx_INCREF(Py_None);
-  goto __pyx_L0;
-  __pyx_L1_error:;
-  __Pyx_XDECREF(__pyx_t_1);
-  __Pyx_XDECREF(__pyx_t_3);
-  __Pyx_XDECREF(__pyx_t_4);
-  __Pyx_XDECREF(__pyx_t_5);
-  __Pyx_AddTraceback("hmm_stock_forecast.pomegranate.base.Model.add_nodes", __pyx_clineno, __pyx_lineno, __pyx_filename);
-  __pyx_r = NULL;
-  __pyx_L0:;
-  __Pyx_XDECREF(__pyx_v_node);
-  __Pyx_XGIVEREF(__pyx_r);
-  __Pyx_RefNannyFinishContext();
-  return __pyx_r;
-}
-
-/* "hmm_stock_forecast/pomegranate/base.pyx":202
- * 			self.add_node(node)
- * 
- * 	def add_state(self, state):             # <<<<<<<<<<<<<<
- * 		"""Another name for a node."""
- * 		self.add_node(state)
- */
-
-/* Python wrapper */
-static PyObject *__pyx_pw_18hmm_stock_forecast_11pomegranate_4base_5Model_29add_state(PyObject *__pyx_v_self, PyObject *__pyx_v_state); /*proto*/
-static char __pyx_doc_18hmm_stock_forecast_11pomegranate_4base_5Model_28add_state[] = "Another name for a node.";
-static PyObject *__pyx_pw_18hmm_stock_forecast_11pomegranate_4base_5Model_29add_state(PyObject *__pyx_v_self, PyObject *__pyx_v_state) {
-  PyObject *__pyx_r = 0;
-  __Pyx_RefNannyDeclarations
-  __Pyx_RefNannySetupContext("add_state (wrapper)", 0);
-  __pyx_r = __pyx_pf_18hmm_stock_forecast_11pomegranate_4base_5Model_28add_state(((struct __pyx_obj_18hmm_stock_forecast_11pomegranate_4base_Model *)__pyx_v_self), ((PyObject *)__pyx_v_state));
-
-  /* function exit code */
-  __Pyx_RefNannyFinishContext();
-  return __pyx_r;
-}
-
-static PyObject *__pyx_pf_18hmm_stock_forecast_11pomegranate_4base_5Model_28add_state(struct __pyx_obj_18hmm_stock_forecast_11pomegranate_4base_Model *__pyx_v_self, PyObject *__pyx_v_state) {
-  PyObject *__pyx_r = NULL;
-  __Pyx_RefNannyDeclarations
-  PyObject *__pyx_t_1 = NULL;
-  PyObject *__pyx_t_2 = NULL;
-  PyObject *__pyx_t_3 = NULL;
-  int __pyx_lineno = 0;
-  const char *__pyx_filename = NULL;
-  int __pyx_clineno = 0;
-  __Pyx_RefNannySetupContext("add_state", 0);
-
-  /* "hmm_stock_forecast/pomegranate/base.pyx":204
- * 	def add_state(self, state):
- * 		"""Another name for a node."""
- * 		self.add_node(state)             # <<<<<<<<<<<<<<
- * 
- * 	def add_states(self, *states):
- */
-  __pyx_t_2 = __Pyx_PyObject_GetAttrStr(((PyObject *)__pyx_v_self), __pyx_n_s_add_node); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 204, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_t_2);
-  __pyx_t_3 = NULL;
-  if (CYTHON_UNPACK_METHODS && likely(PyMethod_Check(__pyx_t_2))) {
-    __pyx_t_3 = PyMethod_GET_SELF(__pyx_t_2);
-    if (likely(__pyx_t_3)) {
-      PyObject* function = PyMethod_GET_FUNCTION(__pyx_t_2);
-      __Pyx_INCREF(__pyx_t_3);
-      __Pyx_INCREF(function);
-      __Pyx_DECREF_SET(__pyx_t_2, function);
-    }
-  }
-  __pyx_t_1 = (__pyx_t_3) ? __Pyx_PyObject_Call2Args(__pyx_t_2, __pyx_t_3, __pyx_v_state) : __Pyx_PyObject_CallOneArg(__pyx_t_2, __pyx_v_state);
-  __Pyx_XDECREF(__pyx_t_3); __pyx_t_3 = 0;
-  if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 204, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_t_1);
-  __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
-  __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
-
-  /* "hmm_stock_forecast/pomegranate/base.pyx":202
- * 			self.add_node(node)
- * 
- * 	def add_state(self, state):             # <<<<<<<<<<<<<<
- * 		"""Another name for a node."""
- * 		self.add_node(state)
- */
-
-  /* function exit code */
-  __pyx_r = Py_None; __Pyx_INCREF(Py_None);
-  goto __pyx_L0;
-  __pyx_L1_error:;
-  __Pyx_XDECREF(__pyx_t_1);
-  __Pyx_XDECREF(__pyx_t_2);
-  __Pyx_XDECREF(__pyx_t_3);
-  __Pyx_AddTraceback("hmm_stock_forecast.pomegranate.base.Model.add_state", __pyx_clineno, __pyx_lineno, __pyx_filename);
-  __pyx_r = NULL;
-  __pyx_L0:;
-  __Pyx_XGIVEREF(__pyx_r);
-  __Pyx_RefNannyFinishContext();
-  return __pyx_r;
-}
-
-/* "hmm_stock_forecast/pomegranate/base.pyx":206
- * 		self.add_node(state)
- * 
- * 	def add_states(self, *states):             # <<<<<<<<<<<<<<
- * 		"""Another name for a node."""
- * 		for state in states:
- */
-
-/* Python wrapper */
-static PyObject *__pyx_pw_18hmm_stock_forecast_11pomegranate_4base_5Model_31add_states(PyObject *__pyx_v_self, PyObject *__pyx_args, PyObject *__pyx_kwds); /*proto*/
-static char __pyx_doc_18hmm_stock_forecast_11pomegranate_4base_5Model_30add_states[] = "Another name for a node.";
-static PyObject *__pyx_pw_18hmm_stock_forecast_11pomegranate_4base_5Model_31add_states(PyObject *__pyx_v_self, PyObject *__pyx_args, PyObject *__pyx_kwds) {
-  PyObject *__pyx_v_states = 0;
-  PyObject *__pyx_r = 0;
-  __Pyx_RefNannyDeclarations
-  __Pyx_RefNannySetupContext("add_states (wrapper)", 0);
-  if (unlikely(__pyx_kwds) && unlikely(PyDict_Size(__pyx_kwds) > 0) && unlikely(!__Pyx_CheckKeywordStrings(__pyx_kwds, "add_states", 0))) return NULL;
-  __Pyx_INCREF(__pyx_args);
-  __pyx_v_states = __pyx_args;
-  __pyx_r = __pyx_pf_18hmm_stock_forecast_11pomegranate_4base_5Model_30add_states(((struct __pyx_obj_18hmm_stock_forecast_11pomegranate_4base_Model *)__pyx_v_self), __pyx_v_states);
-
-  /* function exit code */
-  __Pyx_XDECREF(__pyx_v_states);
-  __Pyx_RefNannyFinishContext();
-  return __pyx_r;
-}
-
-static PyObject *__pyx_pf_18hmm_stock_forecast_11pomegranate_4base_5Model_30add_states(struct __pyx_obj_18hmm_stock_forecast_11pomegranate_4base_Model *__pyx_v_self, PyObject *__pyx_v_states) {
-  PyObject *__pyx_v_state = NULL;
-  PyObject *__pyx_r = NULL;
-  __Pyx_RefNannyDeclarations
-  PyObject *__pyx_t_1 = NULL;
-  Py_ssize_t __pyx_t_2;
-  PyObject *__pyx_t_3 = NULL;
-  PyObject *__pyx_t_4 = NULL;
-  PyObject *__pyx_t_5 = NULL;
-  int __pyx_lineno = 0;
-  const char *__pyx_filename = NULL;
-  int __pyx_clineno = 0;
-  __Pyx_RefNannySetupContext("add_states", 0);
-
-  /* "hmm_stock_forecast/pomegranate/base.pyx":208
- * 	def add_states(self, *states):
- * 		"""Another name for a node."""
- * 		for state in states:             # <<<<<<<<<<<<<<
- * 			self.add_state(state)
- * 
- */
-  __pyx_t_1 = __pyx_v_states; __Pyx_INCREF(__pyx_t_1); __pyx_t_2 = 0;
-  for (;;) {
-    if (__pyx_t_2 >= PyTuple_GET_SIZE(__pyx_t_1)) break;
-    #if CYTHON_ASSUME_SAFE_MACROS && !CYTHON_AVOID_BORROWED_REFS
-    __pyx_t_3 = PyTuple_GET_ITEM(__pyx_t_1, __pyx_t_2); __Pyx_INCREF(__pyx_t_3); __pyx_t_2++; if (unlikely(0 < 0)) __PYX_ERR(0, 208, __pyx_L1_error)
-    #else
-    __pyx_t_3 = PySequence_ITEM(__pyx_t_1, __pyx_t_2); __pyx_t_2++; if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 208, __pyx_L1_error)
-    __Pyx_GOTREF(__pyx_t_3);
-    #endif
-    __Pyx_XDECREF_SET(__pyx_v_state, __pyx_t_3);
-    __pyx_t_3 = 0;
-
-    /* "hmm_stock_forecast/pomegranate/base.pyx":209
- * 		"""Another name for a node."""
- * 		for state in states:
- * 			self.add_state(state)             # <<<<<<<<<<<<<<
- * 
- * 	def add_edge(self, a, b):
- */
-    __pyx_t_4 = __Pyx_PyObject_GetAttrStr(((PyObject *)__pyx_v_self), __pyx_n_s_add_state); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 209, __pyx_L1_error)
-    __Pyx_GOTREF(__pyx_t_4);
-    __pyx_t_5 = NULL;
-    if (CYTHON_UNPACK_METHODS && likely(PyMethod_Check(__pyx_t_4))) {
-      __pyx_t_5 = PyMethod_GET_SELF(__pyx_t_4);
-      if (likely(__pyx_t_5)) {
-        PyObject* function = PyMethod_GET_FUNCTION(__pyx_t_4);
-        __Pyx_INCREF(__pyx_t_5);
-        __Pyx_INCREF(function);
-        __Pyx_DECREF_SET(__pyx_t_4, function);
-      }
-    }
-    __pyx_t_3 = (__pyx_t_5) ? __Pyx_PyObject_Call2Args(__pyx_t_4, __pyx_t_5, __pyx_v_state) : __Pyx_PyObject_CallOneArg(__pyx_t_4, __pyx_v_state);
-    __Pyx_XDECREF(__pyx_t_5); __pyx_t_5 = 0;
-    if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 209, __pyx_L1_error)
-    __Pyx_GOTREF(__pyx_t_3);
-    __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
-    __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
-
-    /* "hmm_stock_forecast/pomegranate/base.pyx":208
- * 	def add_states(self, *states):
- * 		"""Another name for a node."""
- * 		for state in states:             # <<<<<<<<<<<<<<
- * 			self.add_state(state)
- * 
- */
-  }
-  __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
-
-  /* "hmm_stock_forecast/pomegranate/base.pyx":206
- * 		self.add_node(state)
- * 
- * 	def add_states(self, *states):             # <<<<<<<<<<<<<<
- * 		"""Another name for a node."""
- * 		for state in states:
- */
-
-  /* function exit code */
-  __pyx_r = Py_None; __Pyx_INCREF(Py_None);
-  goto __pyx_L0;
-  __pyx_L1_error:;
-  __Pyx_XDECREF(__pyx_t_1);
-  __Pyx_XDECREF(__pyx_t_3);
-  __Pyx_XDECREF(__pyx_t_4);
-  __Pyx_XDECREF(__pyx_t_5);
-  __Pyx_AddTraceback("hmm_stock_forecast.pomegranate.base.Model.add_states", __pyx_clineno, __pyx_lineno, __pyx_filename);
-  __pyx_r = NULL;
-  __pyx_L0:;
-  __Pyx_XDECREF(__pyx_v_state);
-  __Pyx_XGIVEREF(__pyx_r);
-  __Pyx_RefNannyFinishContext();
-  return __pyx_r;
-}
-
-/* "hmm_stock_forecast/pomegranate/base.pyx":211
- * 			self.add_state(state)
- * 
  * 	def add_edge(self, a, b):             # <<<<<<<<<<<<<<
  * 		"""
  * 		Add a transition from state a to state b which indicates that B is
  */
 
 /* Python wrapper */
-static PyObject *__pyx_pw_18hmm_stock_forecast_11pomegranate_4base_5Model_33add_edge(PyObject *__pyx_v_self, PyObject *__pyx_args, PyObject *__pyx_kwds); /*proto*/
-static char __pyx_doc_18hmm_stock_forecast_11pomegranate_4base_5Model_32add_edge[] = "\n\t\tAdd a transition from state a to state b which indicates that B is\n\t\tdependent on A in ways specified by the distribution.\n\t\t";
-static PyObject *__pyx_pw_18hmm_stock_forecast_11pomegranate_4base_5Model_33add_edge(PyObject *__pyx_v_self, PyObject *__pyx_args, PyObject *__pyx_kwds) {
+static PyObject *__pyx_pw_18hmm_stock_forecast_11pomegranate_4base_5Model_25add_edge(PyObject *__pyx_v_self, PyObject *__pyx_args, PyObject *__pyx_kwds); /*proto*/
+static char __pyx_doc_18hmm_stock_forecast_11pomegranate_4base_5Model_24add_edge[] = "\n\t\tAdd a transition from state a to state b which indicates that B is\n\t\tdependent on A in ways specified by the distribution.\n\t\t";
+static PyObject *__pyx_pw_18hmm_stock_forecast_11pomegranate_4base_5Model_25add_edge(PyObject *__pyx_v_self, PyObject *__pyx_args, PyObject *__pyx_kwds) {
   PyObject *__pyx_v_a = 0;
   PyObject *__pyx_v_b = 0;
   int __pyx_lineno = 0;
@@ -4337,11 +3917,11 @@ static PyObject *__pyx_pw_18hmm_stock_forecast_11pomegranate_4base_5Model_33add_
         case  1:
         if (likely((values[1] = __Pyx_PyDict_GetItemStr(__pyx_kwds, __pyx_n_s_b)) != 0)) kw_args--;
         else {
-          __Pyx_RaiseArgtupleInvalid("add_edge", 1, 2, 2, 1); __PYX_ERR(0, 211, __pyx_L3_error)
+          __Pyx_RaiseArgtupleInvalid("add_edge", 1, 2, 2, 1); __PYX_ERR(0, 192, __pyx_L3_error)
         }
       }
       if (unlikely(kw_args > 0)) {
-        if (unlikely(__Pyx_ParseOptionalKeywords(__pyx_kwds, __pyx_pyargnames, 0, values, pos_args, "add_edge") < 0)) __PYX_ERR(0, 211, __pyx_L3_error)
+        if (unlikely(__Pyx_ParseOptionalKeywords(__pyx_kwds, __pyx_pyargnames, 0, values, pos_args, "add_edge") < 0)) __PYX_ERR(0, 192, __pyx_L3_error)
       }
     } else if (PyTuple_GET_SIZE(__pyx_args) != 2) {
       goto __pyx_L5_argtuple_error;
@@ -4354,20 +3934,20 @@ static PyObject *__pyx_pw_18hmm_stock_forecast_11pomegranate_4base_5Model_33add_
   }
   goto __pyx_L4_argument_unpacking_done;
   __pyx_L5_argtuple_error:;
-  __Pyx_RaiseArgtupleInvalid("add_edge", 1, 2, 2, PyTuple_GET_SIZE(__pyx_args)); __PYX_ERR(0, 211, __pyx_L3_error)
+  __Pyx_RaiseArgtupleInvalid("add_edge", 1, 2, 2, PyTuple_GET_SIZE(__pyx_args)); __PYX_ERR(0, 192, __pyx_L3_error)
   __pyx_L3_error:;
   __Pyx_AddTraceback("hmm_stock_forecast.pomegranate.base.Model.add_edge", __pyx_clineno, __pyx_lineno, __pyx_filename);
   __Pyx_RefNannyFinishContext();
   return NULL;
   __pyx_L4_argument_unpacking_done:;
-  __pyx_r = __pyx_pf_18hmm_stock_forecast_11pomegranate_4base_5Model_32add_edge(((struct __pyx_obj_18hmm_stock_forecast_11pomegranate_4base_Model *)__pyx_v_self), __pyx_v_a, __pyx_v_b);
+  __pyx_r = __pyx_pf_18hmm_stock_forecast_11pomegranate_4base_5Model_24add_edge(((struct __pyx_obj_18hmm_stock_forecast_11pomegranate_4base_Model *)__pyx_v_self), __pyx_v_a, __pyx_v_b);
 
   /* function exit code */
   __Pyx_RefNannyFinishContext();
   return __pyx_r;
 }
 
-static PyObject *__pyx_pf_18hmm_stock_forecast_11pomegranate_4base_5Model_32add_edge(struct __pyx_obj_18hmm_stock_forecast_11pomegranate_4base_Model *__pyx_v_self, PyObject *__pyx_v_a, PyObject *__pyx_v_b) {
+static PyObject *__pyx_pf_18hmm_stock_forecast_11pomegranate_4base_5Model_24add_edge(struct __pyx_obj_18hmm_stock_forecast_11pomegranate_4base_Model *__pyx_v_self, PyObject *__pyx_v_a, PyObject *__pyx_v_b) {
   PyObject *__pyx_r = NULL;
   __Pyx_RefNannyDeclarations
   PyObject *__pyx_t_1 = NULL;
@@ -4377,7 +3957,7 @@ static PyObject *__pyx_pf_18hmm_stock_forecast_11pomegranate_4base_5Model_32add_
   int __pyx_clineno = 0;
   __Pyx_RefNannySetupContext("add_edge", 0);
 
-  /* "hmm_stock_forecast/pomegranate/base.pyx":218
+  /* "hmm_stock_forecast/pomegranate/base.pyx":199
  * 
  * 		# Add the transition
  * 		self.edges.append((a, b))             # <<<<<<<<<<<<<<
@@ -4386,9 +3966,9 @@ static PyObject *__pyx_pf_18hmm_stock_forecast_11pomegranate_4base_5Model_32add_
  */
   if (unlikely(__pyx_v_self->edges == Py_None)) {
     PyErr_Format(PyExc_AttributeError, "'NoneType' object has no attribute '%.30s'", "append");
-    __PYX_ERR(0, 218, __pyx_L1_error)
+    __PYX_ERR(0, 199, __pyx_L1_error)
   }
-  __pyx_t_1 = PyTuple_New(2); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 218, __pyx_L1_error)
+  __pyx_t_1 = PyTuple_New(2); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 199, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
   __Pyx_INCREF(__pyx_v_a);
   __Pyx_GIVEREF(__pyx_v_a);
@@ -4396,20 +3976,20 @@ static PyObject *__pyx_pf_18hmm_stock_forecast_11pomegranate_4base_5Model_32add_
   __Pyx_INCREF(__pyx_v_b);
   __Pyx_GIVEREF(__pyx_v_b);
   PyTuple_SET_ITEM(__pyx_t_1, 1, __pyx_v_b);
-  __pyx_t_2 = __Pyx_PyList_Append(__pyx_v_self->edges, __pyx_t_1); if (unlikely(__pyx_t_2 == ((int)-1))) __PYX_ERR(0, 218, __pyx_L1_error)
+  __pyx_t_2 = __Pyx_PyList_Append(__pyx_v_self->edges, __pyx_t_1); if (unlikely(__pyx_t_2 == ((int)-1))) __PYX_ERR(0, 199, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
 
-  /* "hmm_stock_forecast/pomegranate/base.pyx":219
+  /* "hmm_stock_forecast/pomegranate/base.pyx":200
  * 		# Add the transition
  * 		self.edges.append((a, b))
  * 		self.n_edges += 1             # <<<<<<<<<<<<<<
  * 
- * 	def add_transition(self, a, b):
+ * 
  */
   __pyx_v_self->n_edges = (__pyx_v_self->n_edges + 1);
 
-  /* "hmm_stock_forecast/pomegranate/base.pyx":211
- * 			self.add_state(state)
+  /* "hmm_stock_forecast/pomegranate/base.pyx":192
+ * 		pass
  * 
  * 	def add_edge(self, a, b):             # <<<<<<<<<<<<<<
  * 		"""
@@ -4424,659 +4004,6 @@ static PyObject *__pyx_pf_18hmm_stock_forecast_11pomegranate_4base_5Model_32add_
   __Pyx_AddTraceback("hmm_stock_forecast.pomegranate.base.Model.add_edge", __pyx_clineno, __pyx_lineno, __pyx_filename);
   __pyx_r = NULL;
   __pyx_L0:;
-  __Pyx_XGIVEREF(__pyx_r);
-  __Pyx_RefNannyFinishContext();
-  return __pyx_r;
-}
-
-/* "hmm_stock_forecast/pomegranate/base.pyx":221
- * 		self.n_edges += 1
- * 
- * 	def add_transition(self, a, b):             # <<<<<<<<<<<<<<
- * 		"""Transitions and edges are the same."""
- * 		self.add_edge(a, b)
- */
-
-/* Python wrapper */
-static PyObject *__pyx_pw_18hmm_stock_forecast_11pomegranate_4base_5Model_35add_transition(PyObject *__pyx_v_self, PyObject *__pyx_args, PyObject *__pyx_kwds); /*proto*/
-static char __pyx_doc_18hmm_stock_forecast_11pomegranate_4base_5Model_34add_transition[] = "Transitions and edges are the same.";
-static PyObject *__pyx_pw_18hmm_stock_forecast_11pomegranate_4base_5Model_35add_transition(PyObject *__pyx_v_self, PyObject *__pyx_args, PyObject *__pyx_kwds) {
-  PyObject *__pyx_v_a = 0;
-  PyObject *__pyx_v_b = 0;
-  int __pyx_lineno = 0;
-  const char *__pyx_filename = NULL;
-  int __pyx_clineno = 0;
-  PyObject *__pyx_r = 0;
-  __Pyx_RefNannyDeclarations
-  __Pyx_RefNannySetupContext("add_transition (wrapper)", 0);
-  {
-    static PyObject **__pyx_pyargnames[] = {&__pyx_n_s_a,&__pyx_n_s_b,0};
-    PyObject* values[2] = {0,0};
-    if (unlikely(__pyx_kwds)) {
-      Py_ssize_t kw_args;
-      const Py_ssize_t pos_args = PyTuple_GET_SIZE(__pyx_args);
-      switch (pos_args) {
-        case  2: values[1] = PyTuple_GET_ITEM(__pyx_args, 1);
-        CYTHON_FALLTHROUGH;
-        case  1: values[0] = PyTuple_GET_ITEM(__pyx_args, 0);
-        CYTHON_FALLTHROUGH;
-        case  0: break;
-        default: goto __pyx_L5_argtuple_error;
-      }
-      kw_args = PyDict_Size(__pyx_kwds);
-      switch (pos_args) {
-        case  0:
-        if (likely((values[0] = __Pyx_PyDict_GetItemStr(__pyx_kwds, __pyx_n_s_a)) != 0)) kw_args--;
-        else goto __pyx_L5_argtuple_error;
-        CYTHON_FALLTHROUGH;
-        case  1:
-        if (likely((values[1] = __Pyx_PyDict_GetItemStr(__pyx_kwds, __pyx_n_s_b)) != 0)) kw_args--;
-        else {
-          __Pyx_RaiseArgtupleInvalid("add_transition", 1, 2, 2, 1); __PYX_ERR(0, 221, __pyx_L3_error)
-        }
-      }
-      if (unlikely(kw_args > 0)) {
-        if (unlikely(__Pyx_ParseOptionalKeywords(__pyx_kwds, __pyx_pyargnames, 0, values, pos_args, "add_transition") < 0)) __PYX_ERR(0, 221, __pyx_L3_error)
-      }
-    } else if (PyTuple_GET_SIZE(__pyx_args) != 2) {
-      goto __pyx_L5_argtuple_error;
-    } else {
-      values[0] = PyTuple_GET_ITEM(__pyx_args, 0);
-      values[1] = PyTuple_GET_ITEM(__pyx_args, 1);
-    }
-    __pyx_v_a = values[0];
-    __pyx_v_b = values[1];
-  }
-  goto __pyx_L4_argument_unpacking_done;
-  __pyx_L5_argtuple_error:;
-  __Pyx_RaiseArgtupleInvalid("add_transition", 1, 2, 2, PyTuple_GET_SIZE(__pyx_args)); __PYX_ERR(0, 221, __pyx_L3_error)
-  __pyx_L3_error:;
-  __Pyx_AddTraceback("hmm_stock_forecast.pomegranate.base.Model.add_transition", __pyx_clineno, __pyx_lineno, __pyx_filename);
-  __Pyx_RefNannyFinishContext();
-  return NULL;
-  __pyx_L4_argument_unpacking_done:;
-  __pyx_r = __pyx_pf_18hmm_stock_forecast_11pomegranate_4base_5Model_34add_transition(((struct __pyx_obj_18hmm_stock_forecast_11pomegranate_4base_Model *)__pyx_v_self), __pyx_v_a, __pyx_v_b);
-
-  /* function exit code */
-  __Pyx_RefNannyFinishContext();
-  return __pyx_r;
-}
-
-static PyObject *__pyx_pf_18hmm_stock_forecast_11pomegranate_4base_5Model_34add_transition(struct __pyx_obj_18hmm_stock_forecast_11pomegranate_4base_Model *__pyx_v_self, PyObject *__pyx_v_a, PyObject *__pyx_v_b) {
-  PyObject *__pyx_r = NULL;
-  __Pyx_RefNannyDeclarations
-  PyObject *__pyx_t_1 = NULL;
-  PyObject *__pyx_t_2 = NULL;
-  PyObject *__pyx_t_3 = NULL;
-  int __pyx_t_4;
-  PyObject *__pyx_t_5 = NULL;
-  int __pyx_lineno = 0;
-  const char *__pyx_filename = NULL;
-  int __pyx_clineno = 0;
-  __Pyx_RefNannySetupContext("add_transition", 0);
-
-  /* "hmm_stock_forecast/pomegranate/base.pyx":223
- * 	def add_transition(self, a, b):
- * 		"""Transitions and edges are the same."""
- * 		self.add_edge(a, b)             # <<<<<<<<<<<<<<
- * 
- * 	def state_count(self):
- */
-  __pyx_t_2 = __Pyx_PyObject_GetAttrStr(((PyObject *)__pyx_v_self), __pyx_n_s_add_edge); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 223, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_t_2);
-  __pyx_t_3 = NULL;
-  __pyx_t_4 = 0;
-  if (CYTHON_UNPACK_METHODS && likely(PyMethod_Check(__pyx_t_2))) {
-    __pyx_t_3 = PyMethod_GET_SELF(__pyx_t_2);
-    if (likely(__pyx_t_3)) {
-      PyObject* function = PyMethod_GET_FUNCTION(__pyx_t_2);
-      __Pyx_INCREF(__pyx_t_3);
-      __Pyx_INCREF(function);
-      __Pyx_DECREF_SET(__pyx_t_2, function);
-      __pyx_t_4 = 1;
-    }
-  }
-  #if CYTHON_FAST_PYCALL
-  if (PyFunction_Check(__pyx_t_2)) {
-    PyObject *__pyx_temp[3] = {__pyx_t_3, __pyx_v_a, __pyx_v_b};
-    __pyx_t_1 = __Pyx_PyFunction_FastCall(__pyx_t_2, __pyx_temp+1-__pyx_t_4, 2+__pyx_t_4); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 223, __pyx_L1_error)
-    __Pyx_XDECREF(__pyx_t_3); __pyx_t_3 = 0;
-    __Pyx_GOTREF(__pyx_t_1);
-  } else
-  #endif
-  #if CYTHON_FAST_PYCCALL
-  if (__Pyx_PyFastCFunction_Check(__pyx_t_2)) {
-    PyObject *__pyx_temp[3] = {__pyx_t_3, __pyx_v_a, __pyx_v_b};
-    __pyx_t_1 = __Pyx_PyCFunction_FastCall(__pyx_t_2, __pyx_temp+1-__pyx_t_4, 2+__pyx_t_4); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 223, __pyx_L1_error)
-    __Pyx_XDECREF(__pyx_t_3); __pyx_t_3 = 0;
-    __Pyx_GOTREF(__pyx_t_1);
-  } else
-  #endif
-  {
-    __pyx_t_5 = PyTuple_New(2+__pyx_t_4); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 223, __pyx_L1_error)
-    __Pyx_GOTREF(__pyx_t_5);
-    if (__pyx_t_3) {
-      __Pyx_GIVEREF(__pyx_t_3); PyTuple_SET_ITEM(__pyx_t_5, 0, __pyx_t_3); __pyx_t_3 = NULL;
-    }
-    __Pyx_INCREF(__pyx_v_a);
-    __Pyx_GIVEREF(__pyx_v_a);
-    PyTuple_SET_ITEM(__pyx_t_5, 0+__pyx_t_4, __pyx_v_a);
-    __Pyx_INCREF(__pyx_v_b);
-    __Pyx_GIVEREF(__pyx_v_b);
-    PyTuple_SET_ITEM(__pyx_t_5, 1+__pyx_t_4, __pyx_v_b);
-    __pyx_t_1 = __Pyx_PyObject_Call(__pyx_t_2, __pyx_t_5, NULL); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 223, __pyx_L1_error)
-    __Pyx_GOTREF(__pyx_t_1);
-    __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
-  }
-  __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
-  __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
-
-  /* "hmm_stock_forecast/pomegranate/base.pyx":221
- * 		self.n_edges += 1
- * 
- * 	def add_transition(self, a, b):             # <<<<<<<<<<<<<<
- * 		"""Transitions and edges are the same."""
- * 		self.add_edge(a, b)
- */
-
-  /* function exit code */
-  __pyx_r = Py_None; __Pyx_INCREF(Py_None);
-  goto __pyx_L0;
-  __pyx_L1_error:;
-  __Pyx_XDECREF(__pyx_t_1);
-  __Pyx_XDECREF(__pyx_t_2);
-  __Pyx_XDECREF(__pyx_t_3);
-  __Pyx_XDECREF(__pyx_t_5);
-  __Pyx_AddTraceback("hmm_stock_forecast.pomegranate.base.Model.add_transition", __pyx_clineno, __pyx_lineno, __pyx_filename);
-  __pyx_r = NULL;
-  __pyx_L0:;
-  __Pyx_XGIVEREF(__pyx_r);
-  __Pyx_RefNannyFinishContext();
-  return __pyx_r;
-}
-
-/* "hmm_stock_forecast/pomegranate/base.pyx":225
- * 		self.add_edge(a, b)
- * 
- * 	def state_count(self):             # <<<<<<<<<<<<<<
- * 		"""Returns the number of states present in the model."""
- * 		return self.n_states
- */
-
-/* Python wrapper */
-static PyObject *__pyx_pw_18hmm_stock_forecast_11pomegranate_4base_5Model_37state_count(PyObject *__pyx_v_self, CYTHON_UNUSED PyObject *unused); /*proto*/
-static char __pyx_doc_18hmm_stock_forecast_11pomegranate_4base_5Model_36state_count[] = "Returns the number of states present in the model.";
-static PyObject *__pyx_pw_18hmm_stock_forecast_11pomegranate_4base_5Model_37state_count(PyObject *__pyx_v_self, CYTHON_UNUSED PyObject *unused) {
-  PyObject *__pyx_r = 0;
-  __Pyx_RefNannyDeclarations
-  __Pyx_RefNannySetupContext("state_count (wrapper)", 0);
-  __pyx_r = __pyx_pf_18hmm_stock_forecast_11pomegranate_4base_5Model_36state_count(((struct __pyx_obj_18hmm_stock_forecast_11pomegranate_4base_Model *)__pyx_v_self));
-
-  /* function exit code */
-  __Pyx_RefNannyFinishContext();
-  return __pyx_r;
-}
-
-static PyObject *__pyx_pf_18hmm_stock_forecast_11pomegranate_4base_5Model_36state_count(struct __pyx_obj_18hmm_stock_forecast_11pomegranate_4base_Model *__pyx_v_self) {
-  PyObject *__pyx_r = NULL;
-  __Pyx_RefNannyDeclarations
-  PyObject *__pyx_t_1 = NULL;
-  int __pyx_lineno = 0;
-  const char *__pyx_filename = NULL;
-  int __pyx_clineno = 0;
-  __Pyx_RefNannySetupContext("state_count", 0);
-
-  /* "hmm_stock_forecast/pomegranate/base.pyx":227
- * 	def state_count(self):
- * 		"""Returns the number of states present in the model."""
- * 		return self.n_states             # <<<<<<<<<<<<<<
- * 
- * 	def edge_count(self):
- */
-  __Pyx_XDECREF(__pyx_r);
-  __pyx_t_1 = __Pyx_PyInt_From_int(__pyx_v_self->n_states); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 227, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_t_1);
-  __pyx_r = __pyx_t_1;
-  __pyx_t_1 = 0;
-  goto __pyx_L0;
-
-  /* "hmm_stock_forecast/pomegranate/base.pyx":225
- * 		self.add_edge(a, b)
- * 
- * 	def state_count(self):             # <<<<<<<<<<<<<<
- * 		"""Returns the number of states present in the model."""
- * 		return self.n_states
- */
-
-  /* function exit code */
-  __pyx_L1_error:;
-  __Pyx_XDECREF(__pyx_t_1);
-  __Pyx_AddTraceback("hmm_stock_forecast.pomegranate.base.Model.state_count", __pyx_clineno, __pyx_lineno, __pyx_filename);
-  __pyx_r = NULL;
-  __pyx_L0:;
-  __Pyx_XGIVEREF(__pyx_r);
-  __Pyx_RefNannyFinishContext();
-  return __pyx_r;
-}
-
-/* "hmm_stock_forecast/pomegranate/base.pyx":229
- * 		return self.n_states
- * 
- * 	def edge_count(self):             # <<<<<<<<<<<<<<
- * 		"""Returns the number of edges present in the model."""
- * 		return self.n_edges
- */
-
-/* Python wrapper */
-static PyObject *__pyx_pw_18hmm_stock_forecast_11pomegranate_4base_5Model_39edge_count(PyObject *__pyx_v_self, CYTHON_UNUSED PyObject *unused); /*proto*/
-static char __pyx_doc_18hmm_stock_forecast_11pomegranate_4base_5Model_38edge_count[] = "Returns the number of edges present in the model.";
-static PyObject *__pyx_pw_18hmm_stock_forecast_11pomegranate_4base_5Model_39edge_count(PyObject *__pyx_v_self, CYTHON_UNUSED PyObject *unused) {
-  PyObject *__pyx_r = 0;
-  __Pyx_RefNannyDeclarations
-  __Pyx_RefNannySetupContext("edge_count (wrapper)", 0);
-  __pyx_r = __pyx_pf_18hmm_stock_forecast_11pomegranate_4base_5Model_38edge_count(((struct __pyx_obj_18hmm_stock_forecast_11pomegranate_4base_Model *)__pyx_v_self));
-
-  /* function exit code */
-  __Pyx_RefNannyFinishContext();
-  return __pyx_r;
-}
-
-static PyObject *__pyx_pf_18hmm_stock_forecast_11pomegranate_4base_5Model_38edge_count(struct __pyx_obj_18hmm_stock_forecast_11pomegranate_4base_Model *__pyx_v_self) {
-  PyObject *__pyx_r = NULL;
-  __Pyx_RefNannyDeclarations
-  PyObject *__pyx_t_1 = NULL;
-  int __pyx_lineno = 0;
-  const char *__pyx_filename = NULL;
-  int __pyx_clineno = 0;
-  __Pyx_RefNannySetupContext("edge_count", 0);
-
-  /* "hmm_stock_forecast/pomegranate/base.pyx":231
- * 	def edge_count(self):
- * 		"""Returns the number of edges present in the model."""
- * 		return self.n_edges             # <<<<<<<<<<<<<<
- * 
- * 	def dense_transition_matrix(self):
- */
-  __Pyx_XDECREF(__pyx_r);
-  __pyx_t_1 = __Pyx_PyInt_From_int(__pyx_v_self->n_edges); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 231, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_t_1);
-  __pyx_r = __pyx_t_1;
-  __pyx_t_1 = 0;
-  goto __pyx_L0;
-
-  /* "hmm_stock_forecast/pomegranate/base.pyx":229
- * 		return self.n_states
- * 
- * 	def edge_count(self):             # <<<<<<<<<<<<<<
- * 		"""Returns the number of edges present in the model."""
- * 		return self.n_edges
- */
-
-  /* function exit code */
-  __pyx_L1_error:;
-  __Pyx_XDECREF(__pyx_t_1);
-  __Pyx_AddTraceback("hmm_stock_forecast.pomegranate.base.Model.edge_count", __pyx_clineno, __pyx_lineno, __pyx_filename);
-  __pyx_r = NULL;
-  __pyx_L0:;
-  __Pyx_XGIVEREF(__pyx_r);
-  __Pyx_RefNannyFinishContext();
-  return __pyx_r;
-}
-
-/* "hmm_stock_forecast/pomegranate/base.pyx":233
- * 		return self.n_edges
- * 
- * 	def dense_transition_matrix(self):             # <<<<<<<<<<<<<<
- * 		"""
- * 		Returns the dense transition matrix. Useful if the transitions of
- */
-
-/* Python wrapper */
-static PyObject *__pyx_pw_18hmm_stock_forecast_11pomegranate_4base_5Model_41dense_transition_matrix(PyObject *__pyx_v_self, CYTHON_UNUSED PyObject *unused); /*proto*/
-static char __pyx_doc_18hmm_stock_forecast_11pomegranate_4base_5Model_40dense_transition_matrix[] = "\n\t\tReturns the dense transition matrix. Useful if the transitions of\n\t\tsomewhat small models need to be analyzed.\n\t\t";
-static PyObject *__pyx_pw_18hmm_stock_forecast_11pomegranate_4base_5Model_41dense_transition_matrix(PyObject *__pyx_v_self, CYTHON_UNUSED PyObject *unused) {
-  PyObject *__pyx_r = 0;
-  __Pyx_RefNannyDeclarations
-  __Pyx_RefNannySetupContext("dense_transition_matrix (wrapper)", 0);
-  __pyx_r = __pyx_pf_18hmm_stock_forecast_11pomegranate_4base_5Model_40dense_transition_matrix(((struct __pyx_obj_18hmm_stock_forecast_11pomegranate_4base_Model *)__pyx_v_self));
-
-  /* function exit code */
-  __Pyx_RefNannyFinishContext();
-  return __pyx_r;
-}
-
-static PyObject *__pyx_pf_18hmm_stock_forecast_11pomegranate_4base_5Model_40dense_transition_matrix(struct __pyx_obj_18hmm_stock_forecast_11pomegranate_4base_Model *__pyx_v_self) {
-  Py_ssize_t __pyx_v_m;
-  PyObject *__pyx_v_transition_log_probabilities = NULL;
-  PyObject *__pyx_v_i = NULL;
-  PyObject *__pyx_v_n = NULL;
-  PyObject *__pyx_r = NULL;
-  __Pyx_RefNannyDeclarations
-  PyObject *__pyx_t_1 = NULL;
-  Py_ssize_t __pyx_t_2;
-  PyObject *__pyx_t_3 = NULL;
-  PyObject *__pyx_t_4 = NULL;
-  PyObject *__pyx_t_5 = NULL;
-  PyObject *__pyx_t_6 = NULL;
-  int __pyx_t_7;
-  PyObject *(*__pyx_t_8)(PyObject *);
-  Py_ssize_t __pyx_t_9;
-  PyObject *(*__pyx_t_10)(PyObject *);
-  int __pyx_lineno = 0;
-  const char *__pyx_filename = NULL;
-  int __pyx_clineno = 0;
-  __Pyx_RefNannySetupContext("dense_transition_matrix", 0);
-
-  /* "hmm_stock_forecast/pomegranate/base.pyx":239
- * 		"""
- * 
- * 		m = len(self.states)             # <<<<<<<<<<<<<<
- * 		transition_log_probabilities = numpy.full((m, m), NEGINF)
- * 
- */
-  __pyx_t_1 = __pyx_v_self->states;
-  __Pyx_INCREF(__pyx_t_1);
-  if (unlikely(__pyx_t_1 == Py_None)) {
-    PyErr_SetString(PyExc_TypeError, "object of type 'NoneType' has no len()");
-    __PYX_ERR(0, 239, __pyx_L1_error)
-  }
-  __pyx_t_2 = PyList_GET_SIZE(__pyx_t_1); if (unlikely(__pyx_t_2 == ((Py_ssize_t)-1))) __PYX_ERR(0, 239, __pyx_L1_error)
-  __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
-  __pyx_v_m = __pyx_t_2;
-
-  /* "hmm_stock_forecast/pomegranate/base.pyx":240
- * 
- * 		m = len(self.states)
- * 		transition_log_probabilities = numpy.full((m, m), NEGINF)             # <<<<<<<<<<<<<<
- * 
- * 		for i in range(m):
- */
-  __Pyx_GetModuleGlobalName(__pyx_t_3, __pyx_n_s_numpy); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 240, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_t_3);
-  __pyx_t_4 = __Pyx_PyObject_GetAttrStr(__pyx_t_3, __pyx_n_s_full); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 240, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_t_4);
-  __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
-  __pyx_t_3 = PyInt_FromSsize_t(__pyx_v_m); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 240, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_t_3);
-  __pyx_t_5 = PyInt_FromSsize_t(__pyx_v_m); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 240, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_t_5);
-  __pyx_t_6 = PyTuple_New(2); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 240, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_t_6);
-  __Pyx_GIVEREF(__pyx_t_3);
-  PyTuple_SET_ITEM(__pyx_t_6, 0, __pyx_t_3);
-  __Pyx_GIVEREF(__pyx_t_5);
-  PyTuple_SET_ITEM(__pyx_t_6, 1, __pyx_t_5);
-  __pyx_t_3 = 0;
-  __pyx_t_5 = 0;
-  __pyx_t_5 = NULL;
-  __pyx_t_7 = 0;
-  if (CYTHON_UNPACK_METHODS && unlikely(PyMethod_Check(__pyx_t_4))) {
-    __pyx_t_5 = PyMethod_GET_SELF(__pyx_t_4);
-    if (likely(__pyx_t_5)) {
-      PyObject* function = PyMethod_GET_FUNCTION(__pyx_t_4);
-      __Pyx_INCREF(__pyx_t_5);
-      __Pyx_INCREF(function);
-      __Pyx_DECREF_SET(__pyx_t_4, function);
-      __pyx_t_7 = 1;
-    }
-  }
-  #if CYTHON_FAST_PYCALL
-  if (PyFunction_Check(__pyx_t_4)) {
-    PyObject *__pyx_temp[3] = {__pyx_t_5, __pyx_t_6, __pyx_float_neg_inf};
-    __pyx_t_1 = __Pyx_PyFunction_FastCall(__pyx_t_4, __pyx_temp+1-__pyx_t_7, 2+__pyx_t_7); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 240, __pyx_L1_error)
-    __Pyx_XDECREF(__pyx_t_5); __pyx_t_5 = 0;
-    __Pyx_GOTREF(__pyx_t_1);
-    __Pyx_DECREF(__pyx_t_6); __pyx_t_6 = 0;
-  } else
-  #endif
-  #if CYTHON_FAST_PYCCALL
-  if (__Pyx_PyFastCFunction_Check(__pyx_t_4)) {
-    PyObject *__pyx_temp[3] = {__pyx_t_5, __pyx_t_6, __pyx_float_neg_inf};
-    __pyx_t_1 = __Pyx_PyCFunction_FastCall(__pyx_t_4, __pyx_temp+1-__pyx_t_7, 2+__pyx_t_7); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 240, __pyx_L1_error)
-    __Pyx_XDECREF(__pyx_t_5); __pyx_t_5 = 0;
-    __Pyx_GOTREF(__pyx_t_1);
-    __Pyx_DECREF(__pyx_t_6); __pyx_t_6 = 0;
-  } else
-  #endif
-  {
-    __pyx_t_3 = PyTuple_New(2+__pyx_t_7); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 240, __pyx_L1_error)
-    __Pyx_GOTREF(__pyx_t_3);
-    if (__pyx_t_5) {
-      __Pyx_GIVEREF(__pyx_t_5); PyTuple_SET_ITEM(__pyx_t_3, 0, __pyx_t_5); __pyx_t_5 = NULL;
-    }
-    __Pyx_GIVEREF(__pyx_t_6);
-    PyTuple_SET_ITEM(__pyx_t_3, 0+__pyx_t_7, __pyx_t_6);
-    __Pyx_INCREF(__pyx_float_neg_inf);
-    __Pyx_GIVEREF(__pyx_float_neg_inf);
-    PyTuple_SET_ITEM(__pyx_t_3, 1+__pyx_t_7, __pyx_float_neg_inf);
-    __pyx_t_6 = 0;
-    __pyx_t_1 = __Pyx_PyObject_Call(__pyx_t_4, __pyx_t_3, NULL); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 240, __pyx_L1_error)
-    __Pyx_GOTREF(__pyx_t_1);
-    __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
-  }
-  __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
-  __pyx_v_transition_log_probabilities = __pyx_t_1;
-  __pyx_t_1 = 0;
-
-  /* "hmm_stock_forecast/pomegranate/base.pyx":242
- * 		transition_log_probabilities = numpy.full((m, m), NEGINF)
- * 
- * 		for i in range(m):             # <<<<<<<<<<<<<<
- * 			for n in range( self.out_edge_count[i], self.out_edge_count[i+1] ):
- * 				transition_log_probabilities[i, self.out_transitions[n]] = \
- */
-  __pyx_t_1 = PyInt_FromSsize_t(__pyx_v_m); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 242, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_t_1);
-  __pyx_t_4 = __Pyx_PyObject_CallOneArg(__pyx_builtin_range, __pyx_t_1); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 242, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_t_4);
-  __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
-  if (likely(PyList_CheckExact(__pyx_t_4)) || PyTuple_CheckExact(__pyx_t_4)) {
-    __pyx_t_1 = __pyx_t_4; __Pyx_INCREF(__pyx_t_1); __pyx_t_2 = 0;
-    __pyx_t_8 = NULL;
-  } else {
-    __pyx_t_2 = -1; __pyx_t_1 = PyObject_GetIter(__pyx_t_4); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 242, __pyx_L1_error)
-    __Pyx_GOTREF(__pyx_t_1);
-    __pyx_t_8 = Py_TYPE(__pyx_t_1)->tp_iternext; if (unlikely(!__pyx_t_8)) __PYX_ERR(0, 242, __pyx_L1_error)
-  }
-  __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
-  for (;;) {
-    if (likely(!__pyx_t_8)) {
-      if (likely(PyList_CheckExact(__pyx_t_1))) {
-        if (__pyx_t_2 >= PyList_GET_SIZE(__pyx_t_1)) break;
-        #if CYTHON_ASSUME_SAFE_MACROS && !CYTHON_AVOID_BORROWED_REFS
-        __pyx_t_4 = PyList_GET_ITEM(__pyx_t_1, __pyx_t_2); __Pyx_INCREF(__pyx_t_4); __pyx_t_2++; if (unlikely(0 < 0)) __PYX_ERR(0, 242, __pyx_L1_error)
-        #else
-        __pyx_t_4 = PySequence_ITEM(__pyx_t_1, __pyx_t_2); __pyx_t_2++; if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 242, __pyx_L1_error)
-        __Pyx_GOTREF(__pyx_t_4);
-        #endif
-      } else {
-        if (__pyx_t_2 >= PyTuple_GET_SIZE(__pyx_t_1)) break;
-        #if CYTHON_ASSUME_SAFE_MACROS && !CYTHON_AVOID_BORROWED_REFS
-        __pyx_t_4 = PyTuple_GET_ITEM(__pyx_t_1, __pyx_t_2); __Pyx_INCREF(__pyx_t_4); __pyx_t_2++; if (unlikely(0 < 0)) __PYX_ERR(0, 242, __pyx_L1_error)
-        #else
-        __pyx_t_4 = PySequence_ITEM(__pyx_t_1, __pyx_t_2); __pyx_t_2++; if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 242, __pyx_L1_error)
-        __Pyx_GOTREF(__pyx_t_4);
-        #endif
-      }
-    } else {
-      __pyx_t_4 = __pyx_t_8(__pyx_t_1);
-      if (unlikely(!__pyx_t_4)) {
-        PyObject* exc_type = PyErr_Occurred();
-        if (exc_type) {
-          if (likely(__Pyx_PyErr_GivenExceptionMatches(exc_type, PyExc_StopIteration))) PyErr_Clear();
-          else __PYX_ERR(0, 242, __pyx_L1_error)
-        }
-        break;
-      }
-      __Pyx_GOTREF(__pyx_t_4);
-    }
-    __Pyx_XDECREF_SET(__pyx_v_i, __pyx_t_4);
-    __pyx_t_4 = 0;
-
-    /* "hmm_stock_forecast/pomegranate/base.pyx":243
- * 
- * 		for i in range(m):
- * 			for n in range( self.out_edge_count[i], self.out_edge_count[i+1] ):             # <<<<<<<<<<<<<<
- * 				transition_log_probabilities[i, self.out_transitions[n]] = \
- * 					self.out_transition_log_probabilities[n]
- */
-    __pyx_t_4 = __Pyx_PyObject_GetAttrStr(((PyObject *)__pyx_v_self), __pyx_n_s_out_edge_count); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 243, __pyx_L1_error)
-    __Pyx_GOTREF(__pyx_t_4);
-    __pyx_t_3 = __Pyx_PyObject_GetItem(__pyx_t_4, __pyx_v_i); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 243, __pyx_L1_error)
-    __Pyx_GOTREF(__pyx_t_3);
-    __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
-    __pyx_t_4 = __Pyx_PyObject_GetAttrStr(((PyObject *)__pyx_v_self), __pyx_n_s_out_edge_count); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 243, __pyx_L1_error)
-    __Pyx_GOTREF(__pyx_t_4);
-    __pyx_t_6 = __Pyx_PyInt_AddObjC(__pyx_v_i, __pyx_int_1, 1, 0, 0); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 243, __pyx_L1_error)
-    __Pyx_GOTREF(__pyx_t_6);
-    __pyx_t_5 = __Pyx_PyObject_GetItem(__pyx_t_4, __pyx_t_6); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 243, __pyx_L1_error)
-    __Pyx_GOTREF(__pyx_t_5);
-    __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
-    __Pyx_DECREF(__pyx_t_6); __pyx_t_6 = 0;
-    __pyx_t_6 = PyTuple_New(2); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 243, __pyx_L1_error)
-    __Pyx_GOTREF(__pyx_t_6);
-    __Pyx_GIVEREF(__pyx_t_3);
-    PyTuple_SET_ITEM(__pyx_t_6, 0, __pyx_t_3);
-    __Pyx_GIVEREF(__pyx_t_5);
-    PyTuple_SET_ITEM(__pyx_t_6, 1, __pyx_t_5);
-    __pyx_t_3 = 0;
-    __pyx_t_5 = 0;
-    __pyx_t_5 = __Pyx_PyObject_Call(__pyx_builtin_range, __pyx_t_6, NULL); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 243, __pyx_L1_error)
-    __Pyx_GOTREF(__pyx_t_5);
-    __Pyx_DECREF(__pyx_t_6); __pyx_t_6 = 0;
-    if (likely(PyList_CheckExact(__pyx_t_5)) || PyTuple_CheckExact(__pyx_t_5)) {
-      __pyx_t_6 = __pyx_t_5; __Pyx_INCREF(__pyx_t_6); __pyx_t_9 = 0;
-      __pyx_t_10 = NULL;
-    } else {
-      __pyx_t_9 = -1; __pyx_t_6 = PyObject_GetIter(__pyx_t_5); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 243, __pyx_L1_error)
-      __Pyx_GOTREF(__pyx_t_6);
-      __pyx_t_10 = Py_TYPE(__pyx_t_6)->tp_iternext; if (unlikely(!__pyx_t_10)) __PYX_ERR(0, 243, __pyx_L1_error)
-    }
-    __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
-    for (;;) {
-      if (likely(!__pyx_t_10)) {
-        if (likely(PyList_CheckExact(__pyx_t_6))) {
-          if (__pyx_t_9 >= PyList_GET_SIZE(__pyx_t_6)) break;
-          #if CYTHON_ASSUME_SAFE_MACROS && !CYTHON_AVOID_BORROWED_REFS
-          __pyx_t_5 = PyList_GET_ITEM(__pyx_t_6, __pyx_t_9); __Pyx_INCREF(__pyx_t_5); __pyx_t_9++; if (unlikely(0 < 0)) __PYX_ERR(0, 243, __pyx_L1_error)
-          #else
-          __pyx_t_5 = PySequence_ITEM(__pyx_t_6, __pyx_t_9); __pyx_t_9++; if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 243, __pyx_L1_error)
-          __Pyx_GOTREF(__pyx_t_5);
-          #endif
-        } else {
-          if (__pyx_t_9 >= PyTuple_GET_SIZE(__pyx_t_6)) break;
-          #if CYTHON_ASSUME_SAFE_MACROS && !CYTHON_AVOID_BORROWED_REFS
-          __pyx_t_5 = PyTuple_GET_ITEM(__pyx_t_6, __pyx_t_9); __Pyx_INCREF(__pyx_t_5); __pyx_t_9++; if (unlikely(0 < 0)) __PYX_ERR(0, 243, __pyx_L1_error)
-          #else
-          __pyx_t_5 = PySequence_ITEM(__pyx_t_6, __pyx_t_9); __pyx_t_9++; if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 243, __pyx_L1_error)
-          __Pyx_GOTREF(__pyx_t_5);
-          #endif
-        }
-      } else {
-        __pyx_t_5 = __pyx_t_10(__pyx_t_6);
-        if (unlikely(!__pyx_t_5)) {
-          PyObject* exc_type = PyErr_Occurred();
-          if (exc_type) {
-            if (likely(__Pyx_PyErr_GivenExceptionMatches(exc_type, PyExc_StopIteration))) PyErr_Clear();
-            else __PYX_ERR(0, 243, __pyx_L1_error)
-          }
-          break;
-        }
-        __Pyx_GOTREF(__pyx_t_5);
-      }
-      __Pyx_XDECREF_SET(__pyx_v_n, __pyx_t_5);
-      __pyx_t_5 = 0;
-
-      /* "hmm_stock_forecast/pomegranate/base.pyx":245
- * 			for n in range( self.out_edge_count[i], self.out_edge_count[i+1] ):
- * 				transition_log_probabilities[i, self.out_transitions[n]] = \
- * 					self.out_transition_log_probabilities[n]             # <<<<<<<<<<<<<<
- * 
- * 		return transition_log_probabilities
- */
-      __pyx_t_5 = __Pyx_PyObject_GetAttrStr(((PyObject *)__pyx_v_self), __pyx_n_s_out_transition_log_probabilities); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 245, __pyx_L1_error)
-      __Pyx_GOTREF(__pyx_t_5);
-      __pyx_t_3 = __Pyx_PyObject_GetItem(__pyx_t_5, __pyx_v_n); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 245, __pyx_L1_error)
-      __Pyx_GOTREF(__pyx_t_3);
-      __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
-
-      /* "hmm_stock_forecast/pomegranate/base.pyx":244
- * 		for i in range(m):
- * 			for n in range( self.out_edge_count[i], self.out_edge_count[i+1] ):
- * 				transition_log_probabilities[i, self.out_transitions[n]] = \             # <<<<<<<<<<<<<<
- * 					self.out_transition_log_probabilities[n]
- * 
- */
-      __pyx_t_5 = __Pyx_PyObject_GetAttrStr(((PyObject *)__pyx_v_self), __pyx_n_s_out_transitions); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 244, __pyx_L1_error)
-      __Pyx_GOTREF(__pyx_t_5);
-      __pyx_t_4 = __Pyx_PyObject_GetItem(__pyx_t_5, __pyx_v_n); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 244, __pyx_L1_error)
-      __Pyx_GOTREF(__pyx_t_4);
-      __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
-      __pyx_t_5 = PyTuple_New(2); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 244, __pyx_L1_error)
-      __Pyx_GOTREF(__pyx_t_5);
-      __Pyx_INCREF(__pyx_v_i);
-      __Pyx_GIVEREF(__pyx_v_i);
-      PyTuple_SET_ITEM(__pyx_t_5, 0, __pyx_v_i);
-      __Pyx_GIVEREF(__pyx_t_4);
-      PyTuple_SET_ITEM(__pyx_t_5, 1, __pyx_t_4);
-      __pyx_t_4 = 0;
-      if (unlikely(PyObject_SetItem(__pyx_v_transition_log_probabilities, __pyx_t_5, __pyx_t_3) < 0)) __PYX_ERR(0, 244, __pyx_L1_error)
-      __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
-      __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
-
-      /* "hmm_stock_forecast/pomegranate/base.pyx":243
- * 
- * 		for i in range(m):
- * 			for n in range( self.out_edge_count[i], self.out_edge_count[i+1] ):             # <<<<<<<<<<<<<<
- * 				transition_log_probabilities[i, self.out_transitions[n]] = \
- * 					self.out_transition_log_probabilities[n]
- */
-    }
-    __Pyx_DECREF(__pyx_t_6); __pyx_t_6 = 0;
-
-    /* "hmm_stock_forecast/pomegranate/base.pyx":242
- * 		transition_log_probabilities = numpy.full((m, m), NEGINF)
- * 
- * 		for i in range(m):             # <<<<<<<<<<<<<<
- * 			for n in range( self.out_edge_count[i], self.out_edge_count[i+1] ):
- * 				transition_log_probabilities[i, self.out_transitions[n]] = \
- */
-  }
-  __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
-
-  /* "hmm_stock_forecast/pomegranate/base.pyx":247
- * 					self.out_transition_log_probabilities[n]
- * 
- * 		return transition_log_probabilities             # <<<<<<<<<<<<<<
- * 
- * 
- */
-  __Pyx_XDECREF(__pyx_r);
-  __Pyx_INCREF(__pyx_v_transition_log_probabilities);
-  __pyx_r = __pyx_v_transition_log_probabilities;
-  goto __pyx_L0;
-
-  /* "hmm_stock_forecast/pomegranate/base.pyx":233
- * 		return self.n_edges
- * 
- * 	def dense_transition_matrix(self):             # <<<<<<<<<<<<<<
- * 		"""
- * 		Returns the dense transition matrix. Useful if the transitions of
- */
-
-  /* function exit code */
-  __pyx_L1_error:;
-  __Pyx_XDECREF(__pyx_t_1);
-  __Pyx_XDECREF(__pyx_t_3);
-  __Pyx_XDECREF(__pyx_t_4);
-  __Pyx_XDECREF(__pyx_t_5);
-  __Pyx_XDECREF(__pyx_t_6);
-  __Pyx_AddTraceback("hmm_stock_forecast.pomegranate.base.Model.dense_transition_matrix", __pyx_clineno, __pyx_lineno, __pyx_filename);
-  __pyx_r = NULL;
-  __pyx_L0:;
-  __Pyx_XDECREF(__pyx_v_transition_log_probabilities);
-  __Pyx_XDECREF(__pyx_v_i);
-  __Pyx_XDECREF(__pyx_v_n);
   __Pyx_XGIVEREF(__pyx_r);
   __Pyx_RefNannyFinishContext();
   return __pyx_r;
@@ -5772,19 +4699,19 @@ static int __pyx_pf_18hmm_stock_forecast_11pomegranate_4base_5Model_5graph_4__de
  */
 
 /* Python wrapper */
-static PyObject *__pyx_pw_18hmm_stock_forecast_11pomegranate_4base_5Model_43__reduce_cython__(PyObject *__pyx_v_self, CYTHON_UNUSED PyObject *unused); /*proto*/
-static PyObject *__pyx_pw_18hmm_stock_forecast_11pomegranate_4base_5Model_43__reduce_cython__(PyObject *__pyx_v_self, CYTHON_UNUSED PyObject *unused) {
+static PyObject *__pyx_pw_18hmm_stock_forecast_11pomegranate_4base_5Model_27__reduce_cython__(PyObject *__pyx_v_self, CYTHON_UNUSED PyObject *unused); /*proto*/
+static PyObject *__pyx_pw_18hmm_stock_forecast_11pomegranate_4base_5Model_27__reduce_cython__(PyObject *__pyx_v_self, CYTHON_UNUSED PyObject *unused) {
   PyObject *__pyx_r = 0;
   __Pyx_RefNannyDeclarations
   __Pyx_RefNannySetupContext("__reduce_cython__ (wrapper)", 0);
-  __pyx_r = __pyx_pf_18hmm_stock_forecast_11pomegranate_4base_5Model_42__reduce_cython__(((struct __pyx_obj_18hmm_stock_forecast_11pomegranate_4base_Model *)__pyx_v_self));
+  __pyx_r = __pyx_pf_18hmm_stock_forecast_11pomegranate_4base_5Model_26__reduce_cython__(((struct __pyx_obj_18hmm_stock_forecast_11pomegranate_4base_Model *)__pyx_v_self));
 
   /* function exit code */
   __Pyx_RefNannyFinishContext();
   return __pyx_r;
 }
 
-static PyObject *__pyx_pf_18hmm_stock_forecast_11pomegranate_4base_5Model_42__reduce_cython__(CYTHON_UNUSED struct __pyx_obj_18hmm_stock_forecast_11pomegranate_4base_Model *__pyx_v_self) {
+static PyObject *__pyx_pf_18hmm_stock_forecast_11pomegranate_4base_5Model_26__reduce_cython__(CYTHON_UNUSED struct __pyx_obj_18hmm_stock_forecast_11pomegranate_4base_Model *__pyx_v_self) {
   PyObject *__pyx_r = NULL;
   __Pyx_RefNannyDeclarations
   PyObject *__pyx_t_1 = NULL;
@@ -5829,19 +4756,19 @@ static PyObject *__pyx_pf_18hmm_stock_forecast_11pomegranate_4base_5Model_42__re
  */
 
 /* Python wrapper */
-static PyObject *__pyx_pw_18hmm_stock_forecast_11pomegranate_4base_5Model_45__setstate_cython__(PyObject *__pyx_v_self, PyObject *__pyx_v___pyx_state); /*proto*/
-static PyObject *__pyx_pw_18hmm_stock_forecast_11pomegranate_4base_5Model_45__setstate_cython__(PyObject *__pyx_v_self, PyObject *__pyx_v___pyx_state) {
+static PyObject *__pyx_pw_18hmm_stock_forecast_11pomegranate_4base_5Model_29__setstate_cython__(PyObject *__pyx_v_self, PyObject *__pyx_v___pyx_state); /*proto*/
+static PyObject *__pyx_pw_18hmm_stock_forecast_11pomegranate_4base_5Model_29__setstate_cython__(PyObject *__pyx_v_self, PyObject *__pyx_v___pyx_state) {
   PyObject *__pyx_r = 0;
   __Pyx_RefNannyDeclarations
   __Pyx_RefNannySetupContext("__setstate_cython__ (wrapper)", 0);
-  __pyx_r = __pyx_pf_18hmm_stock_forecast_11pomegranate_4base_5Model_44__setstate_cython__(((struct __pyx_obj_18hmm_stock_forecast_11pomegranate_4base_Model *)__pyx_v_self), ((PyObject *)__pyx_v___pyx_state));
+  __pyx_r = __pyx_pf_18hmm_stock_forecast_11pomegranate_4base_5Model_28__setstate_cython__(((struct __pyx_obj_18hmm_stock_forecast_11pomegranate_4base_Model *)__pyx_v_self), ((PyObject *)__pyx_v___pyx_state));
 
   /* function exit code */
   __Pyx_RefNannyFinishContext();
   return __pyx_r;
 }
 
-static PyObject *__pyx_pf_18hmm_stock_forecast_11pomegranate_4base_5Model_44__setstate_cython__(CYTHON_UNUSED struct __pyx_obj_18hmm_stock_forecast_11pomegranate_4base_Model *__pyx_v_self, CYTHON_UNUSED PyObject *__pyx_v___pyx_state) {
+static PyObject *__pyx_pf_18hmm_stock_forecast_11pomegranate_4base_5Model_28__setstate_cython__(CYTHON_UNUSED struct __pyx_obj_18hmm_stock_forecast_11pomegranate_4base_Model *__pyx_v_self, CYTHON_UNUSED PyObject *__pyx_v___pyx_state) {
   PyObject *__pyx_r = NULL;
   __Pyx_RefNannyDeclarations
   PyObject *__pyx_t_1 = NULL;
@@ -5878,7 +4805,7 @@ static PyObject *__pyx_pf_18hmm_stock_forecast_11pomegranate_4base_5Model_44__se
   return __pyx_r;
 }
 
-/* "hmm_stock_forecast/pomegranate/base.pyx":256
+/* "hmm_stock_forecast/pomegranate/base.pyx":209
  * 	"""
  * 
  * 	def __init__( self, distribution, name=None, weight=None ):             # <<<<<<<<<<<<<<
@@ -5939,7 +4866,7 @@ static int __pyx_pw_18hmm_stock_forecast_11pomegranate_4base_5State_1__init__(Py
         }
       }
       if (unlikely(kw_args > 0)) {
-        if (unlikely(__Pyx_ParseOptionalKeywords(__pyx_kwds, __pyx_pyargnames, 0, values, pos_args, "__init__") < 0)) __PYX_ERR(0, 256, __pyx_L3_error)
+        if (unlikely(__Pyx_ParseOptionalKeywords(__pyx_kwds, __pyx_pyargnames, 0, values, pos_args, "__init__") < 0)) __PYX_ERR(0, 209, __pyx_L3_error)
       }
     } else {
       switch (PyTuple_GET_SIZE(__pyx_args)) {
@@ -5958,7 +4885,7 @@ static int __pyx_pw_18hmm_stock_forecast_11pomegranate_4base_5State_1__init__(Py
   }
   goto __pyx_L4_argument_unpacking_done;
   __pyx_L5_argtuple_error:;
-  __Pyx_RaiseArgtupleInvalid("__init__", 0, 1, 3, PyTuple_GET_SIZE(__pyx_args)); __PYX_ERR(0, 256, __pyx_L3_error)
+  __Pyx_RaiseArgtupleInvalid("__init__", 0, 1, 3, PyTuple_GET_SIZE(__pyx_args)); __PYX_ERR(0, 209, __pyx_L3_error)
   __pyx_L3_error:;
   __Pyx_AddTraceback("hmm_stock_forecast.pomegranate.base.State.__init__", __pyx_clineno, __pyx_lineno, __pyx_filename);
   __Pyx_RefNannyFinishContext();
@@ -5986,7 +4913,7 @@ static int __pyx_pf_18hmm_stock_forecast_11pomegranate_4base_5State___init__(str
   int __pyx_clineno = 0;
   __Pyx_RefNannySetupContext("__init__", 0);
 
-  /* "hmm_stock_forecast/pomegranate/base.pyx":265
+  /* "hmm_stock_forecast/pomegranate/base.pyx":218
  * 
  * 		# Save the distribution
  * 		self.distribution = distribution             # <<<<<<<<<<<<<<
@@ -5999,24 +4926,24 @@ static int __pyx_pf_18hmm_stock_forecast_11pomegranate_4base_5State___init__(str
   __Pyx_DECREF(__pyx_v_self->distribution);
   __pyx_v_self->distribution = __pyx_v_distribution;
 
-  /* "hmm_stock_forecast/pomegranate/base.pyx":268
+  /* "hmm_stock_forecast/pomegranate/base.pyx":221
  * 
  * 		# Save the name
  * 		self.name = name or str(uuid.uuid4())             # <<<<<<<<<<<<<<
  * 
  * 		# Save the weight, or default to the unit weight
  */
-  __pyx_t_2 = __Pyx_PyObject_IsTrue(__pyx_v_name); if (unlikely(__pyx_t_2 < 0)) __PYX_ERR(0, 268, __pyx_L1_error)
+  __pyx_t_2 = __Pyx_PyObject_IsTrue(__pyx_v_name); if (unlikely(__pyx_t_2 < 0)) __PYX_ERR(0, 221, __pyx_L1_error)
   if (!__pyx_t_2) {
   } else {
-    if (!(likely(PyString_CheckExact(__pyx_v_name))||((__pyx_v_name) == Py_None)||(PyErr_Format(PyExc_TypeError, "Expected %.16s, got %.200s", "str", Py_TYPE(__pyx_v_name)->tp_name), 0))) __PYX_ERR(0, 268, __pyx_L1_error)
+    if (!(likely(PyString_CheckExact(__pyx_v_name))||((__pyx_v_name) == Py_None)||(PyErr_Format(PyExc_TypeError, "Expected %.16s, got %.200s", "str", Py_TYPE(__pyx_v_name)->tp_name), 0))) __PYX_ERR(0, 221, __pyx_L1_error)
     __Pyx_INCREF(__pyx_v_name);
     __pyx_t_1 = __pyx_v_name;
     goto __pyx_L3_bool_binop_done;
   }
-  __Pyx_GetModuleGlobalName(__pyx_t_4, __pyx_n_s_uuid); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 268, __pyx_L1_error)
+  __Pyx_GetModuleGlobalName(__pyx_t_4, __pyx_n_s_uuid); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 221, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_4);
-  __pyx_t_5 = __Pyx_PyObject_GetAttrStr(__pyx_t_4, __pyx_n_s_uuid4); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 268, __pyx_L1_error)
+  __pyx_t_5 = __Pyx_PyObject_GetAttrStr(__pyx_t_4, __pyx_n_s_uuid4); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 221, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_5);
   __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
   __pyx_t_4 = NULL;
@@ -6031,13 +4958,13 @@ static int __pyx_pf_18hmm_stock_forecast_11pomegranate_4base_5State___init__(str
   }
   __pyx_t_3 = (__pyx_t_4) ? __Pyx_PyObject_CallOneArg(__pyx_t_5, __pyx_t_4) : __Pyx_PyObject_CallNoArg(__pyx_t_5);
   __Pyx_XDECREF(__pyx_t_4); __pyx_t_4 = 0;
-  if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 268, __pyx_L1_error)
+  if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 221, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_3);
   __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
-  __pyx_t_5 = __Pyx_PyObject_CallOneArg(((PyObject *)(&PyString_Type)), __pyx_t_3); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 268, __pyx_L1_error)
+  __pyx_t_5 = __Pyx_PyObject_CallOneArg(((PyObject *)(&PyString_Type)), __pyx_t_3); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 221, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_5);
   __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
-  if (!(likely(PyString_CheckExact(__pyx_t_5))||((__pyx_t_5) == Py_None)||(PyErr_Format(PyExc_TypeError, "Expected %.16s, got %.200s", "str", Py_TYPE(__pyx_t_5)->tp_name), 0))) __PYX_ERR(0, 268, __pyx_L1_error)
+  if (!(likely(PyString_CheckExact(__pyx_t_5))||((__pyx_t_5) == Py_None)||(PyErr_Format(PyExc_TypeError, "Expected %.16s, got %.200s", "str", Py_TYPE(__pyx_t_5)->tp_name), 0))) __PYX_ERR(0, 221, __pyx_L1_error)
   __Pyx_INCREF(__pyx_t_5);
   __pyx_t_1 = __pyx_t_5;
   __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
@@ -6048,17 +4975,17 @@ static int __pyx_pf_18hmm_stock_forecast_11pomegranate_4base_5State___init__(str
   __pyx_v_self->name = ((PyObject*)__pyx_t_1);
   __pyx_t_1 = 0;
 
-  /* "hmm_stock_forecast/pomegranate/base.pyx":271
+  /* "hmm_stock_forecast/pomegranate/base.pyx":224
  * 
  * 		# Save the weight, or default to the unit weight
  * 		self.weight = weight or 1.             # <<<<<<<<<<<<<<
  * 
  * 	def __reduce__(self):
  */
-  __pyx_t_2 = __Pyx_PyObject_IsTrue(__pyx_v_weight); if (unlikely(__pyx_t_2 < 0)) __PYX_ERR(0, 271, __pyx_L1_error)
+  __pyx_t_2 = __Pyx_PyObject_IsTrue(__pyx_v_weight); if (unlikely(__pyx_t_2 < 0)) __PYX_ERR(0, 224, __pyx_L1_error)
   if (!__pyx_t_2) {
   } else {
-    __pyx_t_7 = __pyx_PyFloat_AsDouble(__pyx_v_weight); if (unlikely((__pyx_t_7 == (double)-1) && PyErr_Occurred())) __PYX_ERR(0, 271, __pyx_L1_error)
+    __pyx_t_7 = __pyx_PyFloat_AsDouble(__pyx_v_weight); if (unlikely((__pyx_t_7 == (double)-1) && PyErr_Occurred())) __PYX_ERR(0, 224, __pyx_L1_error)
     __pyx_t_6 = __pyx_t_7;
     goto __pyx_L5_bool_binop_done;
   }
@@ -6066,7 +4993,7 @@ static int __pyx_pf_18hmm_stock_forecast_11pomegranate_4base_5State___init__(str
   __pyx_L5_bool_binop_done:;
   __pyx_v_self->weight = __pyx_t_6;
 
-  /* "hmm_stock_forecast/pomegranate/base.pyx":256
+  /* "hmm_stock_forecast/pomegranate/base.pyx":209
  * 	"""
  * 
  * 	def __init__( self, distribution, name=None, weight=None ):             # <<<<<<<<<<<<<<
@@ -6089,7 +5016,7 @@ static int __pyx_pf_18hmm_stock_forecast_11pomegranate_4base_5State___init__(str
   return __pyx_r;
 }
 
-/* "hmm_stock_forecast/pomegranate/base.pyx":273
+/* "hmm_stock_forecast/pomegranate/base.pyx":226
  * 		self.weight = weight or 1.
  * 
  * 	def __reduce__(self):             # <<<<<<<<<<<<<<
@@ -6121,7 +5048,7 @@ static PyObject *__pyx_pf_18hmm_stock_forecast_11pomegranate_4base_5State_2__red
   int __pyx_clineno = 0;
   __Pyx_RefNannySetupContext("__reduce__", 0);
 
-  /* "hmm_stock_forecast/pomegranate/base.pyx":274
+  /* "hmm_stock_forecast/pomegranate/base.pyx":227
  * 
  * 	def __reduce__(self):
  * 		return self.__class__, (self.distribution, self.name, self.weight)             # <<<<<<<<<<<<<<
@@ -6129,11 +5056,11 @@ static PyObject *__pyx_pf_18hmm_stock_forecast_11pomegranate_4base_5State_2__red
  * 	def tie( self, state ):
  */
   __Pyx_XDECREF(__pyx_r);
-  __pyx_t_1 = __Pyx_PyObject_GetAttrStr(((PyObject *)__pyx_v_self), __pyx_n_s_class); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 274, __pyx_L1_error)
+  __pyx_t_1 = __Pyx_PyObject_GetAttrStr(((PyObject *)__pyx_v_self), __pyx_n_s_class); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 227, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
-  __pyx_t_2 = PyFloat_FromDouble(__pyx_v_self->weight); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 274, __pyx_L1_error)
+  __pyx_t_2 = PyFloat_FromDouble(__pyx_v_self->weight); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 227, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_2);
-  __pyx_t_3 = PyTuple_New(3); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 274, __pyx_L1_error)
+  __pyx_t_3 = PyTuple_New(3); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 227, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_3);
   __Pyx_INCREF(__pyx_v_self->distribution);
   __Pyx_GIVEREF(__pyx_v_self->distribution);
@@ -6144,7 +5071,7 @@ static PyObject *__pyx_pf_18hmm_stock_forecast_11pomegranate_4base_5State_2__red
   __Pyx_GIVEREF(__pyx_t_2);
   PyTuple_SET_ITEM(__pyx_t_3, 2, __pyx_t_2);
   __pyx_t_2 = 0;
-  __pyx_t_2 = PyTuple_New(2); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 274, __pyx_L1_error)
+  __pyx_t_2 = PyTuple_New(2); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 227, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_2);
   __Pyx_GIVEREF(__pyx_t_1);
   PyTuple_SET_ITEM(__pyx_t_2, 0, __pyx_t_1);
@@ -6156,7 +5083,7 @@ static PyObject *__pyx_pf_18hmm_stock_forecast_11pomegranate_4base_5State_2__red
   __pyx_t_2 = 0;
   goto __pyx_L0;
 
-  /* "hmm_stock_forecast/pomegranate/base.pyx":273
+  /* "hmm_stock_forecast/pomegranate/base.pyx":226
  * 		self.weight = weight or 1.
  * 
  * 	def __reduce__(self):             # <<<<<<<<<<<<<<
@@ -6177,7 +5104,7 @@ static PyObject *__pyx_pf_18hmm_stock_forecast_11pomegranate_4base_5State_2__red
   return __pyx_r;
 }
 
-/* "hmm_stock_forecast/pomegranate/base.pyx":276
+/* "hmm_stock_forecast/pomegranate/base.pyx":229
  * 		return self.__class__, (self.distribution, self.name, self.weight)
  * 
  * 	def tie( self, state ):             # <<<<<<<<<<<<<<
@@ -6208,7 +5135,7 @@ static PyObject *__pyx_pf_18hmm_stock_forecast_11pomegranate_4base_5State_4tie(s
   int __pyx_clineno = 0;
   __Pyx_RefNannySetupContext("tie", 0);
 
-  /* "hmm_stock_forecast/pomegranate/base.pyx":281
+  /* "hmm_stock_forecast/pomegranate/base.pyx":234
  * 		other state to point to this states distribution.
  * 		"""
  * 		state.distribution = self.distribution             # <<<<<<<<<<<<<<
@@ -6217,10 +5144,10 @@ static PyObject *__pyx_pf_18hmm_stock_forecast_11pomegranate_4base_5State_4tie(s
  */
   __pyx_t_1 = __pyx_v_self->distribution;
   __Pyx_INCREF(__pyx_t_1);
-  if (__Pyx_PyObject_SetAttrStr(__pyx_v_state, __pyx_n_s_distribution, __pyx_t_1) < 0) __PYX_ERR(0, 281, __pyx_L1_error)
+  if (__Pyx_PyObject_SetAttrStr(__pyx_v_state, __pyx_n_s_distribution, __pyx_t_1) < 0) __PYX_ERR(0, 234, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
 
-  /* "hmm_stock_forecast/pomegranate/base.pyx":276
+  /* "hmm_stock_forecast/pomegranate/base.pyx":229
  * 		return self.__class__, (self.distribution, self.name, self.weight)
  * 
  * 	def tie( self, state ):             # <<<<<<<<<<<<<<
@@ -6241,7 +5168,7 @@ static PyObject *__pyx_pf_18hmm_stock_forecast_11pomegranate_4base_5State_4tie(s
   return __pyx_r;
 }
 
-/* "hmm_stock_forecast/pomegranate/base.pyx":283
+/* "hmm_stock_forecast/pomegranate/base.pyx":236
  * 		state.distribution = self.distribution
  * 
  * 	def is_silent(self):             # <<<<<<<<<<<<<<
@@ -6273,7 +5200,7 @@ static PyObject *__pyx_pf_18hmm_stock_forecast_11pomegranate_4base_5State_6is_si
   int __pyx_clineno = 0;
   __Pyx_RefNannySetupContext("is_silent", 0);
 
-  /* "hmm_stock_forecast/pomegranate/base.pyx":288
+  /* "hmm_stock_forecast/pomegranate/base.pyx":241
  * 		otherwise.
  * 		"""
  * 		return self.distribution is None             # <<<<<<<<<<<<<<
@@ -6282,13 +5209,13 @@ static PyObject *__pyx_pf_18hmm_stock_forecast_11pomegranate_4base_5State_6is_si
  */
   __Pyx_XDECREF(__pyx_r);
   __pyx_t_1 = (__pyx_v_self->distribution == Py_None);
-  __pyx_t_2 = __Pyx_PyBool_FromLong(__pyx_t_1); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 288, __pyx_L1_error)
+  __pyx_t_2 = __Pyx_PyBool_FromLong(__pyx_t_1); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 241, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_2);
   __pyx_r = __pyx_t_2;
   __pyx_t_2 = 0;
   goto __pyx_L0;
 
-  /* "hmm_stock_forecast/pomegranate/base.pyx":283
+  /* "hmm_stock_forecast/pomegranate/base.pyx":236
  * 		state.distribution = self.distribution
  * 
  * 	def is_silent(self):             # <<<<<<<<<<<<<<
@@ -6307,7 +5234,7 @@ static PyObject *__pyx_pf_18hmm_stock_forecast_11pomegranate_4base_5State_6is_si
   return __pyx_r;
 }
 
-/* "hmm_stock_forecast/pomegranate/base.pyx":290
+/* "hmm_stock_forecast/pomegranate/base.pyx":243
  * 		return self.distribution is None
  * 
  * 	def tied_copy(self):             # <<<<<<<<<<<<<<
@@ -6339,7 +5266,7 @@ static PyObject *__pyx_pf_18hmm_stock_forecast_11pomegranate_4base_5State_8tied_
   int __pyx_clineno = 0;
   __Pyx_RefNannySetupContext("tied_copy", 0);
 
-  /* "hmm_stock_forecast/pomegranate/base.pyx":295
+  /* "hmm_stock_forecast/pomegranate/base.pyx":248
  * 		distribution of this state.
  * 		"""
  * 		return State( distribution=self.distribution, name=self.name+'-tied' )             # <<<<<<<<<<<<<<
@@ -6347,21 +5274,21 @@ static PyObject *__pyx_pf_18hmm_stock_forecast_11pomegranate_4base_5State_8tied_
  * 	def copy( self ):
  */
   __Pyx_XDECREF(__pyx_r);
-  __pyx_t_1 = __Pyx_PyDict_NewPresized(2); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 295, __pyx_L1_error)
+  __pyx_t_1 = __Pyx_PyDict_NewPresized(2); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 248, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
-  if (PyDict_SetItem(__pyx_t_1, __pyx_n_s_distribution, __pyx_v_self->distribution) < 0) __PYX_ERR(0, 295, __pyx_L1_error)
-  __pyx_t_2 = PyNumber_Add(__pyx_v_self->name, __pyx_kp_s_tied); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 295, __pyx_L1_error)
+  if (PyDict_SetItem(__pyx_t_1, __pyx_n_s_distribution, __pyx_v_self->distribution) < 0) __PYX_ERR(0, 248, __pyx_L1_error)
+  __pyx_t_2 = PyNumber_Add(__pyx_v_self->name, __pyx_kp_s_tied); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 248, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_2);
-  if (PyDict_SetItem(__pyx_t_1, __pyx_n_s_name, __pyx_t_2) < 0) __PYX_ERR(0, 295, __pyx_L1_error)
+  if (PyDict_SetItem(__pyx_t_1, __pyx_n_s_name, __pyx_t_2) < 0) __PYX_ERR(0, 248, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
-  __pyx_t_2 = __Pyx_PyObject_Call(((PyObject *)__pyx_ptype_18hmm_stock_forecast_11pomegranate_4base_State), __pyx_empty_tuple, __pyx_t_1); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 295, __pyx_L1_error)
+  __pyx_t_2 = __Pyx_PyObject_Call(((PyObject *)__pyx_ptype_18hmm_stock_forecast_11pomegranate_4base_State), __pyx_empty_tuple, __pyx_t_1); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 248, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_2);
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
   __pyx_r = __pyx_t_2;
   __pyx_t_2 = 0;
   goto __pyx_L0;
 
-  /* "hmm_stock_forecast/pomegranate/base.pyx":290
+  /* "hmm_stock_forecast/pomegranate/base.pyx":243
  * 		return self.distribution is None
  * 
  * 	def tied_copy(self):             # <<<<<<<<<<<<<<
@@ -6381,7 +5308,7 @@ static PyObject *__pyx_pf_18hmm_stock_forecast_11pomegranate_4base_5State_8tied_
   return __pyx_r;
 }
 
-/* "hmm_stock_forecast/pomegranate/base.pyx":297
+/* "hmm_stock_forecast/pomegranate/base.pyx":250
  * 		return State( distribution=self.distribution, name=self.name+'-tied' )
  * 
  * 	def copy( self ):             # <<<<<<<<<<<<<<
@@ -6415,7 +5342,7 @@ static PyObject *__pyx_pf_18hmm_stock_forecast_11pomegranate_4base_5State_10copy
   int __pyx_clineno = 0;
   __Pyx_RefNannySetupContext("copy", 0);
 
-  /* "hmm_stock_forecast/pomegranate/base.pyx":299
+  /* "hmm_stock_forecast/pomegranate/base.pyx":252
  * 	def copy( self ):
  * 		"""Return a hard copy of this state."""
  * 		return State( distribution=self.distribution.copy(), name=self.name )             # <<<<<<<<<<<<<<
@@ -6423,9 +5350,9 @@ static PyObject *__pyx_pf_18hmm_stock_forecast_11pomegranate_4base_5State_10copy
  * 
  */
   __Pyx_XDECREF(__pyx_r);
-  __pyx_t_1 = __Pyx_PyDict_NewPresized(2); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 299, __pyx_L1_error)
+  __pyx_t_1 = __Pyx_PyDict_NewPresized(2); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 252, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
-  __pyx_t_3 = __Pyx_PyObject_GetAttrStr(__pyx_v_self->distribution, __pyx_n_s_copy); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 299, __pyx_L1_error)
+  __pyx_t_3 = __Pyx_PyObject_GetAttrStr(__pyx_v_self->distribution, __pyx_n_s_copy); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 252, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_3);
   __pyx_t_4 = NULL;
   if (CYTHON_UNPACK_METHODS && likely(PyMethod_Check(__pyx_t_3))) {
@@ -6439,20 +5366,20 @@ static PyObject *__pyx_pf_18hmm_stock_forecast_11pomegranate_4base_5State_10copy
   }
   __pyx_t_2 = (__pyx_t_4) ? __Pyx_PyObject_CallOneArg(__pyx_t_3, __pyx_t_4) : __Pyx_PyObject_CallNoArg(__pyx_t_3);
   __Pyx_XDECREF(__pyx_t_4); __pyx_t_4 = 0;
-  if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 299, __pyx_L1_error)
+  if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 252, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_2);
   __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
-  if (PyDict_SetItem(__pyx_t_1, __pyx_n_s_distribution, __pyx_t_2) < 0) __PYX_ERR(0, 299, __pyx_L1_error)
+  if (PyDict_SetItem(__pyx_t_1, __pyx_n_s_distribution, __pyx_t_2) < 0) __PYX_ERR(0, 252, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
-  if (PyDict_SetItem(__pyx_t_1, __pyx_n_s_name, __pyx_v_self->name) < 0) __PYX_ERR(0, 299, __pyx_L1_error)
-  __pyx_t_2 = __Pyx_PyObject_Call(((PyObject *)__pyx_ptype_18hmm_stock_forecast_11pomegranate_4base_State), __pyx_empty_tuple, __pyx_t_1); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 299, __pyx_L1_error)
+  if (PyDict_SetItem(__pyx_t_1, __pyx_n_s_name, __pyx_v_self->name) < 0) __PYX_ERR(0, 252, __pyx_L1_error)
+  __pyx_t_2 = __Pyx_PyObject_Call(((PyObject *)__pyx_ptype_18hmm_stock_forecast_11pomegranate_4base_State), __pyx_empty_tuple, __pyx_t_1); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 252, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_2);
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
   __pyx_r = __pyx_t_2;
   __pyx_t_2 = 0;
   goto __pyx_L0;
 
-  /* "hmm_stock_forecast/pomegranate/base.pyx":297
+  /* "hmm_stock_forecast/pomegranate/base.pyx":250
  * 		return State( distribution=self.distribution, name=self.name+'-tied' )
  * 
  * 	def copy( self ):             # <<<<<<<<<<<<<<
@@ -20999,17 +19926,9 @@ static PyMethodDef __pyx_methods_18hmm_stock_forecast_11pomegranate_4base_Model[
   {"summarize", (PyCFunction)(void*)(PyCFunctionWithKeywords)__pyx_pw_18hmm_stock_forecast_11pomegranate_4base_5Model_19summarize, METH_VARARGS|METH_KEYWORDS, __pyx_doc_18hmm_stock_forecast_11pomegranate_4base_5Model_18summarize},
   {"from_summaries", (PyCFunction)(void*)(PyCFunctionWithKeywords)__pyx_pw_18hmm_stock_forecast_11pomegranate_4base_5Model_21from_summaries, METH_VARARGS|METH_KEYWORDS, __pyx_doc_18hmm_stock_forecast_11pomegranate_4base_5Model_20from_summaries},
   {"clear_summaries", (PyCFunction)__pyx_pw_18hmm_stock_forecast_11pomegranate_4base_5Model_23clear_summaries, METH_NOARGS, __pyx_doc_18hmm_stock_forecast_11pomegranate_4base_5Model_22clear_summaries},
-  {"add_node", (PyCFunction)__pyx_pw_18hmm_stock_forecast_11pomegranate_4base_5Model_25add_node, METH_O, __pyx_doc_18hmm_stock_forecast_11pomegranate_4base_5Model_24add_node},
-  {"add_nodes", (PyCFunction)(void*)(PyCFunctionWithKeywords)__pyx_pw_18hmm_stock_forecast_11pomegranate_4base_5Model_27add_nodes, METH_VARARGS|METH_KEYWORDS, __pyx_doc_18hmm_stock_forecast_11pomegranate_4base_5Model_26add_nodes},
-  {"add_state", (PyCFunction)__pyx_pw_18hmm_stock_forecast_11pomegranate_4base_5Model_29add_state, METH_O, __pyx_doc_18hmm_stock_forecast_11pomegranate_4base_5Model_28add_state},
-  {"add_states", (PyCFunction)(void*)(PyCFunctionWithKeywords)__pyx_pw_18hmm_stock_forecast_11pomegranate_4base_5Model_31add_states, METH_VARARGS|METH_KEYWORDS, __pyx_doc_18hmm_stock_forecast_11pomegranate_4base_5Model_30add_states},
-  {"add_edge", (PyCFunction)(void*)(PyCFunctionWithKeywords)__pyx_pw_18hmm_stock_forecast_11pomegranate_4base_5Model_33add_edge, METH_VARARGS|METH_KEYWORDS, __pyx_doc_18hmm_stock_forecast_11pomegranate_4base_5Model_32add_edge},
-  {"add_transition", (PyCFunction)(void*)(PyCFunctionWithKeywords)__pyx_pw_18hmm_stock_forecast_11pomegranate_4base_5Model_35add_transition, METH_VARARGS|METH_KEYWORDS, __pyx_doc_18hmm_stock_forecast_11pomegranate_4base_5Model_34add_transition},
-  {"state_count", (PyCFunction)__pyx_pw_18hmm_stock_forecast_11pomegranate_4base_5Model_37state_count, METH_NOARGS, __pyx_doc_18hmm_stock_forecast_11pomegranate_4base_5Model_36state_count},
-  {"edge_count", (PyCFunction)__pyx_pw_18hmm_stock_forecast_11pomegranate_4base_5Model_39edge_count, METH_NOARGS, __pyx_doc_18hmm_stock_forecast_11pomegranate_4base_5Model_38edge_count},
-  {"dense_transition_matrix", (PyCFunction)__pyx_pw_18hmm_stock_forecast_11pomegranate_4base_5Model_41dense_transition_matrix, METH_NOARGS, __pyx_doc_18hmm_stock_forecast_11pomegranate_4base_5Model_40dense_transition_matrix},
-  {"__reduce_cython__", (PyCFunction)__pyx_pw_18hmm_stock_forecast_11pomegranate_4base_5Model_43__reduce_cython__, METH_NOARGS, 0},
-  {"__setstate_cython__", (PyCFunction)__pyx_pw_18hmm_stock_forecast_11pomegranate_4base_5Model_45__setstate_cython__, METH_O, 0},
+  {"add_edge", (PyCFunction)(void*)(PyCFunctionWithKeywords)__pyx_pw_18hmm_stock_forecast_11pomegranate_4base_5Model_25add_edge, METH_VARARGS|METH_KEYWORDS, __pyx_doc_18hmm_stock_forecast_11pomegranate_4base_5Model_24add_edge},
+  {"__reduce_cython__", (PyCFunction)__pyx_pw_18hmm_stock_forecast_11pomegranate_4base_5Model_27__reduce_cython__, METH_NOARGS, 0},
+  {"__setstate_cython__", (PyCFunction)__pyx_pw_18hmm_stock_forecast_11pomegranate_4base_5Model_29__setstate_cython__, METH_O, 0},
   {0, 0, 0, 0}
 };
 
@@ -22072,9 +20991,6 @@ static __Pyx_StringTabEntry __pyx_string_tab[] = {
   {&__pyx_n_s_ValueError, __pyx_k_ValueError, sizeof(__pyx_k_ValueError), 0, 0, 1, 1},
   {&__pyx_n_s_View_MemoryView, __pyx_k_View_MemoryView, sizeof(__pyx_k_View_MemoryView), 0, 0, 1, 1},
   {&__pyx_n_s_a, __pyx_k_a, sizeof(__pyx_k_a), 0, 0, 1, 1},
-  {&__pyx_n_s_add_edge, __pyx_k_add_edge, sizeof(__pyx_k_add_edge), 0, 0, 1, 1},
-  {&__pyx_n_s_add_node, __pyx_k_add_node, sizeof(__pyx_k_add_node), 0, 0, 1, 1},
-  {&__pyx_n_s_add_state, __pyx_k_add_state, sizeof(__pyx_k_add_state), 0, 0, 1, 1},
   {&__pyx_n_s_allocate_buffer, __pyx_k_allocate_buffer, sizeof(__pyx_k_allocate_buffer), 0, 0, 1, 1},
   {&__pyx_n_s_b, __pyx_k_b, sizeof(__pyx_k_b), 0, 0, 1, 1},
   {&__pyx_n_s_base, __pyx_k_base, sizeof(__pyx_k_base), 0, 0, 1, 1},
@@ -22096,7 +21012,6 @@ static __Pyx_StringTabEntry __pyx_string_tab[] = {
   {&__pyx_n_s_format, __pyx_k_format, sizeof(__pyx_k_format), 0, 0, 1, 1},
   {&__pyx_n_s_fortran, __pyx_k_fortran, sizeof(__pyx_k_fortran), 0, 0, 1, 1},
   {&__pyx_n_u_fortran, __pyx_k_fortran, sizeof(__pyx_k_fortran), 0, 1, 0, 1},
-  {&__pyx_n_s_full, __pyx_k_full, sizeof(__pyx_k_full), 0, 0, 1, 1},
   {&__pyx_n_s_getstate, __pyx_k_getstate, sizeof(__pyx_k_getstate), 0, 0, 1, 1},
   {&__pyx_kp_s_got_differing_extents_in_dimensi, __pyx_k_got_differing_extents_in_dimensi, sizeof(__pyx_k_got_differing_extents_in_dimensi), 0, 0, 1, 0},
   {&__pyx_n_s_id, __pyx_k_id, sizeof(__pyx_k_id), 0, 0, 1, 1},
@@ -22119,9 +21034,6 @@ static __Pyx_StringTabEntry __pyx_string_tab[] = {
   {&__pyx_kp_s_numpy_core_multiarray_failed_to, __pyx_k_numpy_core_multiarray_failed_to, sizeof(__pyx_k_numpy_core_multiarray_failed_to), 0, 0, 1, 0},
   {&__pyx_kp_s_numpy_core_umath_failed_to_impor, __pyx_k_numpy_core_umath_failed_to_impor, sizeof(__pyx_k_numpy_core_umath_failed_to_impor), 0, 0, 1, 0},
   {&__pyx_n_s_obj, __pyx_k_obj, sizeof(__pyx_k_obj), 0, 0, 1, 1},
-  {&__pyx_n_s_out_edge_count, __pyx_k_out_edge_count, sizeof(__pyx_k_out_edge_count), 0, 0, 1, 1},
-  {&__pyx_n_s_out_transition_log_probabilities, __pyx_k_out_transition_log_probabilities, sizeof(__pyx_k_out_transition_log_probabilities), 0, 0, 1, 1},
-  {&__pyx_n_s_out_transitions, __pyx_k_out_transitions, sizeof(__pyx_k_out_transitions), 0, 0, 1, 1},
   {&__pyx_n_s_pack, __pyx_k_pack, sizeof(__pyx_k_pack), 0, 0, 1, 1},
   {&__pyx_n_s_pickle, __pyx_k_pickle, sizeof(__pyx_k_pickle), 0, 0, 1, 1},
   {&__pyx_n_s_pyx_PickleError, __pyx_k_pyx_PickleError, sizeof(__pyx_k_pyx_PickleError), 0, 0, 1, 1},
@@ -22163,12 +21075,12 @@ static __Pyx_StringTabEntry __pyx_string_tab[] = {
 static CYTHON_SMALL_CODE int __Pyx_InitCachedBuiltins(void) {
   __pyx_builtin_id = __Pyx_GetBuiltinName(__pyx_n_s_id); if (!__pyx_builtin_id) __PYX_ERR(0, 26, __pyx_L1_error)
   __pyx_builtin_NotImplementedError = __Pyx_GetBuiltinName(__pyx_n_s_NotImplementedError); if (!__pyx_builtin_NotImplementedError) __PYX_ERR(0, 52, __pyx_L1_error)
-  __pyx_builtin_range = __Pyx_GetBuiltinName(__pyx_n_s_range); if (!__pyx_builtin_range) __PYX_ERR(0, 242, __pyx_L1_error)
   __pyx_builtin_TypeError = __Pyx_GetBuiltinName(__pyx_n_s_TypeError); if (!__pyx_builtin_TypeError) __PYX_ERR(1, 2, __pyx_L1_error)
   __pyx_builtin_ImportError = __Pyx_GetBuiltinName(__pyx_n_s_ImportError); if (!__pyx_builtin_ImportError) __PYX_ERR(3, 945, __pyx_L1_error)
   __pyx_builtin_ValueError = __Pyx_GetBuiltinName(__pyx_n_s_ValueError); if (!__pyx_builtin_ValueError) __PYX_ERR(1, 133, __pyx_L1_error)
   __pyx_builtin_MemoryError = __Pyx_GetBuiltinName(__pyx_n_s_MemoryError); if (!__pyx_builtin_MemoryError) __PYX_ERR(1, 148, __pyx_L1_error)
   __pyx_builtin_enumerate = __Pyx_GetBuiltinName(__pyx_n_s_enumerate); if (!__pyx_builtin_enumerate) __PYX_ERR(1, 151, __pyx_L1_error)
+  __pyx_builtin_range = __Pyx_GetBuiltinName(__pyx_n_s_range); if (!__pyx_builtin_range) __PYX_ERR(1, 180, __pyx_L1_error)
   __pyx_builtin_Ellipsis = __Pyx_GetBuiltinName(__pyx_n_s_Ellipsis); if (!__pyx_builtin_Ellipsis) __PYX_ERR(1, 404, __pyx_L1_error)
   __pyx_builtin_IndexError = __Pyx_GetBuiltinName(__pyx_n_s_IndexError); if (!__pyx_builtin_IndexError) __PYX_ERR(1, 832, __pyx_L1_error)
   return 0;
@@ -22487,7 +21399,6 @@ static CYTHON_SMALL_CODE int __Pyx_InitCachedConstants(void) {
 static CYTHON_SMALL_CODE int __Pyx_InitGlobals(void) {
   if (__Pyx_InitStrings(__pyx_string_tab) < 0) __PYX_ERR(0, 1, __pyx_L1_error);
   __pyx_float_0_0 = PyFloat_FromDouble(0.0); if (unlikely(!__pyx_float_0_0)) __PYX_ERR(0, 1, __pyx_L1_error)
-  __pyx_float_neg_inf = PyFloat_FromDouble((-Py_HUGE_VAL)); if (unlikely(!__pyx_float_neg_inf)) __PYX_ERR(0, 1, __pyx_L1_error)
   __pyx_int_0 = PyInt_FromLong(0); if (unlikely(!__pyx_int_0)) __PYX_ERR(0, 1, __pyx_L1_error)
   __pyx_int_1 = PyInt_FromLong(1); if (unlikely(!__pyx_int_1)) __PYX_ERR(0, 1, __pyx_L1_error)
   __pyx_int_184977713 = PyInt_FromLong(184977713L); if (unlikely(!__pyx_int_184977713)) __PYX_ERR(0, 1, __pyx_L1_error)
@@ -22566,7 +21477,7 @@ static int __Pyx_modinit_type_init_code(void) {
   if (PyObject_SetAttr(__pyx_m, __pyx_n_s_Model, (PyObject *)&__pyx_type_18hmm_stock_forecast_11pomegranate_4base_Model) < 0) __PYX_ERR(0, 13, __pyx_L1_error)
   if (__Pyx_setup_reduce((PyObject*)&__pyx_type_18hmm_stock_forecast_11pomegranate_4base_Model) < 0) __PYX_ERR(0, 13, __pyx_L1_error)
   __pyx_ptype_18hmm_stock_forecast_11pomegranate_4base_Model = &__pyx_type_18hmm_stock_forecast_11pomegranate_4base_Model;
-  if (PyType_Ready(&__pyx_type_18hmm_stock_forecast_11pomegranate_4base_State) < 0) __PYX_ERR(0, 250, __pyx_L1_error)
+  if (PyType_Ready(&__pyx_type_18hmm_stock_forecast_11pomegranate_4base_State) < 0) __PYX_ERR(0, 203, __pyx_L1_error)
   #if PY_VERSION_HEX < 0x030800B1
   __pyx_type_18hmm_stock_forecast_11pomegranate_4base_State.tp_print = 0;
   #endif
@@ -22575,7 +21486,7 @@ static int __Pyx_modinit_type_init_code(void) {
   }
   #if CYTHON_COMPILING_IN_CPYTHON
   {
-    PyObject *wrapper = PyObject_GetAttrString((PyObject *)&__pyx_type_18hmm_stock_forecast_11pomegranate_4base_State, "__init__"); if (unlikely(!wrapper)) __PYX_ERR(0, 250, __pyx_L1_error)
+    PyObject *wrapper = PyObject_GetAttrString((PyObject *)&__pyx_type_18hmm_stock_forecast_11pomegranate_4base_State, "__init__"); if (unlikely(!wrapper)) __PYX_ERR(0, 203, __pyx_L1_error)
     if (Py_TYPE(wrapper) == &PyWrapperDescr_Type) {
       __pyx_wrapperbase_18hmm_stock_forecast_11pomegranate_4base_5State___init__ = *((PyWrapperDescrObject *)wrapper)->d_base;
       __pyx_wrapperbase_18hmm_stock_forecast_11pomegranate_4base_5State___init__.doc = __pyx_doc_18hmm_stock_forecast_11pomegranate_4base_5State___init__;
@@ -22583,7 +21494,7 @@ static int __Pyx_modinit_type_init_code(void) {
     }
   }
   #endif
-  if (PyObject_SetAttr(__pyx_m, __pyx_n_s_State, (PyObject *)&__pyx_type_18hmm_stock_forecast_11pomegranate_4base_State) < 0) __PYX_ERR(0, 250, __pyx_L1_error)
+  if (PyObject_SetAttr(__pyx_m, __pyx_n_s_State, (PyObject *)&__pyx_type_18hmm_stock_forecast_11pomegranate_4base_State) < 0) __PYX_ERR(0, 203, __pyx_L1_error)
   __pyx_ptype_18hmm_stock_forecast_11pomegranate_4base_State = &__pyx_type_18hmm_stock_forecast_11pomegranate_4base_State;
   __pyx_vtabptr_array = &__pyx_vtable_array;
   __pyx_vtable_array.get_memview = (PyObject *(*)(struct __pyx_array_obj *))__pyx_array_get_memview;
@@ -22944,12 +21855,12 @@ if (!__Pyx_RefNanny) {
   if (PyDict_SetItem(__pyx_d, __pyx_n_s_uuid, __pyx_t_1) < 0) __PYX_ERR(0, 7, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
 
-  /* "hmm_stock_forecast/pomegranate/base.pyx":303
+  /* "hmm_stock_forecast/pomegranate/base.pyx":256
  * 
  * # Create a convenient alias
  * Node = State             # <<<<<<<<<<<<<<
  */
-  if (PyDict_SetItem(__pyx_d, __pyx_n_s_Node, ((PyObject *)__pyx_ptype_18hmm_stock_forecast_11pomegranate_4base_State)) < 0) __PYX_ERR(0, 303, __pyx_L1_error)
+  if (PyDict_SetItem(__pyx_d, __pyx_n_s_Node, ((PyObject *)__pyx_ptype_18hmm_stock_forecast_11pomegranate_4base_State)) < 0) __PYX_ERR(0, 256, __pyx_L1_error)
 
   /* "hmm_stock_forecast/pomegranate/base.pyx":1
  * # base.pyx             # <<<<<<<<<<<<<<
@@ -23883,246 +22794,6 @@ static CYTHON_INLINE PyObject *__Pyx__GetModuleGlobalName(PyObject *name)
     return __Pyx_GetBuiltinName(name);
 }
 
-/* GetItemInt */
-static PyObject *__Pyx_GetItemInt_Generic(PyObject *o, PyObject* j) {
-    PyObject *r;
-    if (!j) return NULL;
-    r = PyObject_GetItem(o, j);
-    Py_DECREF(j);
-    return r;
-}
-static CYTHON_INLINE PyObject *__Pyx_GetItemInt_List_Fast(PyObject *o, Py_ssize_t i,
-                                                              CYTHON_NCP_UNUSED int wraparound,
-                                                              CYTHON_NCP_UNUSED int boundscheck) {
-#if CYTHON_ASSUME_SAFE_MACROS && !CYTHON_AVOID_BORROWED_REFS
-    Py_ssize_t wrapped_i = i;
-    if (wraparound & unlikely(i < 0)) {
-        wrapped_i += PyList_GET_SIZE(o);
-    }
-    if ((!boundscheck) || likely(__Pyx_is_valid_index(wrapped_i, PyList_GET_SIZE(o)))) {
-        PyObject *r = PyList_GET_ITEM(o, wrapped_i);
-        Py_INCREF(r);
-        return r;
-    }
-    return __Pyx_GetItemInt_Generic(o, PyInt_FromSsize_t(i));
-#else
-    return PySequence_GetItem(o, i);
-#endif
-}
-static CYTHON_INLINE PyObject *__Pyx_GetItemInt_Tuple_Fast(PyObject *o, Py_ssize_t i,
-                                                              CYTHON_NCP_UNUSED int wraparound,
-                                                              CYTHON_NCP_UNUSED int boundscheck) {
-#if CYTHON_ASSUME_SAFE_MACROS && !CYTHON_AVOID_BORROWED_REFS
-    Py_ssize_t wrapped_i = i;
-    if (wraparound & unlikely(i < 0)) {
-        wrapped_i += PyTuple_GET_SIZE(o);
-    }
-    if ((!boundscheck) || likely(__Pyx_is_valid_index(wrapped_i, PyTuple_GET_SIZE(o)))) {
-        PyObject *r = PyTuple_GET_ITEM(o, wrapped_i);
-        Py_INCREF(r);
-        return r;
-    }
-    return __Pyx_GetItemInt_Generic(o, PyInt_FromSsize_t(i));
-#else
-    return PySequence_GetItem(o, i);
-#endif
-}
-static CYTHON_INLINE PyObject *__Pyx_GetItemInt_Fast(PyObject *o, Py_ssize_t i, int is_list,
-                                                     CYTHON_NCP_UNUSED int wraparound,
-                                                     CYTHON_NCP_UNUSED int boundscheck) {
-#if CYTHON_ASSUME_SAFE_MACROS && !CYTHON_AVOID_BORROWED_REFS && CYTHON_USE_TYPE_SLOTS
-    if (is_list || PyList_CheckExact(o)) {
-        Py_ssize_t n = ((!wraparound) | likely(i >= 0)) ? i : i + PyList_GET_SIZE(o);
-        if ((!boundscheck) || (likely(__Pyx_is_valid_index(n, PyList_GET_SIZE(o))))) {
-            PyObject *r = PyList_GET_ITEM(o, n);
-            Py_INCREF(r);
-            return r;
-        }
-    }
-    else if (PyTuple_CheckExact(o)) {
-        Py_ssize_t n = ((!wraparound) | likely(i >= 0)) ? i : i + PyTuple_GET_SIZE(o);
-        if ((!boundscheck) || likely(__Pyx_is_valid_index(n, PyTuple_GET_SIZE(o)))) {
-            PyObject *r = PyTuple_GET_ITEM(o, n);
-            Py_INCREF(r);
-            return r;
-        }
-    } else {
-        PySequenceMethods *m = Py_TYPE(o)->tp_as_sequence;
-        if (likely(m && m->sq_item)) {
-            if (wraparound && unlikely(i < 0) && likely(m->sq_length)) {
-                Py_ssize_t l = m->sq_length(o);
-                if (likely(l >= 0)) {
-                    i += l;
-                } else {
-                    if (!PyErr_ExceptionMatches(PyExc_OverflowError))
-                        return NULL;
-                    PyErr_Clear();
-                }
-            }
-            return m->sq_item(o, i);
-        }
-    }
-#else
-    if (is_list || PySequence_Check(o)) {
-        return PySequence_GetItem(o, i);
-    }
-#endif
-    return __Pyx_GetItemInt_Generic(o, PyInt_FromSsize_t(i));
-}
-
-/* ObjectGetItem */
-#if CYTHON_USE_TYPE_SLOTS
-static PyObject *__Pyx_PyObject_GetIndex(PyObject *obj, PyObject* index) {
-    PyObject *runerr;
-    Py_ssize_t key_value;
-    PySequenceMethods *m = Py_TYPE(obj)->tp_as_sequence;
-    if (unlikely(!(m && m->sq_item))) {
-        PyErr_Format(PyExc_TypeError, "'%.200s' object is not subscriptable", Py_TYPE(obj)->tp_name);
-        return NULL;
-    }
-    key_value = __Pyx_PyIndex_AsSsize_t(index);
-    if (likely(key_value != -1 || !(runerr = PyErr_Occurred()))) {
-        return __Pyx_GetItemInt_Fast(obj, key_value, 0, 1, 1);
-    }
-    if (PyErr_GivenExceptionMatches(runerr, PyExc_OverflowError)) {
-        PyErr_Clear();
-        PyErr_Format(PyExc_IndexError, "cannot fit '%.200s' into an index-sized integer", Py_TYPE(index)->tp_name);
-    }
-    return NULL;
-}
-static PyObject *__Pyx_PyObject_GetItem(PyObject *obj, PyObject* key) {
-    PyMappingMethods *m = Py_TYPE(obj)->tp_as_mapping;
-    if (likely(m && m->mp_subscript)) {
-        return m->mp_subscript(obj, key);
-    }
-    return __Pyx_PyObject_GetIndex(obj, key);
-}
-#endif
-
-/* PyIntBinop */
-#if !CYTHON_COMPILING_IN_PYPY
-static PyObject* __Pyx_PyInt_AddObjC(PyObject *op1, PyObject *op2, CYTHON_UNUSED long intval, int inplace, int zerodivision_check) {
-    (void)inplace;
-    (void)zerodivision_check;
-    #if PY_MAJOR_VERSION < 3
-    if (likely(PyInt_CheckExact(op1))) {
-        const long b = intval;
-        long x;
-        long a = PyInt_AS_LONG(op1);
-            x = (long)((unsigned long)a + b);
-            if (likely((x^a) >= 0 || (x^b) >= 0))
-                return PyInt_FromLong(x);
-            return PyLong_Type.tp_as_number->nb_add(op1, op2);
-    }
-    #endif
-    #if CYTHON_USE_PYLONG_INTERNALS
-    if (likely(PyLong_CheckExact(op1))) {
-        const long b = intval;
-        long a, x;
-#ifdef HAVE_LONG_LONG
-        const PY_LONG_LONG llb = intval;
-        PY_LONG_LONG lla, llx;
-#endif
-        const digit* digits = ((PyLongObject*)op1)->ob_digit;
-        const Py_ssize_t size = Py_SIZE(op1);
-        if (likely(__Pyx_sst_abs(size) <= 1)) {
-            a = likely(size) ? digits[0] : 0;
-            if (size == -1) a = -a;
-        } else {
-            switch (size) {
-                case -2:
-                    if (8 * sizeof(long) - 1 > 2 * PyLong_SHIFT) {
-                        a = -(long) (((((unsigned long)digits[1]) << PyLong_SHIFT) | (unsigned long)digits[0]));
-                        break;
-#ifdef HAVE_LONG_LONG
-                    } else if (8 * sizeof(PY_LONG_LONG) - 1 > 2 * PyLong_SHIFT) {
-                        lla = -(PY_LONG_LONG) (((((unsigned PY_LONG_LONG)digits[1]) << PyLong_SHIFT) | (unsigned PY_LONG_LONG)digits[0]));
-                        goto long_long;
-#endif
-                    }
-                    CYTHON_FALLTHROUGH;
-                case 2:
-                    if (8 * sizeof(long) - 1 > 2 * PyLong_SHIFT) {
-                        a = (long) (((((unsigned long)digits[1]) << PyLong_SHIFT) | (unsigned long)digits[0]));
-                        break;
-#ifdef HAVE_LONG_LONG
-                    } else if (8 * sizeof(PY_LONG_LONG) - 1 > 2 * PyLong_SHIFT) {
-                        lla = (PY_LONG_LONG) (((((unsigned PY_LONG_LONG)digits[1]) << PyLong_SHIFT) | (unsigned PY_LONG_LONG)digits[0]));
-                        goto long_long;
-#endif
-                    }
-                    CYTHON_FALLTHROUGH;
-                case -3:
-                    if (8 * sizeof(long) - 1 > 3 * PyLong_SHIFT) {
-                        a = -(long) (((((((unsigned long)digits[2]) << PyLong_SHIFT) | (unsigned long)digits[1]) << PyLong_SHIFT) | (unsigned long)digits[0]));
-                        break;
-#ifdef HAVE_LONG_LONG
-                    } else if (8 * sizeof(PY_LONG_LONG) - 1 > 3 * PyLong_SHIFT) {
-                        lla = -(PY_LONG_LONG) (((((((unsigned PY_LONG_LONG)digits[2]) << PyLong_SHIFT) | (unsigned PY_LONG_LONG)digits[1]) << PyLong_SHIFT) | (unsigned PY_LONG_LONG)digits[0]));
-                        goto long_long;
-#endif
-                    }
-                    CYTHON_FALLTHROUGH;
-                case 3:
-                    if (8 * sizeof(long) - 1 > 3 * PyLong_SHIFT) {
-                        a = (long) (((((((unsigned long)digits[2]) << PyLong_SHIFT) | (unsigned long)digits[1]) << PyLong_SHIFT) | (unsigned long)digits[0]));
-                        break;
-#ifdef HAVE_LONG_LONG
-                    } else if (8 * sizeof(PY_LONG_LONG) - 1 > 3 * PyLong_SHIFT) {
-                        lla = (PY_LONG_LONG) (((((((unsigned PY_LONG_LONG)digits[2]) << PyLong_SHIFT) | (unsigned PY_LONG_LONG)digits[1]) << PyLong_SHIFT) | (unsigned PY_LONG_LONG)digits[0]));
-                        goto long_long;
-#endif
-                    }
-                    CYTHON_FALLTHROUGH;
-                case -4:
-                    if (8 * sizeof(long) - 1 > 4 * PyLong_SHIFT) {
-                        a = -(long) (((((((((unsigned long)digits[3]) << PyLong_SHIFT) | (unsigned long)digits[2]) << PyLong_SHIFT) | (unsigned long)digits[1]) << PyLong_SHIFT) | (unsigned long)digits[0]));
-                        break;
-#ifdef HAVE_LONG_LONG
-                    } else if (8 * sizeof(PY_LONG_LONG) - 1 > 4 * PyLong_SHIFT) {
-                        lla = -(PY_LONG_LONG) (((((((((unsigned PY_LONG_LONG)digits[3]) << PyLong_SHIFT) | (unsigned PY_LONG_LONG)digits[2]) << PyLong_SHIFT) | (unsigned PY_LONG_LONG)digits[1]) << PyLong_SHIFT) | (unsigned PY_LONG_LONG)digits[0]));
-                        goto long_long;
-#endif
-                    }
-                    CYTHON_FALLTHROUGH;
-                case 4:
-                    if (8 * sizeof(long) - 1 > 4 * PyLong_SHIFT) {
-                        a = (long) (((((((((unsigned long)digits[3]) << PyLong_SHIFT) | (unsigned long)digits[2]) << PyLong_SHIFT) | (unsigned long)digits[1]) << PyLong_SHIFT) | (unsigned long)digits[0]));
-                        break;
-#ifdef HAVE_LONG_LONG
-                    } else if (8 * sizeof(PY_LONG_LONG) - 1 > 4 * PyLong_SHIFT) {
-                        lla = (PY_LONG_LONG) (((((((((unsigned PY_LONG_LONG)digits[3]) << PyLong_SHIFT) | (unsigned PY_LONG_LONG)digits[2]) << PyLong_SHIFT) | (unsigned PY_LONG_LONG)digits[1]) << PyLong_SHIFT) | (unsigned PY_LONG_LONG)digits[0]));
-                        goto long_long;
-#endif
-                    }
-                    CYTHON_FALLTHROUGH;
-                default: return PyLong_Type.tp_as_number->nb_add(op1, op2);
-            }
-        }
-                x = a + b;
-            return PyLong_FromLong(x);
-#ifdef HAVE_LONG_LONG
-        long_long:
-                llx = lla + llb;
-            return PyLong_FromLongLong(llx);
-#endif
-        
-        
-    }
-    #endif
-    if (PyFloat_CheckExact(op1)) {
-        const long b = intval;
-        double a = PyFloat_AS_DOUBLE(op1);
-            double result;
-            PyFPE_START_PROTECT("add", return NULL)
-            result = ((double)a) + (double)b;
-            PyFPE_END_PROTECT(result)
-            return PyFloat_FromDouble(result);
-    }
-    return (inplace ? PyNumber_InPlaceAdd : PyNumber_Add)(op1, op2);
-}
-#endif
-
 /* PyObjectSetAttrStr */
 #if CYTHON_USE_TYPE_SLOTS
 static CYTHON_INLINE int __Pyx_PyObject_SetAttrStr(PyObject* obj, PyObject* attr_name, PyObject* value) {
@@ -24483,6 +23154,122 @@ static CYTHON_INLINE PyObject *__Pyx_GetAttr(PyObject *o, PyObject *n) {
     return PyObject_GetAttr(o, n);
 }
 
+/* GetItemInt */
+static PyObject *__Pyx_GetItemInt_Generic(PyObject *o, PyObject* j) {
+    PyObject *r;
+    if (!j) return NULL;
+    r = PyObject_GetItem(o, j);
+    Py_DECREF(j);
+    return r;
+}
+static CYTHON_INLINE PyObject *__Pyx_GetItemInt_List_Fast(PyObject *o, Py_ssize_t i,
+                                                              CYTHON_NCP_UNUSED int wraparound,
+                                                              CYTHON_NCP_UNUSED int boundscheck) {
+#if CYTHON_ASSUME_SAFE_MACROS && !CYTHON_AVOID_BORROWED_REFS
+    Py_ssize_t wrapped_i = i;
+    if (wraparound & unlikely(i < 0)) {
+        wrapped_i += PyList_GET_SIZE(o);
+    }
+    if ((!boundscheck) || likely(__Pyx_is_valid_index(wrapped_i, PyList_GET_SIZE(o)))) {
+        PyObject *r = PyList_GET_ITEM(o, wrapped_i);
+        Py_INCREF(r);
+        return r;
+    }
+    return __Pyx_GetItemInt_Generic(o, PyInt_FromSsize_t(i));
+#else
+    return PySequence_GetItem(o, i);
+#endif
+}
+static CYTHON_INLINE PyObject *__Pyx_GetItemInt_Tuple_Fast(PyObject *o, Py_ssize_t i,
+                                                              CYTHON_NCP_UNUSED int wraparound,
+                                                              CYTHON_NCP_UNUSED int boundscheck) {
+#if CYTHON_ASSUME_SAFE_MACROS && !CYTHON_AVOID_BORROWED_REFS
+    Py_ssize_t wrapped_i = i;
+    if (wraparound & unlikely(i < 0)) {
+        wrapped_i += PyTuple_GET_SIZE(o);
+    }
+    if ((!boundscheck) || likely(__Pyx_is_valid_index(wrapped_i, PyTuple_GET_SIZE(o)))) {
+        PyObject *r = PyTuple_GET_ITEM(o, wrapped_i);
+        Py_INCREF(r);
+        return r;
+    }
+    return __Pyx_GetItemInt_Generic(o, PyInt_FromSsize_t(i));
+#else
+    return PySequence_GetItem(o, i);
+#endif
+}
+static CYTHON_INLINE PyObject *__Pyx_GetItemInt_Fast(PyObject *o, Py_ssize_t i, int is_list,
+                                                     CYTHON_NCP_UNUSED int wraparound,
+                                                     CYTHON_NCP_UNUSED int boundscheck) {
+#if CYTHON_ASSUME_SAFE_MACROS && !CYTHON_AVOID_BORROWED_REFS && CYTHON_USE_TYPE_SLOTS
+    if (is_list || PyList_CheckExact(o)) {
+        Py_ssize_t n = ((!wraparound) | likely(i >= 0)) ? i : i + PyList_GET_SIZE(o);
+        if ((!boundscheck) || (likely(__Pyx_is_valid_index(n, PyList_GET_SIZE(o))))) {
+            PyObject *r = PyList_GET_ITEM(o, n);
+            Py_INCREF(r);
+            return r;
+        }
+    }
+    else if (PyTuple_CheckExact(o)) {
+        Py_ssize_t n = ((!wraparound) | likely(i >= 0)) ? i : i + PyTuple_GET_SIZE(o);
+        if ((!boundscheck) || likely(__Pyx_is_valid_index(n, PyTuple_GET_SIZE(o)))) {
+            PyObject *r = PyTuple_GET_ITEM(o, n);
+            Py_INCREF(r);
+            return r;
+        }
+    } else {
+        PySequenceMethods *m = Py_TYPE(o)->tp_as_sequence;
+        if (likely(m && m->sq_item)) {
+            if (wraparound && unlikely(i < 0) && likely(m->sq_length)) {
+                Py_ssize_t l = m->sq_length(o);
+                if (likely(l >= 0)) {
+                    i += l;
+                } else {
+                    if (!PyErr_ExceptionMatches(PyExc_OverflowError))
+                        return NULL;
+                    PyErr_Clear();
+                }
+            }
+            return m->sq_item(o, i);
+        }
+    }
+#else
+    if (is_list || PySequence_Check(o)) {
+        return PySequence_GetItem(o, i);
+    }
+#endif
+    return __Pyx_GetItemInt_Generic(o, PyInt_FromSsize_t(i));
+}
+
+/* ObjectGetItem */
+#if CYTHON_USE_TYPE_SLOTS
+static PyObject *__Pyx_PyObject_GetIndex(PyObject *obj, PyObject* index) {
+    PyObject *runerr;
+    Py_ssize_t key_value;
+    PySequenceMethods *m = Py_TYPE(obj)->tp_as_sequence;
+    if (unlikely(!(m && m->sq_item))) {
+        PyErr_Format(PyExc_TypeError, "'%.200s' object is not subscriptable", Py_TYPE(obj)->tp_name);
+        return NULL;
+    }
+    key_value = __Pyx_PyIndex_AsSsize_t(index);
+    if (likely(key_value != -1 || !(runerr = PyErr_Occurred()))) {
+        return __Pyx_GetItemInt_Fast(obj, key_value, 0, 1, 1);
+    }
+    if (PyErr_GivenExceptionMatches(runerr, PyExc_OverflowError)) {
+        PyErr_Clear();
+        PyErr_Format(PyExc_IndexError, "cannot fit '%.200s' into an index-sized integer", Py_TYPE(index)->tp_name);
+    }
+    return NULL;
+}
+static PyObject *__Pyx_PyObject_GetItem(PyObject *obj, PyObject* key) {
+    PyMappingMethods *m = Py_TYPE(obj)->tp_as_mapping;
+    if (likely(m && m->mp_subscript)) {
+        return m->mp_subscript(obj, key);
+    }
+    return __Pyx_PyObject_GetIndex(obj, key);
+}
+#endif
+
 /* decode_c_string */
 static CYTHON_INLINE PyObject* __Pyx_decode_c_string(
          const char* cstring, Py_ssize_t start, Py_ssize_t stop,
@@ -24759,6 +23546,130 @@ static CYTHON_INLINE int __Pyx_PyErr_GivenExceptionMatches2(PyObject *err, PyObj
         return __Pyx_inner_PyErr_GivenExceptionMatches2(err, exc_type1, exc_type2);
     }
     return (PyErr_GivenExceptionMatches(err, exc_type1) || PyErr_GivenExceptionMatches(err, exc_type2));
+}
+#endif
+
+/* PyIntBinop */
+#if !CYTHON_COMPILING_IN_PYPY
+static PyObject* __Pyx_PyInt_AddObjC(PyObject *op1, PyObject *op2, CYTHON_UNUSED long intval, int inplace, int zerodivision_check) {
+    (void)inplace;
+    (void)zerodivision_check;
+    #if PY_MAJOR_VERSION < 3
+    if (likely(PyInt_CheckExact(op1))) {
+        const long b = intval;
+        long x;
+        long a = PyInt_AS_LONG(op1);
+            x = (long)((unsigned long)a + b);
+            if (likely((x^a) >= 0 || (x^b) >= 0))
+                return PyInt_FromLong(x);
+            return PyLong_Type.tp_as_number->nb_add(op1, op2);
+    }
+    #endif
+    #if CYTHON_USE_PYLONG_INTERNALS
+    if (likely(PyLong_CheckExact(op1))) {
+        const long b = intval;
+        long a, x;
+#ifdef HAVE_LONG_LONG
+        const PY_LONG_LONG llb = intval;
+        PY_LONG_LONG lla, llx;
+#endif
+        const digit* digits = ((PyLongObject*)op1)->ob_digit;
+        const Py_ssize_t size = Py_SIZE(op1);
+        if (likely(__Pyx_sst_abs(size) <= 1)) {
+            a = likely(size) ? digits[0] : 0;
+            if (size == -1) a = -a;
+        } else {
+            switch (size) {
+                case -2:
+                    if (8 * sizeof(long) - 1 > 2 * PyLong_SHIFT) {
+                        a = -(long) (((((unsigned long)digits[1]) << PyLong_SHIFT) | (unsigned long)digits[0]));
+                        break;
+#ifdef HAVE_LONG_LONG
+                    } else if (8 * sizeof(PY_LONG_LONG) - 1 > 2 * PyLong_SHIFT) {
+                        lla = -(PY_LONG_LONG) (((((unsigned PY_LONG_LONG)digits[1]) << PyLong_SHIFT) | (unsigned PY_LONG_LONG)digits[0]));
+                        goto long_long;
+#endif
+                    }
+                    CYTHON_FALLTHROUGH;
+                case 2:
+                    if (8 * sizeof(long) - 1 > 2 * PyLong_SHIFT) {
+                        a = (long) (((((unsigned long)digits[1]) << PyLong_SHIFT) | (unsigned long)digits[0]));
+                        break;
+#ifdef HAVE_LONG_LONG
+                    } else if (8 * sizeof(PY_LONG_LONG) - 1 > 2 * PyLong_SHIFT) {
+                        lla = (PY_LONG_LONG) (((((unsigned PY_LONG_LONG)digits[1]) << PyLong_SHIFT) | (unsigned PY_LONG_LONG)digits[0]));
+                        goto long_long;
+#endif
+                    }
+                    CYTHON_FALLTHROUGH;
+                case -3:
+                    if (8 * sizeof(long) - 1 > 3 * PyLong_SHIFT) {
+                        a = -(long) (((((((unsigned long)digits[2]) << PyLong_SHIFT) | (unsigned long)digits[1]) << PyLong_SHIFT) | (unsigned long)digits[0]));
+                        break;
+#ifdef HAVE_LONG_LONG
+                    } else if (8 * sizeof(PY_LONG_LONG) - 1 > 3 * PyLong_SHIFT) {
+                        lla = -(PY_LONG_LONG) (((((((unsigned PY_LONG_LONG)digits[2]) << PyLong_SHIFT) | (unsigned PY_LONG_LONG)digits[1]) << PyLong_SHIFT) | (unsigned PY_LONG_LONG)digits[0]));
+                        goto long_long;
+#endif
+                    }
+                    CYTHON_FALLTHROUGH;
+                case 3:
+                    if (8 * sizeof(long) - 1 > 3 * PyLong_SHIFT) {
+                        a = (long) (((((((unsigned long)digits[2]) << PyLong_SHIFT) | (unsigned long)digits[1]) << PyLong_SHIFT) | (unsigned long)digits[0]));
+                        break;
+#ifdef HAVE_LONG_LONG
+                    } else if (8 * sizeof(PY_LONG_LONG) - 1 > 3 * PyLong_SHIFT) {
+                        lla = (PY_LONG_LONG) (((((((unsigned PY_LONG_LONG)digits[2]) << PyLong_SHIFT) | (unsigned PY_LONG_LONG)digits[1]) << PyLong_SHIFT) | (unsigned PY_LONG_LONG)digits[0]));
+                        goto long_long;
+#endif
+                    }
+                    CYTHON_FALLTHROUGH;
+                case -4:
+                    if (8 * sizeof(long) - 1 > 4 * PyLong_SHIFT) {
+                        a = -(long) (((((((((unsigned long)digits[3]) << PyLong_SHIFT) | (unsigned long)digits[2]) << PyLong_SHIFT) | (unsigned long)digits[1]) << PyLong_SHIFT) | (unsigned long)digits[0]));
+                        break;
+#ifdef HAVE_LONG_LONG
+                    } else if (8 * sizeof(PY_LONG_LONG) - 1 > 4 * PyLong_SHIFT) {
+                        lla = -(PY_LONG_LONG) (((((((((unsigned PY_LONG_LONG)digits[3]) << PyLong_SHIFT) | (unsigned PY_LONG_LONG)digits[2]) << PyLong_SHIFT) | (unsigned PY_LONG_LONG)digits[1]) << PyLong_SHIFT) | (unsigned PY_LONG_LONG)digits[0]));
+                        goto long_long;
+#endif
+                    }
+                    CYTHON_FALLTHROUGH;
+                case 4:
+                    if (8 * sizeof(long) - 1 > 4 * PyLong_SHIFT) {
+                        a = (long) (((((((((unsigned long)digits[3]) << PyLong_SHIFT) | (unsigned long)digits[2]) << PyLong_SHIFT) | (unsigned long)digits[1]) << PyLong_SHIFT) | (unsigned long)digits[0]));
+                        break;
+#ifdef HAVE_LONG_LONG
+                    } else if (8 * sizeof(PY_LONG_LONG) - 1 > 4 * PyLong_SHIFT) {
+                        lla = (PY_LONG_LONG) (((((((((unsigned PY_LONG_LONG)digits[3]) << PyLong_SHIFT) | (unsigned PY_LONG_LONG)digits[2]) << PyLong_SHIFT) | (unsigned PY_LONG_LONG)digits[1]) << PyLong_SHIFT) | (unsigned PY_LONG_LONG)digits[0]));
+                        goto long_long;
+#endif
+                    }
+                    CYTHON_FALLTHROUGH;
+                default: return PyLong_Type.tp_as_number->nb_add(op1, op2);
+            }
+        }
+                x = a + b;
+            return PyLong_FromLong(x);
+#ifdef HAVE_LONG_LONG
+        long_long:
+                llx = lla + llb;
+            return PyLong_FromLongLong(llx);
+#endif
+        
+        
+    }
+    #endif
+    if (PyFloat_CheckExact(op1)) {
+        const long b = intval;
+        double a = PyFloat_AS_DOUBLE(op1);
+            double result;
+            PyFPE_START_PROTECT("add", return NULL)
+            result = ((double)a) + (double)b;
+            PyFPE_END_PROTECT(result)
+            return PyFloat_FromDouble(result);
+    }
+    return (inplace ? PyNumber_InPlaceAdd : PyNumber_Add)(op1, op2);
 }
 #endif
 

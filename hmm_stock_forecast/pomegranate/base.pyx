@@ -189,25 +189,6 @@ cdef class Model(object):
 		int column_idx, int d) nogil:
 		pass
 
-	def add_node(self, node):
-		"""Add a node to the graph."""
-		self.states.append(node)
-		self.n_states += 1
-
-	def add_nodes(self, *nodes):
-		"""Add multiple states to the graph."""
-		for node in nodes:
-			self.add_node(node)
-
-	def add_state(self, state):
-		"""Another name for a node."""
-		self.add_node(state)
-
-	def add_states(self, *states):
-		"""Another name for a node."""
-		for state in states:
-			self.add_state(state)
-
 	def add_edge(self, a, b):
 		"""
 		Add a transition from state a to state b which indicates that B is
@@ -217,34 +198,6 @@ cdef class Model(object):
 		# Add the transition
 		self.edges.append((a, b))
 		self.n_edges += 1
-
-	def add_transition(self, a, b):
-		"""Transitions and edges are the same."""
-		self.add_edge(a, b)
-
-	def state_count(self):
-		"""Returns the number of states present in the model."""
-		return self.n_states
-
-	def edge_count(self):
-		"""Returns the number of edges present in the model."""
-		return self.n_edges
-
-	def dense_transition_matrix(self):
-		"""
-		Returns the dense transition matrix. Useful if the transitions of
-		somewhat small models need to be analyzed.
-		"""
-
-		m = len(self.states)
-		transition_log_probabilities = numpy.full((m, m), NEGINF)
-
-		for i in range(m):
-			for n in range( self.out_edge_count[i], self.out_edge_count[i+1] ):
-				transition_log_probabilities[i, self.out_transitions[n]] = \
-					self.out_transition_log_probabilities[n]
-
-		return transition_log_probabilities
 
 
 cdef class State(object):

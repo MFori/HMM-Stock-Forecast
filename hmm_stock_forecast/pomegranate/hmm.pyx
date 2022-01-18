@@ -2367,7 +2367,7 @@ cdef class HiddenMarkovModel(Model):
 		"""
 
 		# Build the initial model
-		model = cls(name=name)
+		model = HiddenMarkovModel(name=name)
 		state_names = state_names or ["s{}".format(i) for i in range(len(distributions))]
 
 		# Build state objects for every state with the appropriate distribution
@@ -2626,6 +2626,6 @@ cdef class HiddenMarkovModel(Model):
 		start_probabilities[0] = 1
 
 		print('from sample #9')
-		model = cls.from_matrix(transition_matrix, distributions, start_probabilities)
+		model = HiddenMarkovModel.from_matrix(transition_matrix, distributions, start_probabilities)
 
 		return model
