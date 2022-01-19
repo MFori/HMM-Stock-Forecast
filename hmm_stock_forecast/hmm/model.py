@@ -1,14 +1,13 @@
 import numpy as np
 
-# number of hmm states to test (and choose) using criteria
-from pomegranate import NormalDistribution
-from pomegranate.hmm import HiddenMarkovModel
+from hmm_stock_forecast.pyhhmm.gaussian import GaussianHMM
 
+# number of hmm states to test (and choose) using criteria
 TEST_STATES = [2, 3, 4, 5, 6]
 
 
 class HMMStockForecastModel:
-    _hmm: HiddenMarkovModel
+    _hmm: GaussianHMM
     predicted: np.array
 
     def __init__(self, data, window=50):
@@ -23,20 +22,35 @@ class HMMStockForecastModel:
 
         size = len(self.data)
         predicted = np.empty([0, 4])
-        hmm = HiddenMarkovModel.from_samples(NormalDistribution, n_components=states, X=self.data[:self.window, :])
+        #hmm = HiddenMarkovModel.from_samples(NormalDistribution, n_components=states, X=self.data[:self.window, :])
+        hmm = GaussianHMM(
+            # number of hidden states
+            n_states=4,
+            # number of distinct emissions
+            n_emissions=4,
+            # can be 'diagonal', 'full', 'spherical', 'tied'
+            covariance_type='diagonal',
+        )
 
         for i in reversed(range(self.window + 1)):
             print(i)
 
             train = self.data[size - self.window - i:size - i, :]
-            hmm.fit(train)
+            #hmm.fit(train)
+            print('train')
+            hmm.train([train])
 
-            likelihood = hmm.log_probability(train)
+            #likelihood = hmm.log_probability(train)
+            likelihood = hmm.forward(train)
             likelihoods = []
             j = i + 1
-            while size - self.window - j > 0:
+            step = 0
+            # todo remove step for speedtup testing
+            while size - self.window - j > 0 and step < 10:
                 obs = self.data[size - self.window - j:size - j, :]
-                likelihoods = np.append(likelihoods, hmm.log_probability(obs))
+                #likelihoods = np.append(likelihoods, hmm.log_probability(obs))
+                likelihoods = np.append(likelihoods, hmm.forward(obs))
+                step+=1
                 j += 1
 
             likelihood_diff_idx = np.nanargmin(np.absolute(likelihoods - likelihood)) + 1
@@ -54,16 +68,24 @@ class HMMStockForecastModel:
         state_likelihood = []
 
         for states in TEST_STATES:
-            hmm = HiddenMarkovModel.from_samples(NormalDistribution, n_components=states, X=self.data[:self.window, :])
+            #hmm = HiddenMarkovModel.from_samples(NormalDistribution, n_components=states, X=self.data[:self.window, :])
+            hmm = GaussianHMM(
+                # number of hidden states
+                n_states=4,
+                # number of distinct emissions
+                n_emissions=4,
+                # can be 'diagonal', 'full', 'spherical', 'tied'
+                covariance_type='diagonal',
+            )
             offset = 0
             likelihoods = []
             invalid_states = False
 
             while offset + self.window <= size:
                 data = self.data[offset:offset + self.window, :]
-                hmm.fit(data)
+                hmm.train([data])
                 try:
-                    likelihoods = np.append(likelihoods, hmm.log_probability(data))
+                    likelihoods = np.append(likelihoods, hmm.forward(data))
                 except ValueError:
                     invalid_states = True
                     break
