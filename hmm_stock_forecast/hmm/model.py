@@ -31,6 +31,7 @@ class HMMStockForecastModel:
             # can be 'diagonal', 'full', 'spherical', 'tied'
             covariance_type='diagonal',
         )
+        hmm.init_params(self.data[:self.window, :])
 
         for i in reversed(range(self.window + 1)):
             print(i)
@@ -38,6 +39,7 @@ class HMMStockForecastModel:
             train = self.data[size - self.window - i:size - i, :]
             #hmm.fit(train)
             print('train')
+            hmm.init_params(train)
             hmm.train([train])
 
             #likelihood = hmm.log_probability(train)
@@ -77,6 +79,7 @@ class HMMStockForecastModel:
                 # can be 'diagonal', 'full', 'spherical', 'tied'
                 covariance_type='diagonal',
             )
+            hmm.init_params(self.data[:self.window, :])
             offset = 0
             likelihoods = []
             invalid_states = False

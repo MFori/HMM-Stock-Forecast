@@ -45,7 +45,7 @@ class HMM(object):
             min_covar=1e-3,
     ):
         """Constructor method."""
-        self.n_states = n_states
+        self.N = n_states
         self.n_emissions = n_emissions
         self.covariance_type = covariance_type
         self.covars_prior = covars_prior
@@ -59,7 +59,7 @@ class HMM(object):
     def covars(self):
         """Return covariances as a full matrix."""
         return fill_covars(
-            self._covars, self.covariance_type, self.n_states, self.n_emissions
+            self._covars, self.covariance_type, self.N, self.n_emissions
         )
 
     # Solution to Problem 1 - compute P(O|model)
@@ -75,11 +75,9 @@ class HMM(object):
         b_map = self._map_B(obs)
         return self._log_likelihood(obs, b_map)
 
-    def _log_likelihood(self, obs, b_map):
-        # alpha_t(x) = P(O1...Ot,qt=Sx|model) - The probability of state x and the
-        # observation up to time t, given the model.
-        alpha = self.forward(obs, b_map)
-        return logsumexp(alpha[-1])
+    # Init model params from sample data - must be called before training
+    def init_params(self, sample):
+        self._init_params([sample])
 
     # Solution to Problem 3 - adjust the model parameters to maximise P(O,model)
     def train(
@@ -103,6 +101,10 @@ class HMM(object):
         :return: the log_likelihood of the best model
         :rtype: float
         """
+        print('means: ' + str(self.means))
+        print('covars: ' + str(self._covars))
+        print('a: ' + str(self.A))
+        print('pi: ' + str(self.pi))
 
         logL = self._train(
             obs_sequences,
@@ -115,24 +117,30 @@ class HMM(object):
     # ----------------------------------------------------------------------- #
     #             Private methods. These are used internally only.            #
     # ----------------------------------------------------------------------- #
-    def _init_model_params(self, X):
+    def _log_likelihood(self, obs, b_map):
+        # alpha_t(x) = P(O1...Ot,qt=Sx|model) - The probability of state x and the
+        # observation up to time t, given the model.
+        alpha = self.forward(obs, b_map)
+        return logsumexp(alpha[-1])
+
+    def _init_params(self, sample):
         """Initialises model parameters prior to fitting. If init_type if random, it samples from a Dirichlet distribution according to the given priors. Otherwise it initialises the starting probabilities and transition probabilities uniformly.
 
-        :param X: list of observation sequences used to find the initial state means and covariances for the Gaussian and Heterogeneous models
-        :type X: list, optional
+        :param sample: list of observation sequences used to find the initial state means and covariances for the Gaussian and Heterogeneous models
+        :type sample: list, optional
         """
-        self.A = np.ones((self.n_states, self.n_states)) / self.n_states
-        self.pi = np.zeros(self.n_states)
+        self.A = np.ones((self.N, self.N)) / self.N
+        self.pi = np.zeros(self.N)
         self.pi[0] = 1
 
-        X_concat = concatenate_observation_sequences(X)
+        X_concat = concatenate_observation_sequences(sample)
 
-        kmeans = cluster.KMeans(n_clusters=self.n_states)
+        kmeans = cluster.KMeans(n_clusters=self.N)
         kmeans.fit(X_concat)
         self.means = kmeans.cluster_centers_
 
         cv = np.cov(X_concat.T) + self.min_covar * np.eye(self.n_emissions)
-        self._covars = init_covars(cv, self.covariance_type, self.n_states)
+        self._covars = init_covars(cv, self.covariance_type, self.N)
 
     def forward(self, obs_seq, B_map):
         """Calculates 'alpha' the forward variable given an observation sequence.
@@ -149,20 +157,20 @@ class HMM(object):
         # The alpha variable is a np array indexed by time, then state (TxN).
         # alpha[t][i] = the probability of being in state 'i' after observing the
         # first t symbols.
-        alpha = np.zeros((n_samples, self.n_states))
+        alpha = np.zeros((n_samples, self.N))
         log_pi = log_mask_zero(self.pi)
         log_A = log_mask_zero(self.A)
         log_B_map = log_mask_zero(B_map)
 
         # init stage - alpha_1(i) = pi(i)b_i(o_1)
-        for i in range(self.n_states):
+        for i in range(self.N):
             alpha[0][i] = log_pi[i] + log_B_map[i][0]
 
         # induction
-        buffer = np.zeros(self.n_states)
+        buffer = np.zeros(self.N)
         for t in range(1, n_samples):
-            for j in range(self.n_states):
-                for i in range(self.n_states):
+            for j in range(self.N):
+                for i in range(self.N):
                     buffer[i] = alpha[t - 1][i] + log_A[i][j]
                 alpha[t][j] = logsumexp(buffer) + log_B_map[j][t]
 
@@ -183,20 +191,20 @@ class HMM(object):
         # The beta variable is a ndarray indexed by time, then state (TxN).
         # beta[t][i] = the probability of being in state 'i' and then observing the
         # symbols from t+1 to the end (T).
-        beta = np.zeros((n_samples, self.n_states))
+        beta = np.zeros((n_samples, self.N))
 
         log_A = log_mask_zero(self.A)
         log_B_map = log_mask_zero(B_map)
 
         # init stage
-        for i in range(self.n_states):
+        for i in range(self.N):
             beta[len(obs_seq) - 1][i] = 0.0
 
         # induction
-        work_buffer = np.zeros(self.n_states)
+        work_buffer = np.zeros(self.N)
         for t in range(n_samples - 2, -1, -1):
-            for i in range(self.n_states):
-                for j in range(self.n_states):
+            for i in range(self.N):
+                for j in range(self.N):
                     work_buffer[j] = log_A[i][j] + \
                                      log_B_map[j][t + 1] + beta[t + 1][j]
                     beta[t][i] = logsumexp(work_buffer)
@@ -231,8 +239,8 @@ class HMM(object):
         # The xi variable is a np array indexed by time, state, and state (TxNxN).
         # xi[t][i][j] = the probability of being in state 'i' at time 't', and 'j' at
         # time 't+1' given the entire observation sequence.
-        log_xi_sum = np.zeros((self.n_states, self.n_states))
-        work_buffer = np.full((self.n_states, self.n_states), -np.inf)
+        log_xi_sum = np.zeros((self.N, self.N))
+        work_buffer = np.full((self.N, self.N), -np.inf)
 
         # compute the logarithm of the parameters
         log_A = log_mask_zero(self.A)
@@ -240,8 +248,8 @@ class HMM(object):
         logprob = logsumexp(alpha[n_samples - 1])
 
         for t in range(n_samples - 1):
-            for i in range(self.n_states):
-                for j in range(self.n_states):
+            for i in range(self.N):
+                for j in range(self.N):
                     work_buffer[i, j] = (
                             alpha[t][i]
                             + log_A[i][j]
@@ -250,8 +258,8 @@ class HMM(object):
                             - logprob
                     )
 
-            for i in range(self.n_states):
-                for j in range(self.n_states):
+            for i in range(self.N):
+                for j in range(self.N):
                     log_xi_sum[i][j] = np.logaddexp(
                         log_xi_sum[i][j], work_buffer[i][j])
 
@@ -298,7 +306,13 @@ class HMM(object):
         :rtype: float
 
         """
-        self._init_model_params(X=obs_sequences)
+        #X_concat = concatenate_observation_sequences(obs_sequences)
+        #kmeans = cluster.KMeans(n_clusters=self.N)
+        #kmeans.fit(X_concat)
+        #self.means = kmeans.cluster_centers_
+
+        #cv = np.cov(X_concat.T) + self.min_covar * np.eye(self.n_emissions)
+        #self._covars = init_covars(cv, self.covariance_type, self.N)
 
         curr_log_likelihood = 0
         log_likelihood_iter = []
@@ -314,8 +328,11 @@ class HMM(object):
 
             self.pi = new_model['pi']
             self.A = new_model['A']
-            self.means = new_model['means']
-            self._covars = new_model['covars']
+
+
+
+            # self.means = new_model['means']
+            # self._covars = new_model['covars']
 
             improvement = abs(curr_log_likelihood - old_log_likelihood) / abs(old_log_likelihood)
             if improvement <= conv_thresh:
@@ -407,43 +424,44 @@ class HMM(object):
         new_model['A'] = np.where(self.A == 0, 0, A_)
         normalise(new_model['A'], axis=1)
 
-        denom = stats['post'][:, np.newaxis]
-        new_model['means'] = stats['obs'] / denom
+        # denom = stats['post'][:, np.newaxis]
+        # new_model['means'] = stats['obs'] / denom
 
-        if self.covariance_type in ('spherical', 'diagonal'):
-            cv_num = (
-                    stats['obs**2']
-                    - 2 * new_model['means'] * stats['obs']
-                    + new_model['means'] ** 2 * denom
-            )
-            cv_den = np.amax(self.covars_weight - 1, 0) + denom
-            covars_new = (self.covars_prior + cv_num) / \
-                         np.maximum(cv_den, 1e-5)
-            if self.covariance_type == 'spherical':
-                covars_new = covars_new.mean(1)
-        elif self.covariance_type in ('tied', 'full'):
-            cv_num = np.empty(
-                (self.n_states, self.n_emissions, self.n_emissions))
-            for c in range(self.n_states):
-                obs_mean = np.outer(stats['obs'][c], new_model['means'][c])
-                cv_num[c] = (
-                        stats['obs*obs.T'][c]
-                        - obs_mean
-                        - obs_mean.T
-                        + np.outer(new_model['means'][c],
-                                   new_model['means'][c])
-                        * stats['post'][c]
-                )
-            cvweight = np.amax(self.covars_weight - self.n_emissions, 0)
-            if self.covariance_type == 'tied':
-                covars_new = (self.covars_prior + cv_num.sum(axis=0)) / (
-                        cvweight + stats['post'].sum()
-                )
-            elif self.covariance_type == 'full':
-                covars_new = (self.covars_prior + cv_num) / (
-                        cvweight + stats['post'][:, None, None]
-                )
-        new_model['covars'] = covars_new
+        # if self.covariance_type in ('spherical', 'diagonal'):
+        #     cv_num = (
+        #             stats['obs**2']
+        #             - 2 * new_model['means'] * stats['obs']
+        #             + new_model['means'] ** 2 * denom
+        #     )
+        #     cv_den = np.amax(self.covars_weight - 1, 0) + denom
+        #     covars_new = (self.covars_prior + cv_num) / \
+        #                  np.maximum(cv_den, 1e-5)
+        #     if self.covariance_type == 'spherical':
+        #         covars_new = covars_new.mean(1)
+        # elif self.covariance_type in ('tied', 'full'):
+        #     cv_num = np.empty(
+        #         (self.N, self.n_emissions, self.n_emissions))
+        #     for c in range(self.N):
+        #         obs_mean = np.outer(stats['obs'][c], new_model['means'][c])
+        #         cv_num[c] = (
+        #                 stats['obs*obs.T'][c]
+        #                 - obs_mean
+        #                 - obs_mean.T
+        #                 + np.outer(new_model['means'][c],
+        #                            new_model['means'][c])
+        #                 * stats['post'][c]
+        #         )
+        #     cvweight = np.amax(self.covars_weight - self.n_emissions, 0)
+        #     if self.covariance_type == 'tied':
+        #         covars_new = (self.covars_prior + cv_num.sum(axis=0)) / (
+        #                 cvweight + stats['post'].sum()
+        #         )
+        #     elif self.covariance_type == 'full':
+        #         covars_new = (self.covars_prior + cv_num) / (
+        #                 cvweight + stats['post'][:, None, None]
+        #         )
+        # new_model['covars'] = covars_new
+        # print('new covars: ' + str(covars_new))
 
         return new_model
 
@@ -455,16 +473,16 @@ class HMM(object):
         """
         stats = {
             'nobs': 0,
-            'pi': np.zeros(self.n_states),
-            'A': np.zeros((self.n_states, self.n_states)),
+            'pi': np.zeros(self.N),
+            'A': np.zeros((self.N, self.N)),
         }
 
-        stats['post'] = np.zeros(self.n_states)
-        stats['obs'] = np.zeros((self.n_states, self.n_emissions))
-        stats['obs**2'] = np.zeros((self.n_states, self.n_emissions))
+        stats['post'] = np.zeros(self.N)
+        stats['obs'] = np.zeros((self.N, self.n_emissions))
+        stats['obs**2'] = np.zeros((self.N, self.n_emissions))
         if self.covariance_type in ('tied', 'full'):
             stats['obs*obs.T'] = np.zeros(
-                (self.n_states, self.n_emissions, self.n_emissions)
+                (self.N, self.n_emissions, self.n_emissions)
             )
 
         return stats
@@ -510,7 +528,7 @@ class HMM(object):
         """
         stat_obs = np.zeros_like(self.means)
 
-        for j in range(self.n_states):
+        for j in range(self.N):
             for t, obs in enumerate(obs_seq):
                 stat_obs[j] += gamma[t][j] * obs
 
@@ -528,11 +546,11 @@ class HMM(object):
         """
         if self.covariance_type in ('tied', 'full'):
             stat_obs2 = np.zeros(
-                (self.n_states, self.n_emissions, self.n_emissions))
+                (self.N, self.n_emissions, self.n_emissions))
         else:
-            stat_obs2 = np.zeros((self.n_states, self.n_emissions))
+            stat_obs2 = np.zeros((self.N, self.n_emissions))
 
-        for j in range(self.n_states):
+        for j in range(self.N):
             for t, obs in enumerate(obs_seq):
                 if self.covariance_type in ('tied', 'full'):
                     stat_obs2[j] += gamma[t][j] * np.outer(obs, obs)
@@ -571,9 +589,9 @@ class HMM(object):
         :return: the mass/density mapping of shape (n_states, n_samples)
         :rtype: array_like
         """
-        B_map = np.zeros((self.n_states, len(obs_seq)))
+        B_map = np.zeros((self.N, len(obs_seq)))
 
-        for j in range(self.n_states):
+        for j in range(self.N):
             for t in range(len(obs_seq)):
                 B_map[j][t] = self._pdf(obs_seq[t], self.means[j], self.covars[j])
 
