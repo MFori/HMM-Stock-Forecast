@@ -121,13 +121,9 @@ class HMM(object):
         :param X: list of observation sequences used to find the initial state means and covariances for the Gaussian and Heterogeneous models
         :type X: list, optional
         """
-        self.pi = np.random.dirichlet(
-            alpha=np.ones(self.n_states), size=1
-        )[0]
-
-        self.A = np.random.dirichlet(
-            alpha=np.ones(self.n_states), size=self.n_states
-        )
+        self.A = np.ones((self.n_states, self.n_states)) / self.n_states
+        self.pi = np.zeros(self.n_states)
+        self.pi[0] = 1
 
         X_concat = concatenate_observation_sequences(X)
 
