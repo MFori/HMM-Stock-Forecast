@@ -1,19 +1,10 @@
-#cython: boundscheck=False
-#cython: cdivision=True
-# hmm.pyx: Yet Another Hidden Markov Model library
-# Authors: Jacob Schreiber <jmschreiber91@gmail.com>
-#          Adam Novak <anovak1@ucsc.edu>
-
-from __future__ import print_function
-
 from libc.math cimport exp as cexp
 from operator import attrgetter
 import networkx
 import time
 
-from . import NormalDistribution
+from . import NormalDistribution, State
 from .base cimport Model
-from .base cimport State
 
 from sklearn.cluster import KMeans
 
@@ -21,8 +12,6 @@ from .utils cimport _log
 from .utils cimport pair_lse
 from .utils cimport python_log_probability
 from .utils cimport python_summarize
-
-from .utils import _check_nan
 
 from .io import SequenceGenerator
 
@@ -50,8 +39,6 @@ cdef class HiddenMarkovModel(Model):
 
 	Parameters
 	----------
-	name : str, optional
-		The name of the model. Default is None.
 
 	start : State, optional
 		An optional state to force the model to start in. Default is None.
@@ -70,9 +57,6 @@ cdef class HiddenMarkovModel(Model):
 	start_index : int
 		The index of the start object in the state list
 
-	end_index : int
-		The index of the end object in the state list
-
 	silent_start : int
 		The index of the beginning of the silent states in the state list
 
@@ -85,7 +69,6 @@ cdef class HiddenMarkovModel(Model):
 
 	cdef public object start, end
 	cdef public int start_index
-	cdef public int end_index
 	cdef public int silent_start
 	cdef double* in_transition_pseudocounts
 	cdef double* out_transition_pseudocounts
@@ -108,18 +91,14 @@ cdef class HiddenMarkovModel(Model):
 	cdef void** distributions_ptr
 
 	def __init__(self, start=None, end=None):
-		# Save the name or make up a name.
-		self.name = str(id(self))
-		self.model = "HiddenMarkovModel"
-
 		# This holds a directed graph between states. Nodes in that graph are
 		# State objects, so they're guaranteed never to conflict when composing
 		# two distinct models
 		self.graph = networkx.DiGraph()
 
 		# Save the start and end or mae one up
-		self.start = start or State(None, name=self.name + "-start")
-		self.end = end or State(None, name=self.name + "-end")
+		self.start = start or State(None, name="start")
+		self.end = end or State(None, name="end")
 
 		# Put start and end in the graph
 		self.graph.add_node(self.start)
@@ -192,7 +171,7 @@ cdef class HiddenMarkovModel(Model):
 		self.graph.add_edge(a, b, probability=_log(probability),
 			pseudocount=pseudocount, group=group)
 
-	def bake(self, verbose=False, merge="all"):
+	def bake(self):
 		"""Finalize the topology of the model.
 
 		Finalize the topology of the model and assign a numerical index to
@@ -203,38 +182,6 @@ cdef class HiddenMarkovModel(Model):
 		self.transition_log_probabilities (log probabilities for transitions),
 		as well as self.start_index and self.end_index, and self.silent_start
 		(the index of the first silent state).
-
-		Parameters
-		----------
-		verbose : bool, optional
-			Return a log of changes made to the model during normalization
-			or merging. Default is False.
-
-		merge : "None", "Partial, "All"
-			Merging has three options:
-			"None": No modifications will be made to the model.
-			"Partial": A silent state which only has a probability 1 transition
-				to another silent state will be merged with that silent state.
-				This means that if silent state "S1" has a single transition
-				to silent state "S2", that all transitions to S1 will now go
-				to S2, with the same probability as before, and S1 will be
-				removed from the model.
-			"All": A silent state with a probability 1 transition to any other
-				state, silent or symbol emitting, will be merged in the manner
-				described above. In addition, any orphan states will be removed
-				from the model. An orphan state is a state which does not have
-				any transitions to it OR does not have any transitions from it,
-				except for the start and end of the model. This will iteratively
-				remove orphan chains from the model. This is sometimes desirable,
-				as all states should have both a transition in to get to that
-				state, and a transition out, even if it is only to itself. If
-				the state does not have either, the HMM will likely not work as
-				intended.
-			Default is 'All'.
-
-		Returns
-		-------
-		None
 		"""
 
 		if len(self.graph.nodes()) == 0:
@@ -248,125 +195,6 @@ cdef class HiddenMarkovModel(Model):
 			dtype=numpy.int32)
 		out_edge_count = numpy.zeros(len(self.graph.nodes()),
 			dtype=numpy.int32)
-
-		merge = merge.lower() if merge else None
-		while merge == 'all':
-			merge_count = 0
-
-			# Reindex the states based on ones which are still there
-			prestates = list(self.graph.nodes)
-			indices = { prestates[i]: i for i in range(len(prestates)) }
-
-			# Go through all the edges, summing in and out edges
-			for a, b in list(self.graph.edges()):
-				out_edge_count[indices[a]] += 1
-				in_edge_count[indices[b]] += 1
-
-			# Go through each state, and if either in or out edges are 0,
-			# remove the edge.
-			for i in range(len(prestates)):
-				if prestates[i] is self.start or prestates[i] is self.end:
-					continue
-
-				if in_edge_count[i] == 0:
-					merge_count += 1
-					self.graph.remove_node(prestates[i])
-
-					if verbose:
-						print("Orphan state {} removed due to no edges \
-							leading to it".format(prestates[i].name))
-
-				elif out_edge_count[i] == 0:
-					merge_count += 1
-					self.graph.remove_node(prestates[i])
-
-					if verbose:
-						print("Orphan state {} removed due to no edges \
-							leaving it".format(prestates[i].name))
-
-			if merge_count == 0:
-				break
-
-		# Go through the model checking to make sure out edges sum to 1.
-		# Normalize them to 1 if this is not the case.
-		if merge in ['all', 'partial']:
-			for state in list(self.graph.nodes()):
-
-				# Perform log sum exp on the edges to see if they properly sum to 1
-				out_edges = round(sum(numpy.e**x['probability']
-					for x in self.graph.adj[state].values()), 8)
-
-				# The end state has no out edges, so will be 0
-				if out_edges != 1. and state != self.end:
-					# Issue a notice if verbose is activated
-					if verbose:
-						print("{} : {} summed to {}, normalized to 1.0"\
-							.format(self.name, state.name, out_edges))
-
-					# Reweight the edges so that the probability (not logp) sums
-					# to 1.
-					for edge in self.graph.adj[state].values():
-						edge['probability'] = edge['probability'] - _log(out_edges)
-
-		# Automatically merge adjacent silent states attached by a single edge
-		# of 1.0 probability, as that adds nothing to the model. Traverse the
-		# edges looking for 1.0 probability edges between silent states.
-		while merge in ['all', 'partial']:
-			# Repeatedly go through the model until no merges take place.
-			merge_count = 0
-
-			for a, b, e in list(self.graph.edges(data=True)):
-				# Since we may have removed a or b in a previous iteration,
-				# a simple fix is to just check to see if it's still there
-				if a not in list(self.graph.nodes()) or b not in list(self.graph.nodes()):
-					continue
-
-				if a == self.start or b == self.end:
-					continue
-
-				# If a silent state has a probability 1 transition out
-				if e['probability'] == 0.0 and a.is_silent():
-
-					# Make sure the transition is an appropriate merger
-					if merge=='all' or (merge=='partial' and b.is_silent()):
-
-						# Go through every transition to that state
-						for x, y, d in self.graph.edges(data=True):
-
-							# Make sure that the edge points to the current node
-							if y is a:
-								# Increment the edge counter
-								merge_count += 1
-
-								# Remove the edge going to that node
-								self.graph.remove_edge(x, y)
-
-								pseudo = max(e['pseudocount'], d['pseudocount'])
-								group = e['group'] if e['group'] == d['group'] else None
-								# Add a new edge going to the new node
-								self.graph.add_edge(x, b, probability=d['probability'],
-									pseudocount=pseudo,
-									group=group)
-
-								# Log the event
-								if verbose:
-									print("{} : {} - {} merged".format(
-										self.name, a, b))
-
-						# Remove the state now that all edges are removed
-						self.graph.remove_node(a)
-
-			if merge_count == 0:
-				break
-
-		if merge in ['all', 'partial']:
-			# Detect whether or not there are loops of silent states by going
-			# through every pair of edges, and ensure that there is not a cycle
-			# of silent states.
-			for a, b, e in self.graph.edges(data=True):
-				for x, y, d in self.graph.edges(data=True):
-					if a is y and b is x and a.is_silent() and b.is_silent():
-						print("Loop: {} - {}".format(a.name, b.name))
 
 		states = self.graph.nodes()
 		n, m = len(states), len(self.graph.edges())
@@ -590,19 +418,7 @@ cdef class HiddenMarkovModel(Model):
 				raise ValueError("mis-matching inputs for states")
 
 		self.distributions_ptr = <void**> self.distributions.data
-
-		# This holds the index of the start state
-		try:
-			self.start_index = indices[self.start]
-		except KeyError:
-			raise SyntaxError("Model.start has been deleted, leaving the \
-				model with no start. Please ensure it has a start.")
-		# And the end state
-		try:
-			self.end_index = indices[self.end]
-		except KeyError:
-			raise SyntaxError("Model.end has been deleted, leaving the \
-				model with no end. Please ensure it has an end.")
+		self.start_index = indices[self.start]
 
 	def log_probability(self, sequence, check_input=True):
 		"""Calculate the log probability of a single sequence.

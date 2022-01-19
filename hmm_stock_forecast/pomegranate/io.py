@@ -50,13 +50,6 @@ class SequenceGenerator(object):
     def ndim(self):
         return len(self.X[0])
 
-    @property
-    def classes(self):
-        if self.y is None:
-            raise ValueError("No labels found for this data set.")
-
-        return numpy.unique(self.y)
-
     def batches(self):
         for idx in range(len(self.X)):
             if self.y is not None:
