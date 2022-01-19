@@ -56,21 +56,15 @@ def test_2(V):
         n_emissions=4,
         # can be 'diagonal', 'full', 'spherical', 'tied'
         covariance_type='diagonal',
-        verbose=False
     )
 
     # reinitialise the parameters and see if we can re-learn them
     trained_hmm, log_likelihoods = trained_hmm.train(
         X,
-        n_init=1,     # number of initialisations to perform
         n_iter=100,   # maximum number of iterations to run
         conv_thresh=0.001,  # what percentage of change in the log-likelihood between iterations is considered convergence
-        conv_iter=5,  # for how many iterations does it have to hold
         # whether to plot the evolution of the log-likelihood over the iterations
-        plot_log_likelihood=True,
         # set to True if want to train until maximum number of iterations is reached
-        ignore_conv_crit=False,
-        no_init=False,  # set to True if the model parameters shouldn't be re-initialised befor training; in this case they have to be set manually first, otherwise errors occur
     )
 
 def test(V):

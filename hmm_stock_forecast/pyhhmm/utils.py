@@ -8,7 +8,6 @@ Parts of the code come from: https://github.com/hmmlearn/hmmlearn
 
 
 import numpy as np
-from scipy import special
 
 # ---------------------------------------------------------------------------- #
 #                            Utils for the HMM models                          #
@@ -33,21 +32,6 @@ def normalise(a, axis=None):
         a_sum.shape = shape
 
     a /= a_sum
-
-
-def log_normalise(a, axis=None):
-    """
-    Normalise the input array so that ``sum(exp(a)) == 1``. Modifies the input **inplace**.
-
-    :param a: non-normalised input data
-    :type a: array_like
-    :param axis: dimension along which normalisation is performed, defaults to None
-    :type axis: int, optional
-    """
-    with np.errstate(under='ignore'):
-        a_lse = special.logsumexp(a, axis, keepdims=True)
-    a -= a_lse
-
 
 def log_mask_zero(a):
     """

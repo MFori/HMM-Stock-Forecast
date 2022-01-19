@@ -16,10 +16,10 @@ For theoretical bases see:
 """
 
 import numpy as np
+from scipy import special
 from scipy.special import logsumexp
 
 from .utils import (
-    log_normalise,
     normalise,
     log_mask_zero,
 )
@@ -92,7 +92,6 @@ class BaseHMM(object):
             obs_sequences,
             n_iter=100,
             conv_thresh=0.1,
-            conv_iter=5,
     ):
         """Updates the HMMs parameters given a new set of observed sequences.
         The observations can either be a single (1D) array of observed symbols, or a 2D array (matrix), where each row denotes a multivariate time sample (multiple features). The model parameters are reinitialised 'n_init' times. For each initialisation the updated model parameters and the log-likelihood is stored and the best model is selected at the end.
@@ -104,23 +103,18 @@ class BaseHMM(object):
         :type n_iter: int, optional
         :param conv_thresh: the threshold for the likelihood increase (convergence); defaults to 0.1
         :type conv_thresh: float, optional
-        :param conv_iter: number of iterations for which the convergence criteria has to hold before 
-            early-stopping; defaults to 5
-        :type conv_iter: int, optional
-          :return: the updated model
+             :return: the updated model
         :rtype: object
         :return: the log_likelihood of the best model
         :rtype: float
         """
 
-        n_model, logL = self._train(
+        logL = self._train(
             obs_sequences,
             n_iter=n_iter,
             conv_thresh=conv_thresh,
-            conv_iter=conv_iter,
         )
 
-        self._update_model(n_model)
         return self, logL
 
     # ----------------------------------------------------------------------- #
@@ -274,7 +268,11 @@ class BaseHMM(object):
         :rtype: array_like
         """
         log_gamma = alpha + beta
-        log_normalise(log_gamma, axis=1)
+
+        with np.errstate(under='ignore'):
+            a_lse = special.logsumexp(log_gamma, 1, keepdims=True)
+        log_gamma -= a_lse
+
         with np.errstate(under='ignore'):
             return np.exp(log_gamma)
 
@@ -284,7 +282,6 @@ class BaseHMM(object):
             obs_sequences,
             n_iter=100,
             conv_thresh=0.1,
-            conv_iter=5,
     ):
         """Training is repeated 'n_iter' times, or until log-likelihood of the model increases by less than a threshold.
 
@@ -295,9 +292,7 @@ class BaseHMM(object):
         :type n_iter: int, optional
         :param conv_thresh: the threshold for the likelihood increase (convergence); defaults to 0.1
         :type conv_thresh: float, optional
-        :param conv_iter: number of iterations for which the convergence criteria has to hold before early-stopping; defaults to 5
-        :type conv_iter: int, optional
-        :return: dictionary containing the updated model parameters
+       :return: dictionary containing the updated model parameters
         :rtype: dict
         :return: the accumulated log-likelihood for all the observations. (if  return_log_likelihoods is True then the list of log-likelihood values from each iteration)
         :rtype: float
@@ -324,7 +319,7 @@ class BaseHMM(object):
             log_likelihood_iter.append(curr_log_likelihood)
             old_log_likelihood = curr_log_likelihood
 
-        return new_model, curr_log_likelihood
+        return curr_log_likelihood
 
     def _compute_intermediate_values(self, obs_sequences):
         """Calculates the various intermediate values for the Baum-Welch on a list of observation sequences.
