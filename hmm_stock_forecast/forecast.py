@@ -6,7 +6,7 @@ from hmm_stock_forecast.hmm.hmm import HMM
 TEST_STATES = [2, 3, 4, 5, 6]
 
 
-class HMMStockForecastModel:
+class StockForecast:
     _hmm: HMM
     predicted: np.array
 

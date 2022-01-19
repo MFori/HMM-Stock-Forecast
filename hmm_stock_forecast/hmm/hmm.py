@@ -27,30 +27,20 @@ from hmm_stock_forecast.hmm.utils import (
     log_mask_zero,
 )
 
+MIN_COVAR = 1e-3
+
 
 class HMM(object):
-    """Base class for the Hidden Markov Models. It allows for training evaluation and sampling from the HMM. 
+    N: int  # number of hidden states
+    n_emissions: int  # number of features in each state
+    pi: np.array  # start probabilities
+    A: np.array  # transition probability matrix
+    means: np.array  # gaussian means
+    covars: np.array  # gaussian covariances
 
-    :param n_states: number of hidden states in the model
-    :type n_states: int, optional
-    """
-
-    def __init__(
-            self,
-            n_states=4,
-            n_emissions=4,
-            covariance_type='diagonal',
-            covars_prior=1e-2,
-            covars_weight=1,
-            min_covar=1e-3,
-    ):
-        """Constructor method."""
+    def __init__(self, n_states=4, n_emissions=1):
         self.N = n_states
         self.n_emissions = n_emissions
-        self.covariance_type = covariance_type
-        self.covars_prior = covars_prior
-        self.covars_weight = covars_weight
-        self.min_covar = min_covar
 
     # ----------------------------------------------------------------------- #
     #        Public methods. These are callable when using the class.         #
@@ -114,7 +104,7 @@ class HMM(object):
         kmeans.fit(X_concat)
         self.means = kmeans.cluster_centers_
 
-        cv = np.cov(X_concat.T) + self.min_covar * np.eye(self.n_emissions)
+        cv = np.cov(X_concat.T) + MIN_COVAR * np.eye(self.n_emissions)
         cv = np.tile(np.diag(cv), (self.N, 1))
         self.covars = cv
 
@@ -357,5 +347,5 @@ class HMM(object):
         :rtype: float
         """
         if not np.all(np.linalg.eigvals(covar) > 0):
-            covar = covar + self.min_covar * np.eye(self.n_emissions)
+            covar = covar + MIN_COVAR * np.eye(self.n_emissions)
         return multivariate_normal.pdf(x, mean=mean, cov=covar, allow_singular=True)
