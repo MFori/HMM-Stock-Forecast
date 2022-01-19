@@ -1,6 +1,6 @@
 import numpy as np
 
-from hmm_stock_forecast.pyhhmm.hmm import HMM
+from hmm_stock_forecast.hmm.hmm import HMM
 
 # number of hmm states to test (and choose) using criteria
 TEST_STATES = [2, 3, 4, 5, 6]
