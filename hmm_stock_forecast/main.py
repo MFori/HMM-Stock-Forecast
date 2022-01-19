@@ -6,14 +6,14 @@ from hmm_stock_forecast.data.data import read_data
 from hmm_stock_forecast.hmm.hmm import HMM
 from hmm_stock_forecast.hmm.model import HMMStockForecastModel
 from hmm_stock_forecast.plot.plot import show_plot
-from hmm_stock_forecast.pyhhmm.gaussian import GaussianHMM
+from hmm_stock_forecast.pyhhmm.hmm import HMM
 from hmm_stock_forecast.utils.args import parse_args
 from hmm_stock_forecast.utils.logging import init_logger
 import numpy as np
 import pandas as pd
 
 def test_2(V):
-    my_hmm = GaussianHMM(
+    my_hmm = HMM(
         n_states=4,
         n_emissions=2,
         covariance_type='diagonal'
@@ -49,7 +49,7 @@ def test_2(V):
     print(X)
 
     # instantiate a MultinomialHMM object
-    trained_hmm = GaussianHMM(
+    trained_hmm = HMM(
         # number of hidden states
         n_states=4,
         # number of distinct emissions

@@ -1,13 +1,13 @@
 import numpy as np
 
-from hmm_stock_forecast.pyhhmm.gaussian import GaussianHMM
+from hmm_stock_forecast.pyhhmm.hmm import HMM
 
 # number of hmm states to test (and choose) using criteria
 TEST_STATES = [2, 3, 4, 5, 6]
 
 
 class HMMStockForecastModel:
-    _hmm: GaussianHMM
+    _hmm: HMM
     predicted: np.array
 
     def __init__(self, data, window=50):
@@ -23,7 +23,7 @@ class HMMStockForecastModel:
         size = len(self.data)
         predicted = np.empty([0, 4])
         #hmm = HiddenMarkovModel.from_samples(NormalDistribution, n_components=states, X=self.data[:self.window, :])
-        hmm = GaussianHMM(
+        hmm = HMM(
             # number of hidden states
             n_states=4,
             # number of distinct emissions
@@ -46,7 +46,7 @@ class HMMStockForecastModel:
             j = i + 1
             step = 0
             # todo remove step for speedtup testing
-            while size - self.window - j > 0 and step < 10:
+            while size - self.window - j > 0 and step < 20:
                 obs = self.data[size - self.window - j:size - j, :]
                 #likelihoods = np.append(likelihoods, hmm.log_probability(obs))
                 likelihoods = np.append(likelihoods, hmm.forward(obs))
@@ -69,7 +69,7 @@ class HMMStockForecastModel:
 
         for states in TEST_STATES:
             #hmm = HiddenMarkovModel.from_samples(NormalDistribution, n_components=states, X=self.data[:self.window, :])
-            hmm = GaussianHMM(
+            hmm = HMM(
                 # number of hidden states
                 n_states=4,
                 # number of distinct emissions
