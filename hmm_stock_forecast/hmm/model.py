@@ -41,7 +41,7 @@ class HMMStockForecastModel:
             hmm.train([train])
 
             #likelihood = hmm.log_probability(train)
-            likelihood = hmm.forward(train)
+            likelihood = hmm.log_likelihood(train)
             likelihoods = []
             j = i + 1
             step = 0
@@ -49,7 +49,7 @@ class HMMStockForecastModel:
             while size - self.window - j > 0 and step < 20:
                 obs = self.data[size - self.window - j:size - j, :]
                 #likelihoods = np.append(likelihoods, hmm.log_probability(obs))
-                likelihoods = np.append(likelihoods, hmm.forward(obs))
+                likelihoods = np.append(likelihoods, hmm.log_likelihood(obs))
                 step+=1
                 j += 1
 
@@ -85,7 +85,7 @@ class HMMStockForecastModel:
                 data = self.data[offset:offset + self.window, :]
                 hmm.train([data])
                 try:
-                    likelihoods = np.append(likelihoods, hmm.forward(data))
+                    likelihoods = np.append(likelihoods, hmm.log_likelihood(data))
                 except ValueError:
                     invalid_states = True
                     break

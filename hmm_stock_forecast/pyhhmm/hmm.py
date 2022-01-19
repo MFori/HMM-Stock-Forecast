@@ -33,47 +33,21 @@ class HMM(object):
 
     :param n_states: number of hidden states in the model
     :type n_states: int, optional
-    :param pi_prior: array of shape (n_states, ) setting the parameters of the
-        Dirichlet prior distribution for the starting probabilities. Defaults to 1.
-    :type pi_prior: array_like, optional 
-    :param A_prior: array of shape (n_states, ), giving the parameters of the Dirichlet 
-        prior distribution for each row of the transition probabilities 'A'. Defaults to 1.
-    :param pi: array of shape (n_states, ) giving the initial state
-        occupation distribution 'pi'
-    :type pi: array_like 
-    :type A_prior: array_like, optional 
-    :param A: array of shape (n_states, n_states) giving the matrix of
-            transition probabilities between states
-    :type A: array_like
-    :param learning_rate: a value from [0,1), controlling how much
-        the past values of the model parameters count when computing the new
-        model parameters during training; defaults to 0.
-    :type learning_rate: float, optional
     """
 
     def __init__(
             self,
-            n_states=1,
-            n_emissions=1,
+            n_states=4,
+            n_emissions=4,
             covariance_type='diagonal',
-            pi_prior=1.0,
-            A_prior=1.0,
-            means_prior=0,
-            means_weight=0,
             covars_prior=1e-2,
             covars_weight=1,
             min_covar=1e-3,
-            learning_rate=0.,
     ):
         """Constructor method."""
         self.n_states = n_states
-        self.pi_prior = pi_prior
-        self.A_prior = A_prior
-        self.learning_rate = learning_rate
         self.n_emissions = n_emissions
         self.covariance_type = covariance_type
-        self.means_prior = means_prior
-        self.means_weight = means_weight
         self.covars_prior = covars_prior
         self.covars_weight = covars_weight
         self.min_covar = min_covar
@@ -89,25 +63,22 @@ class HMM(object):
         )
 
     # Solution to Problem 1 - compute P(O|model)
-    def forward(self, obs_seq, B_map=None):
+    def log_likelihood(self, obs):
         """Forward-Backward procedure is used to efficiently calculate the probability of the observations, given the model - P(O|model).
 
-        :param obs_seq: an observation sequence 
-        :type obs_seq: array_like
-        :param B_map: mapping of the observations' mass/density Bj(Ot) to Bj(t)
-        :type B_map: array_like, optional
+        :param obs: an observation sequence
+        :type obs: array_like
         :return: the log of the probability, i.e. the log likehood model, give the 
             observation - logL(model|O).
         :rtype: float
         """
-        if B_map is None:
-            # if the emission probabilies not given, compute
-            B_map = self._map_B(obs_seq)
+        b_map = self._map_B(obs)
+        return self._log_likelihood(obs, b_map)
 
+    def _log_likelihood(self, obs, b_map):
         # alpha_t(x) = P(O1...Ot,qt=Sx|model) - The probability of state x and the
         # observation up to time t, given the model.
-        alpha = self._calc_alpha(obs_seq, B_map)
-
+        alpha = self.forward(obs, b_map)
         return logsumexp(alpha[-1])
 
     # Solution to Problem 3 - adjust the model parameters to maximise P(O,model)
@@ -151,11 +122,11 @@ class HMM(object):
         :type X: list, optional
         """
         self.pi = np.random.dirichlet(
-            alpha=self.pi_prior * np.ones(self.n_states), size=1
+            alpha=np.ones(self.n_states), size=1
         )[0]
 
         self.A = np.random.dirichlet(
-            alpha=self.A_prior * np.ones(self.n_states), size=self.n_states
+            alpha=np.ones(self.n_states), size=self.n_states
         )
 
         X_concat = concatenate_observation_sequences(X)
@@ -167,7 +138,7 @@ class HMM(object):
         cv = np.cov(X_concat.T) + self.min_covar * np.eye(self.n_emissions)
         self._covars = init_covars(cv, self.covariance_type, self.n_states)
 
-    def _calc_alpha(self, obs_seq, B_map):
+    def forward(self, obs_seq, B_map):
         """Calculates 'alpha' the forward variable given an observation sequence.
 
         :param obs_seq: an observation sequence 
@@ -192,16 +163,16 @@ class HMM(object):
             alpha[0][i] = log_pi[i] + log_B_map[i][0]
 
         # induction
-        work_buffer = np.zeros(self.n_states)
+        buffer = np.zeros(self.n_states)
         for t in range(1, n_samples):
             for j in range(self.n_states):
                 for i in range(self.n_states):
-                    work_buffer[i] = alpha[t - 1][i] + log_A[i][j]
-                alpha[t][j] = logsumexp(work_buffer) + log_B_map[j][t]
+                    buffer[i] = alpha[t - 1][i] + log_A[i][j]
+                alpha[t][j] = logsumexp(buffer) + log_B_map[j][t]
 
         return alpha
 
-    def _calc_beta(self, obs_seq, B_map):
+    def backward(self, obs_seq, B_map):
         """Calculates 'beta', the backward variable for each observation sequence.
 
         :param obs_seq: an observation sequence 
@@ -255,9 +226,9 @@ class HMM(object):
         if B_map is None:
             B_map = self._map_B(obs_seq)
         if alpha is None:
-            alpha = self._calc_alpha(obs_seq, B_map)
+            alpha = self.forward(obs_seq, B_map)
         if beta is None:
-            beta = self._calc_beta(obs_seq, B_map)
+            beta = self.backward(obs_seq, B_map)
 
         n_samples = len(obs_seq)
 
@@ -333,6 +304,7 @@ class HMM(object):
         """
         self._init_model_params(X=obs_sequences)
 
+        curr_log_likelihood = 0
         log_likelihood_iter = []
         old_log_likelihood = np.nan
         for it in range(n_iter):
@@ -343,7 +315,11 @@ class HMM(object):
 
             # perform the M-step to update the model parameters
             new_model = self._M_step(stats)
-            self._update_model(new_model)
+
+            self.pi = new_model['pi']
+            self.A = new_model['A']
+            self.means = new_model['means']
+            self._covars = new_model['covars']
 
             improvement = abs(curr_log_likelihood - old_log_likelihood) / abs(old_log_likelihood)
             if improvement <= conv_thresh:
@@ -372,7 +348,7 @@ class HMM(object):
 
             # calculate the log likelihood of the previous model
             # we compute the P(O|model) for the set of old parameters
-            log_likelihood = self.forward(obs_seq, B_map)
+            log_likelihood = self._log_likelihood(obs_seq, B_map)
             curr_log_likelihood += log_likelihood
 
             # do the E-step of the Baum-Welch algorithm
@@ -400,8 +376,8 @@ class HMM(object):
 
         # compute the parameters for the observation
         obs_stats = {
-            'alpha': self._calc_alpha(obs_seq, B_map),
-            'beta': self._calc_beta(obs_seq, B_map),
+            'alpha': self.forward(obs_seq, B_map),
+            'beta': self.backward(obs_seq, B_map),
         }
 
         obs_stats['xi'] = self._calc_xi(
@@ -427,24 +403,20 @@ class HMM(object):
         """
         new_model = {}
 
-        pi_ = np.maximum(self.pi_prior - 1 + stats['pi'], 0)
+        pi_ = np.maximum(stats['pi'], 0)
         new_model['pi'] = np.where(self.pi == 0, 0, pi_)
         normalise(new_model['pi'])
 
-        A_ = np.maximum(self.A_prior - 1 + stats['A'], 0)
+        A_ = np.maximum(stats['A'], 0)
         new_model['A'] = np.where(self.A == 0, 0, A_)
         normalise(new_model['A'], axis=1)
 
         denom = stats['post'][:, np.newaxis]
-        new_model['means'] = (
-                                     self.means_weight * self.means_prior + stats['obs']
-                             ) / (self.means_weight + denom)
+        new_model['means'] = stats['obs'] / denom
 
-        meandiff = new_model['means'] - self.means_prior
         if self.covariance_type in ('spherical', 'diagonal'):
             cv_num = (
-                    self.means_weight * meandiff ** 2
-                    + stats['obs**2']
+                    stats['obs**2']
                     - 2 * new_model['means'] * stats['obs']
                     + new_model['means'] ** 2 * denom
             )
@@ -459,8 +431,7 @@ class HMM(object):
             for c in range(self.n_states):
                 obs_mean = np.outer(stats['obs'][c], new_model['means'][c])
                 cv_num[c] = (
-                        self.means_weight * np.outer(meandiff[c], meandiff[c])
-                        + stats['obs*obs.T'][c]
+                        stats['obs*obs.T'][c]
                         - obs_mean
                         - obs_mean.T
                         + np.outer(new_model['means'][c],
@@ -479,27 +450,6 @@ class HMM(object):
         new_model['covars'] = covars_new
 
         return new_model
-
-    def _update_model(self, new_model):
-        """Replaces the current model parameters with the new ones.
-
-        :param new_model: contains the new model parameters
-        :type new_model: dict
-        """
-        self.pi = (1 - self.learning_rate) * new_model[
-            'pi'
-        ] + self.learning_rate * self.pi
-
-        self.A = (1 - self.learning_rate) * \
-                 new_model['A'] + self.learning_rate * self.A
-
-        self.means = (1 - self.learning_rate) * new_model[
-            'means'
-        ] + self.learning_rate * self.means
-
-        self._covars = (1 - self.learning_rate) * new_model[
-            'covars'
-        ] + self.learning_rate * self._covars
 
     def _initialise_sufficient_statistics(self):
         """Initialises sufficient statistics required for M-step.
@@ -563,14 +513,11 @@ class HMM(object):
         :type obs_seq: array_like
         """
         stat_obs = np.zeros_like(self.means)
+
         for j in range(self.n_states):
             for t, obs in enumerate(obs_seq):
-                if np.any(np.isnan(obs)):
-                    # If there are missing observation we infer from the conditional posterior
-                    stat_obs[j] += gamma[t][j] * self._infer_missing(obs, j)
-                else:
-                    # If there are no missing values we take this observation into account
-                    stat_obs[j] += gamma[t][j] * obs
+                stat_obs[j] += gamma[t][j] * obs
+
         return stat_obs
 
     def _reestimate_stat_obs2(self, gamma, obs_seq):
@@ -591,32 +538,11 @@ class HMM(object):
 
         for j in range(self.n_states):
             for t, obs in enumerate(obs_seq):
-                if np.any(np.isnan(obs)):
-                    # If there are missing observation we infer from the conditional posterior
-                    obs = self._infer_missing(obs, j)
                 if self.covariance_type in ('tied', 'full'):
                     stat_obs2[j] += gamma[t][j] * np.outer(obs, obs)
                 else:
                     stat_obs2[j] += np.dot(gamma[t][j], obs ** 2)
         return stat_obs2
-
-    def _infer_missing(self, obs, state):
-        """Helper method for the statistics accumulation. It infers the missing
-        observation from the conditional posterior for a given state.
-
-        :param obs: a single observation
-        :type obs: array_like
-        :param state: the index of the hidden state to consider
-        :type state: int
-        """
-        # If all the features of the observations are missed, it is not necessary
-        # to use this observation to update the means and covars. So we set them to 0.
-        if np.all(np.isnan(obs)):
-            return np.zeros_like(obs)
-        # For partial observations we compute the conditional posterior.
-        elif np.any(np.isnan(obs)) and not np.all(np.isnan(obs)):
-            _, _, obs_vector = self._calc_conditional_posterior(obs, state)
-            return obs_vector
 
     def _sum_up_sufficient_statistics(self, stats_list):
         """Sums sufficient statistics from a given sub-set of observation sequences.
@@ -640,7 +566,6 @@ class HMM(object):
                     stats_all[stat] += stat_i[stat]
         return stats_all, logL_all
 
-    # Methods that have to be implemented in the deriving classes
     def _map_B(self, obs_seq):
         """Deriving classes should implement this method, so that it maps the
         observations' mass/density Bj(Ot) to Bj(t). The purpose of this method is to create a common parameter that will conform both to the discrete case where PMFs are used, and the continuous case where PDFs are used.
@@ -654,107 +579,9 @@ class HMM(object):
 
         for j in range(self.n_states):
             for t in range(len(obs_seq)):
-                if np.all(np.isnan(obs_seq[t])):
-                    # 1st Case: Complete Missed Observation
-                    # If all the features at time 't' is nan, bjt = 1
-                    # When we have a missing observation, the value of p(y_t | s_t = i)
-                    # is equal to p(means[j]), which is 1 (because we are integrating
-                    # over p(y_t | s_t = i).
-                    obs = self.means[j]
-                elif np.any(np.isnan(obs_seq[t])):
-                    # 2nd Case: Partial Missing Data
-                    # Some features of the observations are missed, but others are present
-                    _, _, obs = self._calc_conditional_posterior(obs_seq[t], j)
-                else:
-                    obs = obs_seq[t]
-                B_map[j][t] = self._pdf(obs, self.means[j], self.covars[j])
+                B_map[j][t] = self._pdf(obs_seq[t], self.means[j], self.covars[j])
+
         return B_map
-
-    def _calc_conditional_posterior(self, obs, state):
-        """Helper function to compute the posterior conditional probability of themissing features given the not missing ones:
-        p(missing|not_missing) = Gaussian(missing | mean(missing|not_missing),
-        covariance(missing|not_missing). For extra information regarding the mathematical development of this case, you can consult the 4.3.1 section (Inference in jointly Gaussian distributions) of Kevin Murphy's book: Machine Learning, a probabilistic perspective.
-        On the code, we use the '1' to refer to the missing features of the
-        observation and the '2' to refer to the not missing features when
-        naming the variables.
-
-        :param obs: a single observation
-        :type obs: array_like
-        :param state: the index of the hidden state to consider
-        :type state: int
-        """
-
-        nan_index = np.asarray(
-            [True if (ot is np.nan or ot != ot) else False for ot in obs]
-        )
-
-        mu_1 = self.means[state][nan_index]
-        mu_2 = self.means[state][~nan_index]
-        sigma_11 = self._calc_sigma(state, nan_index, sigma_flat='11')
-        sigma_12 = self._calc_sigma(state, nan_index, sigma_flat='12')
-        sigma_21 = self._calc_sigma(state, nan_index, sigma_flat='21')
-        sigma_22 = self._calc_sigma(state, nan_index, sigma_flat='22')
-        sigma_22 += self.min_covar * np.eye(sigma_22.shape[0])
-
-        sigma_1_given_2 = sigma_11 - np.matmul(
-            np.matmul(sigma_12, np.linalg.inv(sigma_22)), sigma_21
-        )
-        mu_1_given_2 = mu_1 + np.matmul(
-            np.matmul(sigma_12, np.linalg.inv(
-                sigma_22)), (obs[~nan_index] - mu_2)
-        )
-
-        obs_vector = np.zeros_like(obs)
-        obs_vector[~nan_index] = obs[~nan_index]
-        obs_vector[nan_index] = mu_1_given_2
-
-        return mu_1_given_2, sigma_1_given_2, obs_vector
-
-    def _calc_sigma(self, state, nan_index, sigma_flat):
-        """Helper function for the _calc_conditional_posterior function.
-
-        :param state: the index of the hidden state to consider
-        :type state: int
-        :param nan_index: contains the indices of NaN elements in the observation
-        :type nan_index: array_like
-        :param sigma_flat: indicator of which calculation to use
-        :type sigma_flat: str
-        :return: the computed covariance values
-        :rtype: array_like
-        """
-        number_missing_features = np.sum(nan_index)
-        number_non_missing_features = np.sum(~nan_index)
-
-        if sigma_flat == '11':
-            cond_1 = True
-            cond_2 = True
-            shape_1 = number_missing_features
-            shape_2 = number_missing_features
-        elif sigma_flat == '12':
-            cond_1 = True
-            cond_2 = False
-            shape_1 = number_missing_features
-            shape_2 = number_non_missing_features
-        elif sigma_flat == '21':
-            cond_1 = False
-            cond_2 = True
-            shape_1 = number_non_missing_features
-            shape_2 = number_missing_features
-        elif sigma_flat == '22':
-            cond_1 = False
-            cond_2 = False
-            shape_1 = number_non_missing_features
-            shape_2 = number_non_missing_features
-
-        tmp = []
-        for i in range(self.n_emissions):
-            for j in range(self.n_emissions):
-                if nan_index[i] == cond_1 and nan_index[j] == cond_2:
-                    tmp.append(self.covars[state][i][j])
-
-        res = np.array(tmp).reshape((shape_1, shape_2))
-
-        return res
 
     def _pdf(self, x, mean, covar):
         """Multivariate Gaussian PDF function.
