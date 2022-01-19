@@ -1,8 +1,9 @@
 import numpy as np
 
-from hmm_stock_forecast.pomegranate import HiddenMarkovModel
-
 # number of hmm states to test (and choose) using criteria
+from pomegranate import NormalDistribution
+from pomegranate.hmm import HiddenMarkovModel
+
 TEST_STATES = [2, 3, 4, 5, 6]
 
 
@@ -22,7 +23,7 @@ class HMMStockForecastModel:
 
         size = len(self.data)
         predicted = np.empty([0, 4])
-        hmm = HiddenMarkovModel.init_params(n_components=states, X=self.data[:self.window, :])
+        hmm = HiddenMarkovModel.from_samples(NormalDistribution, n_components=states, X=self.data[:self.window, :])
 
         for i in reversed(range(self.window + 1)):
             print(i)
@@ -53,7 +54,7 @@ class HMMStockForecastModel:
         state_likelihood = []
 
         for states in TEST_STATES:
-            hmm = HiddenMarkovModel.init_params(n_components=states, X=self.data[:self.window, :])
+            hmm = HiddenMarkovModel.from_samples(NormalDistribution, n_components=states, X=self.data[:self.window, :])
             offset = 0
             likelihoods = []
             invalid_states = False

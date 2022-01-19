@@ -20,6 +20,7 @@ pandas-datareader = "^0.10.0"
 pandas = "^1.3.5"
 sklearn = "^0.0"
 networkx = "^2.6.3"
+pomegranate = "^0.14.7"
 
 [tool.poetry.dev-dependencies]
 Cython = "^0.29.26"
