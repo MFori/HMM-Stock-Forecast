@@ -1,17 +1,4 @@
-""""""
-"""
-Created on Nov 20, 2019
-@author: semese
-
-Parts of the code come from: https://github.com/hmmlearn/hmmlearn
-"""
-
-
 import numpy as np
-
-# ---------------------------------------------------------------------------- #
-#                            Utils for the HMM models                          #
-# ---------------------------------------------------------------------------- #
 
 
 def normalise(a, axis=None):
@@ -32,6 +19,7 @@ def normalise(a, axis=None):
         a_sum.shape = shape
 
     a /= a_sum
+
 
 def log_mask_zero(a):
     """
@@ -74,66 +62,6 @@ def concatenate_observation_sequences(observation_sequences, gidx=None):
                 if not np.any(obs is np.nan or obs != obs):
                     concatenated.append(obs)
     return np.asarray(concatenated, dtype=float)
-
-
-def init_covars(tied_cv, covariance_type, n_states):
-    """
-    Method for initialising the covariances based on the
-    covariance type. See GaussianHMM class definition for details.
-
-    :param tied_cv: the tied covariance matrix 
-    :type tied_cv: array_like
-    :param covariance_type: covariance_type: string describing the type of
-            covariance parameters to use
-    :type covariance_type: string
-    :param n_states: number of hidden states 
-    :type n_states: int
-    :return: the initialised covariance matrix
-    :rtype: array_like
-    """
-    if covariance_type == 'spherical':
-        cv = tied_cv.mean() * np.ones((n_states,))
-    elif covariance_type == 'tied':
-        cv = tied_cv
-    elif covariance_type == 'diagonal':
-        cv = np.tile(np.diag(tied_cv), (n_states, 1))
-    elif covariance_type == 'full':
-        cv = np.tile(tied_cv, (n_states, 1, 1))
-    return cv
-
-
-def fill_covars(covars, covariance_type, n_states, n_features):
-    """
-    Return the covariance matrices in full form: (n_states, n_features, n_features)
-
-    :param covars: the reduced form of the covariance matrix
-    :type covars: array_like
-    :param covariance_type: covariance_type: string describing the type of
-            covariance parameters to use
-    :type covariance_type: string
-    :param n_states: number of hidden states 
-    :type n_states: int
-    :param n_features: the number of features
-    :type n_features: int
-    :return: the covariance matrices in full form: (n_states, n_features, n_features)
-    :rtype: array_like
-    """
-    new_covars = np.array(covars, copy=True)
-    if covariance_type == 'full':
-        return new_covars
-    elif covariance_type == 'diagonal':
-        return np.array(list(map(np.diag, new_covars)))
-    elif covariance_type == 'tied':
-        return np.tile(new_covars, (n_states, 1, 1))
-    elif covariance_type == 'spherical':
-        eye = np.eye(n_features)[np.newaxis, :, :]
-        new_covars = new_covars[:, np.newaxis, np.newaxis]
-        temp = eye * new_covars
-        return temp
-
-# ---------------------------------------------------------------------------- #
-#                           Model order selection utils                        #
-# ---------------------------------------------------------------------------- #
 
 
 def aic_hmm(log_likelihood, dof):

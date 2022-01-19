@@ -22,7 +22,7 @@ from sklearn import cluster
 from scipy.stats import multivariate_normal
 
 from hmm_stock_forecast.hmm.utils import (
-    init_covars, fill_covars, concatenate_observation_sequences,
+    concatenate_observation_sequences,
     normalise,
     log_mask_zero,
 )
@@ -55,12 +55,6 @@ class HMM(object):
     # ----------------------------------------------------------------------- #
     #        Public methods. These are callable when using the class.         #
     # ----------------------------------------------------------------------- #
-    @property
-    def covars(self):
-        """Return covariances as a full matrix."""
-        return fill_covars(
-            self._covars, self.covariance_type, self.N, self.n_emissions
-        )
 
     # Solution to Problem 1 - compute P(O|model)
     def log_likelihood(self, obs):
@@ -121,7 +115,8 @@ class HMM(object):
         self.means = kmeans.cluster_centers_
 
         cv = np.cov(X_concat.T) + self.min_covar * np.eye(self.n_emissions)
-        self._covars = init_covars(cv, self.covariance_type, self.N)
+        cv = np.tile(np.diag(cv), (self.N, 1))
+        self.covars = cv
 
     def forward(self, obs_seq, B_map):
         """Calculates 'alpha' the forward variable given an observation sequence.
@@ -271,83 +266,42 @@ class HMM(object):
         """
         old_log_likelihood = np.nan
         for it in range(n_iter):
-            B_map = self._map_B(obs)
+            b_map = self._map_B(obs)
             # calculate the log likelihood of the previous model
             # we compute the P(O|model) for the set of old parameters
-            log_likelihood = self._log_likelihood(obs, B_map)
+            log_likelihood = self._log_likelihood(obs, b_map)
 
-            stats = self._compute_intermediate_values(obs, B_map)
+            alpha = self.forward(obs, b_map)
+            beta = self.backward(obs, b_map)
+            xi = self._calc_xi(obs, b_map, alpha, beta)
+            gamma = self._calc_gamma(alpha, beta)
+            means = self._calc_means(obs, gamma)
+            covars = self._calc_covars(obs, gamma, means)
 
-            # perform the M-step to update the model parameters
-            new_model = self._M_step(stats)
+            pi = gamma[0]
+            normalise(pi)
 
-            gamma = stats['gamma']
-            self._update_means_covars(gamma, obs)
+            A = np.zeros((self.N, self.N))
+            with np.errstate(under='ignore'):
+                A += np.exp(xi)
 
-            self.pi = gamma[0]
-            normalise(self.pi)
-            self.A = new_model['A']
+            A_ = np.maximum(A, 0)
+            A = np.where(self.A == 0, 0, A_)
+            normalise(A, axis=1)
+
+            self.pi = pi
+            self.A = A
+            self.means = means
+            self.covars = covars
 
             improvement = abs(log_likelihood - old_log_likelihood) / abs(old_log_likelihood)
             old_log_likelihood = log_likelihood
             if improvement <= eps:
                 break
 
-    def _compute_intermediate_values(self, obs, B_map):
-        """Calculates the various intermediate values for the Baum-Welch on a list of observation sequences.
-
-        :param obs: a list of ndarrays/lists containing
-                the observation sequences. Each sequence can be the same or of
-                different lengths.
-        :type obs: list
-        :return: a dictionary of sufficient statistics required for the M-step
-        :rtype: dict
+    def _calc_means(self, obs, gamma):
         """
-        stats = {
-            'A': np.zeros((self.N, self.N)),
-        }
-
-        # calculate the log likelihood of the previous model
-        # we compute the P(O|model) for the set of old parameters
-        log_likelihood = self._log_likelihood(obs, B_map)
-
-        alpha = self.forward(obs, B_map)
-        beta = self.backward(obs, B_map)
-
-        obs_stats = {}
-
-        obs_stats['xi'] = self._calc_xi(
-            obs,
-            B_map=B_map,
-            alpha=alpha,
-            beta=beta,
-        )
-        stats['gamma'] = self._calc_gamma(alpha, beta)
-
-        with np.errstate(under='ignore'):
-            stats['A'] += np.exp(obs_stats['xi'])
-
-        return stats
-
-    def _M_step(self, stats):
-        """Performs the 'M' step of the Baum-Welch algorithm.
-        Deriving classes should override (extend) this method to include
-        any additional computations their model requires.
-
-        :param stats: dictionary containing the accumulated statistics
-        :type stats: dict
-        :return: a dictionary containing the updated model parameters
-        :rtype: dict
         """
-        new_model = {}
-
-        A_ = np.maximum(stats['A'], 0)
-        new_model['A'] = np.where(self.A == 0, 0, A_)
-        normalise(new_model['A'], axis=1)
-
-        return new_model
-
-    def _update_means_covars(self, gamma, obs):
         gamma_sum = np.zeros_like(self.means)
         gamma_obs_sum = np.zeros_like(self.means)
 
@@ -356,9 +310,11 @@ class HMM(object):
                 gamma_sum += gamma[t][i]
                 gamma_obs_sum += gamma[i][i] * o
 
-        means = gamma_obs_sum / gamma_sum
-        self.means = means
+        return gamma_obs_sum / gamma_sum
 
+    def _calc_covars(self, obs, gamma, means):
+        """
+        """
         gamma_sum = np.zeros_like(self.means)
         gamma_obs_sum = np.zeros_like(self.means)
         for i in range(self.N):
@@ -366,8 +322,7 @@ class HMM(object):
                 gamma_sum += gamma[t][i]
                 gamma_obs_sum += gamma[t][i] * (o - means[i])
 
-        covars = gamma_obs_sum / gamma_sum
-        self._covars = np.abs(covars)  # todo why covars are negative??
+        return np.abs(gamma_obs_sum / gamma_sum)  # todo why covars are negative??
 
     def _map_B(self, obs_seq):
         """Deriving classes should implement this method, so that it maps the
@@ -378,13 +333,16 @@ class HMM(object):
         :return: the mass/density mapping of shape (n_states, n_samples)
         :rtype: array_like
         """
-        B_map = np.zeros((self.N, len(obs_seq)))
+        b_map = np.zeros((self.N, len(obs_seq)))
+
+        new_covars = np.array(self.covars, copy=True)
+        covars = np.array(list(map(np.diag, new_covars)))
 
         for j in range(self.N):
             for t in range(len(obs_seq)):
-                B_map[j][t] = self._pdf(obs_seq[t], self.means[j], self.covars[j])
+                b_map[j][t] = self._pdf(obs_seq[t], self.means[j], covars[j])
 
-        return B_map
+        return b_map
 
     def _pdf(self, x, mean, covar):
         """Multivariate Gaussian PDF function.
