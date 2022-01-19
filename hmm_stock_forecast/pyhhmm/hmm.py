@@ -82,16 +82,16 @@ class HMM(object):
     # Solution to Problem 3 - adjust the model parameters to maximise P(O,model)
     def train(
             self,
-            obs_sequences,
+            obs,
             n_iter=100,
             conv_thresh=0.1,
     ):
         """Updates the HMMs parameters given a new set of observed sequences.
         The observations can either be a single (1D) array of observed symbols, or a 2D array (matrix), where each row denotes a multivariate time sample (multiple features). The model parameters are reinitialised 'n_init' times. For each initialisation the updated model parameters and the log-likelihood is stored and the best model is selected at the end.
 
-        :param obs_sequences: a list of arrays containing the observation
+        :param obs: a list of arrays containing the observation
                 sequences of different lengths
-        :type obs_sequences: list
+        :type obs: list
         :param n_iter: max number of iterations to run for each initialisation; defaults to 100
         :type n_iter: int, optional
         :param conv_thresh: the threshold for the likelihood increase (convergence); defaults to 0.1
@@ -107,7 +107,7 @@ class HMM(object):
         print('pi: ' + str(self.pi))
 
         logL = self._train(
-            obs_sequences,
+            obs,
             n_iter=n_iter,
             conv_thresh=conv_thresh,
         )
@@ -287,15 +287,15 @@ class HMM(object):
     # Methods used by self.train()
     def _train(
             self,
-            obs_sequences,
+            obs,
             n_iter=100,
             conv_thresh=0.1,
     ):
         """Training is repeated 'n_iter' times, or until log-likelihood of the model increases by less than a threshold.
 
-        :param obs_sequences: a list of arrays containing the observation
+        :param obs: a list of arrays containing the observation
                 sequences of different lengths
-        :type obs_sequences: list
+        :type obs: list
         :param n_iter: max number of iterations to run for each initialisation; defaults to 100
         :type n_iter: int, optional
         :param conv_thresh: the threshold for the likelihood increase (convergence); defaults to 0.1
@@ -319,9 +319,7 @@ class HMM(object):
         old_log_likelihood = np.nan
         for it in range(n_iter):
 
-            stats, curr_log_likelihood = self._compute_intermediate_values(
-                obs_sequences
-            )
+            stats, curr_log_likelihood = self._compute_intermediate_values(obs)
 
             # perform the M-step to update the model parameters
             new_model = self._M_step(stats)
@@ -343,34 +341,33 @@ class HMM(object):
 
         return curr_log_likelihood
 
-    def _compute_intermediate_values(self, obs_sequences):
+    def _compute_intermediate_values(self, obs):
         """Calculates the various intermediate values for the Baum-Welch on a list of observation sequences.
 
-        :param obs_sequences: a list of ndarrays/lists containing
+        :param obs: a list of ndarrays/lists containing
                 the observation sequences. Each sequence can be the same or of
                 different lengths.
-        :type ob_sequences: list
+        :type obs: list
         :return: a dictionary of sufficient statistics required for the M-step
         :rtype: dict
         """
         stats = self._initialise_sufficient_statistics()
         curr_log_likelihood = 0
 
-        for obs_seq in obs_sequences:
-            B_map = self._map_B(obs_seq)
+        B_map = self._map_B(obs)
 
-            # calculate the log likelihood of the previous model
-            # we compute the P(O|model) for the set of old parameters
-            log_likelihood = self._log_likelihood(obs_seq, B_map)
-            curr_log_likelihood += log_likelihood
+        # calculate the log likelihood of the previous model
+        # we compute the P(O|model) for the set of old parameters
+        log_likelihood = self._log_likelihood(obs, B_map)
+        curr_log_likelihood += log_likelihood
 
-            # do the E-step of the Baum-Welch algorithm
-            obs_stats = self._E_step(obs_seq, B_map)
+        # do the E-step of the Baum-Welch algorithm
+        obs_stats = self._E_step(obs, B_map)
 
-            # accumulate stats
-            self._accumulate_sufficient_statistics(
-                stats, obs_stats, obs_seq
-            )
+        # accumulate stats
+        self._accumulate_sufficient_statistics(
+            stats, obs_stats, obs
+        )
 
         return stats, curr_log_likelihood
 

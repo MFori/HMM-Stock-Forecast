@@ -39,8 +39,7 @@ class HMMStockForecastModel:
             train = self.data[size - self.window - i:size - i, :]
             #hmm.fit(train)
             print('train')
-            hmm.init_params(train)
-            hmm.train([train])
+            hmm.train(train)
 
             #likelihood = hmm.log_probability(train)
             likelihood = hmm.log_likelihood(train)
@@ -86,7 +85,7 @@ class HMMStockForecastModel:
 
             while offset + self.window <= size:
                 data = self.data[offset:offset + self.window, :]
-                hmm.train([data])
+                hmm.train(data)
                 try:
                     likelihoods = np.append(likelihoods, hmm.log_likelihood(data))
                 except ValueError:
