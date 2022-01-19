@@ -1,15 +1,17 @@
-from hmmlearn.hmm import GaussianHMM
 import numpy as np
 
 # number of hmm states to test (and choose) using criteria
+from pomegranate import NormalDistribution
+from pomegranate.hmm import HiddenMarkovModel
+
 TEST_STATES = [2, 3, 4, 5, 6]
 
 
 class HMMStockForecastModel:
-    _hmm: GaussianHMM
+    _hmm: HiddenMarkovModel
     predicted: np.array
 
-    def __init__(self, data, window=200):
+    def __init__(self, data, window=50):
         self.data = data
         self.window = window
         # TODO validate if window is not too small for small dataset
@@ -21,7 +23,7 @@ class HMMStockForecastModel:
 
         size = len(self.data)
         predicted = np.empty([0, 4])
-        hmm = self._hmm = GaussianHMM(n_components=states, algorithm='viterbi', init_params="stmc")
+        hmm = HiddenMarkovModel.from_samples(NormalDistribution, n_components=states, X=self.data[:self.window, :])
 
         for i in reversed(range(self.window + 1)):
             print(i)
@@ -29,25 +31,21 @@ class HMMStockForecastModel:
             train = self.data[size - self.window - i:size - i, :]
             hmm.fit(train)
 
-            likelihood = hmm.score(train)
+            likelihood = hmm.log_probability(train)
             likelihoods = []
             j = i + 1
             while size - self.window - j > 0:
                 obs = self.data[size - self.window - j:size - j, :]
-                likelihoods = np.append(likelihoods, hmm.score(obs))
+                likelihoods = np.append(likelihoods, hmm.log_probability(obs))
                 j += 1
 
-            likelihood_diff_idx = np.argmin(np.absolute(likelihoods - likelihood)) + 1
+            likelihood_diff_idx = np.nanargmin(np.absolute(likelihoods - likelihood)) + 1
             likelihood_new = likelihoods[likelihood_diff_idx - 1]
             data_index = size - likelihood_diff_idx - i - 1
 
             predicted_change = (self.data[data_index, :] - self.data[data_index - 1, :]) * np.sign(
                 likelihood - likelihood_new)
             predicted = np.vstack((predicted, self.data[size - i - 1, :] + predicted_change))
-
-            if i == self.window:
-                # first iteration disable hmm params initialization for next iterations
-                hmm.init_params = ''
 
         return predicted
 
@@ -56,9 +54,7 @@ class HMMStockForecastModel:
         state_likelihood = []
 
         for states in TEST_STATES:
-            hmm = GaussianHMM(n_components=states, algorithm='viterbi', init_params='tmc')
-            hmm.fit(self.data)
-            hmm.init_params = ''
+            hmm = HiddenMarkovModel.from_samples(NormalDistribution, n_components=states, X=self.data[:self.window, :])
             offset = 0
             likelihoods = []
             invalid_states = False
@@ -67,12 +63,10 @@ class HMMStockForecastModel:
                 data = self.data[offset:offset + self.window, :]
                 hmm.fit(data)
                 try:
-                    likelihoods = np.append(likelihoods, hmm.score(data))
+                    likelihoods = np.append(likelihoods, hmm.log_probability(data))
                 except ValueError:
                     invalid_states = True
                     break
-                if offset == 0:
-                    hmm.init_params = ''
                 offset += self.window
 
             if invalid_states:
@@ -83,7 +77,7 @@ class HMMStockForecastModel:
                 print('states: ' + str(states) + ' likelihood=' + str(likelihood))
                 state_likelihood = np.append(state_likelihood, likelihood)
 
-        return TEST_STATES[np.argmin(state_likelihood)]
+        return TEST_STATES[np.nanargmin(state_likelihood)]
 
     def get_mean_error(self):
         pass
