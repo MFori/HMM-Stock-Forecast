@@ -24,8 +24,6 @@ from .utils import (
     init_covars, fill_covars, concatenate_observation_sequences
 )
 
-COVARIANCE_TYPES = frozenset(('spherical', 'tied', 'diagonal', 'full'))
-
 
 class GaussianHMM(BaseHMM):
     """Hidden Markov Model with Gaussian emissions.
@@ -34,10 +32,6 @@ class GaussianHMM(BaseHMM):
     :type n_states: int, optional
     :param n_emissions: number of Gaussian features
     :type n_emissions: int, optional
-    :param tr_params: controls which parameters are updated in the training process. Can contain any combination of 's' for starting probabilities (pi), 't' for transition matrix, 'm' for state means and 'c' for covariances. Defaults to all parameters.
-    :type params: str, optional
-    :param init_params: controls which parameters are initialised prior to training. Can contain any combination of 's' for starting probabilities (pi), 't' for transition matrix, 'm' for state means and 'c' for covariances. Defaults to all parameters.
-    :type init_params: str, optional
     :param covariance_type: string describing the type of covariance parameters to use, defaults to 'full'.
     :type covariance_type: str, optional
     :param pi_prior: array of shape (n_states, ) setting the parameters of the Dirichlet prior distribution for the starting probabilities. Defaults to 1.
@@ -70,8 +64,6 @@ class GaussianHMM(BaseHMM):
         self,
         n_states=1,
         n_emissions=1,
-        tr_params='stmc',
-        init_params='stmc',
         covariance_type='diagonal',
         pi_prior=1.0,
         A_prior=1.0,
@@ -82,16 +74,8 @@ class GaussianHMM(BaseHMM):
         min_covar=1e-3,
         learning_rate=0.,
     ):
-        if covariance_type not in COVARIANCE_TYPES:
-            raise ValueError(
-                'covariance_type must be one of {}'.format(COVARIANCE_TYPES)
-            )
-
         super().__init__(
             n_states,
-            tr_params=tr_params,
-            init_params=init_params,
-            init_type='kmeans',
             pi_prior=pi_prior,
             A_prior=A_prior,
             learning_rate=learning_rate,
@@ -128,13 +112,12 @@ class GaussianHMM(BaseHMM):
 
         X_concat = concatenate_observation_sequences(X)
 
-        if 'm' in self.init_params:
-            kmeans = cluster.KMeans(n_clusters=self.n_states)
-            kmeans.fit(X_concat)
-            self.means = kmeans.cluster_centers_
-        if 'c' in self.init_params:
-            cv = np.cov(X_concat.T) + self.min_covar * np.eye(self.n_emissions)
-            self._covars = init_covars(cv, self.covariance_type, self.n_states)
+        kmeans = cluster.KMeans(n_clusters=self.n_states)
+        kmeans.fit(X_concat)
+        self.means = kmeans.cluster_centers_
+
+        cv = np.cov(X_concat.T) + self.min_covar * np.eye(self.n_emissions)
+        self._covars = init_covars(cv, self.covariance_type, self.n_states)
 
     def _initialise_sufficient_statistics(self):
         """Initialises sufficient statistics required for M-step. Extends the base classes method by adding the emission probability matrix.See base.py for more information.
@@ -160,21 +143,19 @@ class GaussianHMM(BaseHMM):
             stats, obs_stats
         )
 
-        if 'm' in self.tr_params:
-            stats['post'] += obs_stats['gamma'].sum(axis=0)
-            stats['obs'] += self._reestimate_stat_obs(
+        stats['post'] += obs_stats['gamma'].sum(axis=0)
+        stats['obs'] += self._reestimate_stat_obs(
+            obs_stats['gamma'], obs_seq
+        )
+
+        if self.covariance_type in ('spherical', 'diagonal'):
+            stats['obs**2'] += self._reestimate_stat_obs2(
                 obs_stats['gamma'], obs_seq
             )
-
-        if 'c' in self.tr_params:
-            if self.covariance_type in ('spherical', 'diagonal'):
-                stats['obs**2'] += self._reestimate_stat_obs2(
-                    obs_stats['gamma'], obs_seq
-                )
-            elif self.covariance_type in ('tied', 'full'):
-                stats['obs*obs.T'] += self._reestimate_stat_obs2(
-                    obs_stats['gamma'], obs_seq
-                )
+        elif self.covariance_type in ('tied', 'full'):
+            stats['obs*obs.T'] += self._reestimate_stat_obs2(
+                obs_stats['gamma'], obs_seq
+            )
 
     def _reestimate_stat_obs(self, gamma, obs_seq):
         """Helper method for the statistics accumulation. Computes the sum of
@@ -247,49 +228,47 @@ class GaussianHMM(BaseHMM):
         new_model = super()._M_step(stats)
 
         denom = stats['post'][:, np.newaxis]
-        if 'm' in self.tr_params:
-            new_model['means'] = (
-                self.means_weight * self.means_prior + stats['obs']
-            ) / (self.means_weight + denom)
+        new_model['means'] = (
+            self.means_weight * self.means_prior + stats['obs']
+        ) / (self.means_weight + denom)
 
-        if 'c' in self.tr_params:
-            meandiff = new_model['means'] - self.means_prior
-            if self.covariance_type in ('spherical', 'diagonal'):
-                cv_num = (
-                    self.means_weight * meandiff ** 2
-                    + stats['obs**2']
-                    - 2 * new_model['means'] * stats['obs']
-                    + new_model['means'] ** 2 * denom
+        meandiff = new_model['means'] - self.means_prior
+        if self.covariance_type in ('spherical', 'diagonal'):
+            cv_num = (
+                self.means_weight * meandiff ** 2
+                + stats['obs**2']
+                - 2 * new_model['means'] * stats['obs']
+                + new_model['means'] ** 2 * denom
+            )
+            cv_den = np.amax(self.covars_weight - 1, 0) + denom
+            covars_new = (self.covars_prior + cv_num) / \
+                np.maximum(cv_den, 1e-5)
+            if self.covariance_type == 'spherical':
+                covars_new = covars_new.mean(1)
+        elif self.covariance_type in ('tied', 'full'):
+            cv_num = np.empty(
+                (self.n_states, self.n_emissions, self.n_emissions))
+            for c in range(self.n_states):
+                obs_mean = np.outer(stats['obs'][c], new_model['means'][c])
+                cv_num[c] = (
+                    self.means_weight * np.outer(meandiff[c], meandiff[c])
+                    + stats['obs*obs.T'][c]
+                    - obs_mean
+                    - obs_mean.T
+                    + np.outer(new_model['means'][c],
+                               new_model['means'][c])
+                    * stats['post'][c]
                 )
-                cv_den = np.amax(self.covars_weight - 1, 0) + denom
-                covars_new = (self.covars_prior + cv_num) / \
-                    np.maximum(cv_den, 1e-5)
-                if self.covariance_type == 'spherical':
-                    covars_new = covars_new.mean(1)
-            elif self.covariance_type in ('tied', 'full'):
-                cv_num = np.empty(
-                    (self.n_states, self.n_emissions, self.n_emissions))
-                for c in range(self.n_states):
-                    obs_mean = np.outer(stats['obs'][c], new_model['means'][c])
-                    cv_num[c] = (
-                        self.means_weight * np.outer(meandiff[c], meandiff[c])
-                        + stats['obs*obs.T'][c]
-                        - obs_mean
-                        - obs_mean.T
-                        + np.outer(new_model['means'][c],
-                                   new_model['means'][c])
-                        * stats['post'][c]
-                    )
-                cvweight = np.amax(self.covars_weight - self.n_emissions, 0)
-                if self.covariance_type == 'tied':
-                    covars_new = (self.covars_prior + cv_num.sum(axis=0)) / (
-                        cvweight + stats['post'].sum()
-                    )
-                elif self.covariance_type == 'full':
-                    covars_new = (self.covars_prior + cv_num) / (
-                        cvweight + stats['post'][:, None, None]
-                    )
-            new_model['covars'] = covars_new
+            cvweight = np.amax(self.covars_weight - self.n_emissions, 0)
+            if self.covariance_type == 'tied':
+                covars_new = (self.covars_prior + cv_num.sum(axis=0)) / (
+                    cvweight + stats['post'].sum()
+                )
+            elif self.covariance_type == 'full':
+                covars_new = (self.covars_prior + cv_num) / (
+                    cvweight + stats['post'][:, None, None]
+                )
+        new_model['covars'] = covars_new
 
         return new_model
 
@@ -298,15 +277,13 @@ class GaussianHMM(BaseHMM):
         which holds the in-state information.
         """
         super()._update_model(new_model)
-        if 'm' in self.tr_params:
-            self.means = (1 - self.learning_rate) * new_model[
-                'means'
-            ] + self.learning_rate * self.means
+        self.means = (1 - self.learning_rate) * new_model[
+            'means'
+        ] + self.learning_rate * self.means
 
-        if 'c' in self.tr_params:
-            self._covars = (1 - self.learning_rate) * new_model[
-                'covars'
-            ] + self.learning_rate * self._covars
+        self._covars = (1 - self.learning_rate) * new_model[
+            'covars'
+        ] + self.learning_rate * self._covars
 
     def _map_B(self, obs_seq):
         """Required implementation for _map_B. Refer to _BaseHMM for more details.

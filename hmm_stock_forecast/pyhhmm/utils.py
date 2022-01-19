@@ -8,9 +8,7 @@ Parts of the code come from: https://github.com/hmmlearn/hmmlearn
 
 
 import numpy as np
-from scipy import linalg, special
-
-COVARIANCE_TYPES = frozenset(('spherical', 'tied', 'diagonal', 'full'))
+from scipy import special
 
 # ---------------------------------------------------------------------------- #
 #                            Utils for the HMM models                          #

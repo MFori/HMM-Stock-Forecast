@@ -24,31 +24,13 @@ from .utils import (
     log_mask_zero,
 )
 
-# Supported decoder algorithms.
-DECODER_ALGORITHMS = frozenset(('viterbi', 'map'))
-# Supported initialisation methods.
-INIT_TYPES = frozenset(('uniform', 'random', 'kmeans'))
-
 
 class BaseHMM(object):
     """Base class for the Hidden Markov Models. It allows for training evaluation and sampling from the HMM. 
 
     :param n_states: number of hidden states in the model
     :type n_states: int, optional
-    :param tr_params: controls which parameters are updated in the
-            training process. Can contain any combination of 's' for starting
-            probabilities (pi), 't' for transition matrix, and other characters
-            for subclass-specific emission parameters. Defaults to all parameters.
-    :type tr_params: str, optional
-    :param init_params: controls which parameters are initialised
-            prior to training.  Can contain any combination of 's' for starting
-            probabilities (pi), 't' for transition matrix, and other characters
-            for subclass-specific emission parameters. Defaults to all parameters.
-    :type init_params: str, optional
-    :param init_type: controls whether pi and A are initialised from a Dirichlet or a 
-        uniform distribution. Defaults to 'uniform'.
-    :type init_type: str, optional
-    :param pi_prior: array of shape (n_states, ) setting the parameters of the 
+    :param pi_prior: array of shape (n_states, ) setting the parameters of the
         Dirichlet prior distribution for the starting probabilities. Defaults to 1.
     :type pi_prior: array_like, optional 
     :param A_prior: array of shape (n_states, ), giving the parameters of the Dirichlet 
@@ -69,22 +51,12 @@ class BaseHMM(object):
     def __init__(
             self,
             n_states,
-            tr_params='st',
-            init_params='st',
-            init_type='uniform',
             pi_prior=1.0,
             A_prior=1.0,
             learning_rate=0.,
     ):
         """Constructor method."""
-
-        if init_type not in INIT_TYPES:
-            raise ValueError('init_type must be one of {}'.format(INIT_TYPES))
-
         self.n_states = n_states
-        self.tr_params = tr_params
-        self.init_params = init_params
-        self.init_type = init_type
         self.pi_prior = pi_prior
         self.A_prior = A_prior
         self.learning_rate = learning_rate
@@ -160,23 +132,13 @@ class BaseHMM(object):
         :param X: list of observation sequences used to find the initial state means and covariances for the Gaussian and Heterogeneous models
         :type X: list, optional
         """
-        if self.init_type == 'uniform':
-            init = 1.0 / self.n_states
-            if 's' in self.init_params:
-                self.pi = np.full(self.n_states, init)
+        self.pi = np.random.dirichlet(
+            alpha=self.pi_prior * np.ones(self.n_states), size=1
+        )[0]
 
-            if 't' in self.init_params:
-                self.A = np.full((self.n_states, self.n_states), init)
-        else:
-            if 's' in self.init_params:
-                self.pi = np.random.dirichlet(
-                    alpha=self.pi_prior * np.ones(self.n_states), size=1
-                )[0]
-
-            if 't' in self.init_params:
-                self.A = np.random.dirichlet(
-                    alpha=self.A_prior * np.ones(self.n_states), size=self.n_states
-                )
+        self.A = np.random.dirichlet(
+            alpha=self.A_prior * np.ones(self.n_states), size=self.n_states
+        )
 
     def _calc_alpha(self, obs_seq, B_map):
         """Calculates 'alpha' the forward variable given an observation sequence.
@@ -341,10 +303,7 @@ class BaseHMM(object):
         :rtype: float
 
         """
-        if self.init_type == 'kmeans':
-            self._init_model_params(X=obs_sequences)
-        else:
-            self._init_model_params()
+        self._init_model_params(X=obs_sequences)
 
         log_likelihood_iter = []
         old_log_likelihood = np.nan
@@ -440,15 +399,13 @@ class BaseHMM(object):
         """
         new_model = {}
 
-        if 's' in self.tr_params:
-            pi_ = np.maximum(self.pi_prior - 1 + stats['pi'], 0)
-            new_model['pi'] = np.where(self.pi == 0, 0, pi_)
-            normalise(new_model['pi'])
+        pi_ = np.maximum(self.pi_prior - 1 + stats['pi'], 0)
+        new_model['pi'] = np.where(self.pi == 0, 0, pi_)
+        normalise(new_model['pi'])
 
-        if 't' in self.tr_params:
-            A_ = np.maximum(self.A_prior - 1 + stats['A'], 0)
-            new_model['A'] = np.where(self.A == 0, 0, A_)
-            normalise(new_model['A'], axis=1)
+        A_ = np.maximum(self.A_prior - 1 + stats['A'], 0)
+        new_model['A'] = np.where(self.A == 0, 0, A_)
+        normalise(new_model['A'], axis=1)
 
         return new_model
 
@@ -458,14 +415,12 @@ class BaseHMM(object):
         :param new_model: contains the new model parameters
         :type new_model: dict
         """
-        if 's' in self.tr_params:
-            self.pi = (1 - self.learning_rate) * new_model[
-                'pi'
-            ] + self.learning_rate * self.pi
+        self.pi = (1 - self.learning_rate) * new_model[
+            'pi'
+        ] + self.learning_rate * self.pi
 
-        if 't' in self.tr_params:
-            self.A = (1 - self.learning_rate) * \
-                     new_model['A'] + self.learning_rate * self.A
+        self.A = (1 - self.learning_rate) * \
+                 new_model['A'] + self.learning_rate * self.A
 
     def _initialise_sufficient_statistics(self):
         """Initialises sufficient statistics required for M-step.
@@ -492,12 +447,9 @@ class BaseHMM(object):
         :type stats: dict
         """
         stats['nobs'] += 1
-        if 's' in self.tr_params:
-            stats['pi'] += obs_stats['gamma'][0]
-
-        if 't' in self.tr_params:
-            with np.errstate(under='ignore'):
-                stats['A'] += np.exp(obs_stats['xi'])
+        stats['pi'] += obs_stats['gamma'][0]
+        with np.errstate(under='ignore'):
+            stats['A'] += np.exp(obs_stats['xi'])
 
     def _sum_up_sufficient_statistics(self, stats_list):
         """Sums sufficient statistics from a given sub-set of observation sequences.
