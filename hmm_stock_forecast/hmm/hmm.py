@@ -217,7 +217,7 @@ class HMM(object):
 
         return log_xi_sum
 
-    def _calc_gamma(alpha, beta):
+    def _calc_gamma(self, alpha, beta):
         """Calculates 'gamma' from 'alpha' and 'beta'.
 
         :param alpha: array of shape (n_samples, n_states) containing the forward variables
