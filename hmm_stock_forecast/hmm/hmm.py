@@ -4,12 +4,13 @@ from scipy.special import logsumexp
 from sklearn.cluster import KMeans
 from scipy.stats import multivariate_normal
 
+from hmm_stock_forecast.hmm.ihmm import IHMM
 from hmm_stock_forecast.hmm.utils import (normalise, log_mask_zero)
 
 MIN_COVAR = 1e-3
 
 
-class HMM(object):
+class HMM(IHMM):
     N: int  # number of hidden states
     n_emissions: int  # number of features in each state
     pi: np.array  # start probabilities
@@ -21,6 +22,11 @@ class HMM(object):
     def __init__(self, n_states=4, n_emissions=1):
         self.N = n_states
         self.n_emissions = n_emissions
+
+    # same naming as pomegranate
+    # just return self.log_likelihood
+    def log_probability(self, obs) -> float:
+        return self.log_likelihood(obs)
 
     # noinspection PyTypeChecker
     def log_likelihood(self, obs, b_map=None) -> float:
@@ -62,6 +68,11 @@ class HMM(object):
         cv = np.tile(np.diag(cv), (self.N, 1))
         self.covars = cv
 
+    # same naming as pomegranate
+    # just call self.train
+    def fit(self, obs, n_iter=100, eps=0.1) -> None:
+        self.train(obs, n_iter, eps)
+
     def train(self, obs, n_iter=100, eps=0.1) -> None:
         """Updates the HMMs parameters given a new set of observed sequences.
         The observations can either be a single (1D) array of observed symbols, or a 2D array (matrix), where each row denotes a multivariate time sample (multiple features). The model parameters are reinitialised 'n_init' times. For each initialisation the updated model parameters and the log-likelihood is stored and the best model is selected at the end.
@@ -77,9 +88,6 @@ class HMM(object):
         old_log_likelihood = np.nan
         for it in range(n_iter):
             self.b_map = self._map_B(obs)
-            # calculate the log likelihood of the previous model
-            # we compute the P(O|model) for the set of old parameters
-            log_likelihood = self.log_likelihood(obs, self.b_map)
 
             alpha = self.forward(obs, self.b_map)
             beta = self.backward(obs)
@@ -103,6 +111,9 @@ class HMM(object):
             self.A = A
             self.means = means
             self.covars = covars
+
+            # we compute the P(O|model) for the set of new parameters
+            log_likelihood = self.log_likelihood(obs, self.b_map)
 
             improvement = abs(log_likelihood - old_log_likelihood) / abs(old_log_likelihood)
             old_log_likelihood = log_likelihood
