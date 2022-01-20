@@ -1,0 +1,45 @@
+\documentclass[
+12pt,
+a4paper,
+czech,
+titlepage
+]{article}
+
+\usepackage[czech]{babel}
+\usepackage[utf8]{inputenc}
+\usepackage{graphicx}
+\usepackage{titlesec}
+
+\titleformat{\chapter}
+{\normalfont\LARGE\bfseries}{\thechapter}{1em}{}
+\titlespacing*{\chapter}{0pt}{0ex plus 1ex minus .2ex}{2.0ex plus .2ex}
+
+\begin{document}
+
+    \begin{titlepage}
+        \vspace*{-2cm}
+        {\centering\includegraphics[scale=1.0]{img/logo_FAV}\par}
+        \centering
+        \vspace*{3cm}
+        {\Large KIV/VSS \par}
+        \vspace{1.5cm}
+        {\Huge\bfseries Skrytý markovský model pro predikci cen akcií \par}
+        \vspace{2cm}
+
+        {\large Martin Forejt - A20N0079P \par}
+        {\large mforejt@students.zcu.cz \par}
+        \vspace{1cm}
+
+        \vfill
+
+        {\Large 22.\,1.\,2021}
+    \end{titlepage}
+
+    \tableofcontents
+    \clearpage
+
+
+    \input{assignment.tex}
+    \input{conclusion.tex}
+
+\end{document}

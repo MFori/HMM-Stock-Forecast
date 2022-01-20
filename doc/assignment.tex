@@ -1,0 +1,26 @@
+\section{Zadání}
+
+\par Velmi stručné - převod souboru ze zdrojového jazyka DBD do cílového jazyka DDL využitím principů formálních jazyků a překladačů.
+\par Zadáním práce bylo vytvořit jednoduchou aplikaci, která ze zadaného DBD (Database definition) souboru vytvoří schéma databáze ve formátu DDL (Data definition language) pro některou z běžných relačních databází (MySQL, PostgreSQL, MariaDB...).
+
+\par Semestrální práce vznikla zčásti pro předmět KIV/SAR a zčásti pro předmět KIV/FJP.
+
+\par Pro převod aplikaci byly vzneseny zadavatelem následující požadavky:
+\begin{itemize}
+    \item využití některého z jazyků, které jdou pustit v prostředí z/OS (C, C++, Java, Fortran)
+    \item snadné nasazení
+    \item konzolové uživatelské rozhraní
+    \item omezení zdrojového jazyka:
+    \begin{itemize}
+        \item omezení podporovaných \uv{mutací} DBD souboru na HDAM\footnote{Přesněji se jedná o typ databáze v prostředí IMS DB, který má specifické vlastnosti a je tím z uplně nejjednodušších}
+        \item omezení rozeznatelných segmentů (základních prvků) DBD souboru na:
+        \begin{itemize}
+            \item DBD - databáze v relační db
+            \item DATASET - vždy jen první dataset (nemá adekvátní náhradu v relační db)
+            \item SEGMENT - table v relační db
+            \item CHILD - column v relační db
+            \item LCHILD - jen umět definovat, parsovat, ale netvořit cílový jazyk
+        \end{itemize}
+    \end{itemize}
+\end{itemize}
+\clearpage
