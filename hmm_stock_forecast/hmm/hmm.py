@@ -18,14 +18,10 @@ For theoretical bases see:
 import numpy as np
 from scipy import special
 from scipy.special import logsumexp
-from sklearn import cluster
+from sklearn.cluster import KMeans
 from scipy.stats import multivariate_normal
 
-from hmm_stock_forecast.hmm.utils import (
-    concatenate_observation_sequences,
-    normalise,
-    log_mask_zero,
-)
+from hmm_stock_forecast.hmm.utils import (normalise, log_mask_zero)
 
 MIN_COVAR = 1e-3
 
@@ -61,7 +57,7 @@ class HMM(object):
 
     # Init model params from sample data - must be called before training
     def init_params(self, sample):
-        self._init_params([sample])
+        self._init_params(sample)
 
     # Solution to Problem 3 - adjust the model parameters to maximise P(O,model)
     def train(self, obs, n_iter=100, eps=0.1) -> None:
@@ -98,13 +94,16 @@ class HMM(object):
         self.pi = np.zeros(self.N)
         self.pi[0] = 1
 
-        X_concat = concatenate_observation_sequences(sample)
+        data_for_clustering = []
+        for item in sample:
+            data_for_clustering.append(item)
+        data_for_clustering = np.asarray(data_for_clustering, dtype=float)
 
-        kmeans = cluster.KMeans(n_clusters=self.N)
-        kmeans.fit(X_concat)
+        kmeans = KMeans(n_clusters=self.N)
+        kmeans.fit(data_for_clustering)
         self.means = kmeans.cluster_centers_
 
-        cv = np.cov(X_concat.T) + MIN_COVAR * np.eye(self.n_emissions)
+        cv = np.cov(data_for_clustering.T) + MIN_COVAR * np.eye(self.n_emissions)
         cv = np.tile(np.diag(cv), (self.N, 1))
         self.covars = cv
 

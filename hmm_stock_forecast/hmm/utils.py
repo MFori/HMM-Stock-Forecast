@@ -35,30 +35,3 @@ def log_mask_zero(a):
     a = np.asarray(a)
     with np.errstate(divide='ignore'):
         return np.log(a)
-
-
-def concatenate_observation_sequences(observation_sequences, gidx=None):
-    """
-    Function to concatenate the observation sequences and remove the
-    partially or completely missing observations to create a proper
-    input for the KMeans.
-
-    :param observation_sequences: each element is an array of observations
-    :type observation_sequences: list
-    :param gidx: if provided, only the specified columns will be concatenated, 
-        defaults to None
-    :type gidx: array_like, optional
-    :return: concatenated observations without missing values
-    :rtype: list
-    """
-    concatenated = []
-    for obs_seq in observation_sequences:
-        for obs in obs_seq:
-            if gidx is not None:
-                gidx = int(gidx)
-                if not np.any(obs[:gidx] is np.nan or obs[:gidx] != obs[:gidx]):
-                    concatenated.append(obs[:gidx])
-            else:
-                if not np.any(obs is np.nan or obs != obs):
-                    concatenated.append(obs)
-    return np.asarray(concatenated, dtype=float)
