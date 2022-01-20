@@ -14,14 +14,14 @@ def read_data(args: Args):
             "Reading historical data of " + args.ticker + " from yahoo between " + args.start + " and " + args.end)
         data = read_data_from_yahoo(args.ticker, args.start, args.end)
         if data is None:
-            logging.info('Could not read data from yahoo. Check if the ticker is valid.')
+            logging.error('Could not read data from yahoo. Check if the ticker is valid.')
         else:
             logging.info('Data of ' + args.ticker + ' read successfully.')
     elif args.file:
         logging.info("Reading data from file " + args.file)
         data = read_data_from_file(args.file)
         if data is None:
-            logging.info('Cant read data from file ' + args.file)
+            logging.error('Cant read data from file ' + args.file)
         else:
             logging.info('Data from file ' + args.file + ' raed successfully.')
 
