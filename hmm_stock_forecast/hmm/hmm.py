@@ -11,16 +11,15 @@ MIN_COVAR = 1e-3
 
 class HMM(IHMM):
     N: int  # number of hidden states
-    n_emissions: int  # number of features in each state
+    n_features: int  # Dimensionality of the Gaussian emissions
     pi: np.array  # start probabilities
     A: np.array  # transition probability matrix
     means: np.array  # gaussian means
     covars: np.array  # gaussian covariances
     b_map: np.array
 
-    def __init__(self, n_states=4, n_emissions=1):
+    def __init__(self, n_states=4):
         self.N = n_states
-        self.n_emissions = n_emissions
 
     # same naming as pomegranate
     # just return self.log_likelihood
@@ -50,6 +49,7 @@ class HMM(IHMM):
         :param sample: list of observation sequences used to find the initial state means and covariances for the Gaussian and Heterogeneous models
         :type sample: list, optional
         """
+        self._set_gaussian_n_features(sample)
         self.A = np.ones((self.N, self.N)) / self.N
         self.pi = np.zeros(self.N)
         self.pi[0] = 1
@@ -63,7 +63,7 @@ class HMM(IHMM):
         kmeans.fit(data_for_clustering)
         self.means = kmeans.cluster_centers_
 
-        cv = np.cov(data_for_clustering.T) + MIN_COVAR * np.eye(self.n_emissions)
+        cv = np.cov(data_for_clustering.T) + MIN_COVAR * np.eye(self.n_features)
         cv = np.tile(np.diag(cv), (self.N, 1))
         self.covars = cv
 
@@ -304,5 +304,9 @@ class HMM(IHMM):
         :rtype: float
         """
         if not np.all(np.linalg.eigvals(covar) > 0):
-            covar = covar + MIN_COVAR * np.eye(self.n_emissions)
+            covar = covar + MIN_COVAR * np.eye(self.n_features)
         return multivariate_normal.pdf(sample, mean=mean, cov=covar, allow_singular=True)
+
+    def _set_gaussian_n_features(self, sample) -> None:
+        _, n_features = sample.shape
+        self.n_features = n_features
