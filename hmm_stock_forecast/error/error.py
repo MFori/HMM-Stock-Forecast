@@ -1,4 +1,4 @@
-import numpy as np
+from sklearn.metrics import mean_absolute_percentage_error as mape
 from sklearn.metrics import r2_score
 
 
@@ -9,8 +9,7 @@ def mean_absolute_percentage_error(actual, forecast) -> float:
     :param forecast: forecast (prediction) values
     :return: MAPE
     """
-    actual, forecast = np.array(actual), np.array(forecast)
-    return np.mean(np.abs((actual - forecast) / actual)) * 100
+    return mape(actual, forecast) * 100
 
 
 def r_squared(actual, forecast) -> float:
