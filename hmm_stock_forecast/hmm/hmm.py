@@ -1,5 +1,4 @@
 import numpy as np
-from scipy import special
 from scipy.special import logsumexp
 from sklearn.cluster import KMeans
 from scipy.stats import multivariate_normal
@@ -241,7 +240,7 @@ class HMM(IHMM):
         log_gamma = alpha + beta
 
         with np.errstate(under='ignore'):
-            a_lse = special.logsumexp(log_gamma, 1, keepdims=True)
+            a_lse = logsumexp(log_gamma, 1, keepdims=True)
         log_gamma -= a_lse
 
         with np.errstate(under='ignore'):
