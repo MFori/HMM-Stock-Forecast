@@ -16,7 +16,7 @@ def show_plot(real, predicted, title, end):
     plt.ylabel("Closing Price (USD)")
     plt.title("Closing Price of " + title)
     plt.legend(loc="upper left")
-    plt.show()
+    plt.show(block=False)
 
 
 def plot_criteria(stats):

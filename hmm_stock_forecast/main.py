@@ -1,5 +1,6 @@
 import logging
 from hmm_stock_forecast.data.data import read_data
+from hmm_stock_forecast.error.error import mean_absolute_percentage_error, r_squared
 from hmm_stock_forecast.forecast import StockForecast
 from hmm_stock_forecast.plot.plot import show_plot, plot_criteria
 from hmm_stock_forecast.utils.args import parse_args
@@ -28,11 +29,20 @@ def main():
 
     logging.info("Running prediction")
     predicted = forecast.run(states, data)[:, 2]
+    actual = data[-args.window:, 2]
 
     logging.info("Plotting prediction")
-    show_plot(np.append((data[-50:, 2]), None), predicted, args.ticker if args.ticker else args.file, args.end)
+    show_plot(np.append(actual, None), predicted, args.ticker if args.ticker else args.file, args.end)
 
-    # TODO calc error
+    logging.info("Calculation MAPE and r2")
+    predicted = predicted[:-1]  # remove last predicted item - not in actual
+    mape = mean_absolute_percentage_error(actual, predicted)
+    r2 = r_squared(actual, predicted)
+
+    print('MAPE: ', mape)
+    print('r2: ', r2)
+
+    input("Press Enter to exit...")
 
 
 if __name__ == '__main__':
