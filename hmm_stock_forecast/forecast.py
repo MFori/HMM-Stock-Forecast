@@ -1,44 +1,42 @@
 import numpy as np
+from pomegranate import HiddenMarkovModel, NormalDistribution
+from tqdm import tqdm
 
+from hmm_stock_forecast.hmm.criteria import aic_criteria, bic_criteria, hqc_criteria, caic_criteria
 from hmm_stock_forecast.hmm.hmm import HMM
+
+from hmm_stock_forecast.hmm.ihmm import IHMM
 
 # number of hmm states to test (and choose) using criteria
 TEST_STATES = [2, 3, 4, 5, 6]
 
 
 class StockForecast:
-    _hmm: HMM
-    predicted: np.array
+    window: int
+    model: str
 
-    def __init__(self, data, window=50):
-        self.data = data
+    def __init__(self, window=50, model='HMM'):
         self.window = window
-        # TODO validate if window is not too small for small dataset
+        self._model_type = model
         pass
 
-    def run(self):
-        states = self._find_optimal_states()
-        print('optimal states: ' + str(states))
-
-        size = len(self.data)
+    def run(self, states, data):
+        size = len(data)
         predicted = np.empty([0, 4])
-        hmm = HMM(n_states=states, n_emissions=4)
-        hmm.init_params(self.data[:self.window, :])
+        hmm = self._create_and_init_model(states, data[:self.window, :])
 
-        for i in reversed(range(self.window + 1)):
-            print(i)
+        for i in tqdm(reversed(range(self.window + 1)), total=self.window + 1):
+            train = data[size - self.window - i:size - i, :]
+            hmm.fit(train)
 
-            train = self.data[size - self.window - i:size - i, :]
-            hmm.train(train)
-
-            likelihood = hmm.log_likelihood(train)
+            likelihood = hmm.log_probability(train)
             likelihoods = []
             j = i + 1
             step = 0
             # todo remove step for speedtup testing
             while size - self.window - j > 0 and step < 20:
-                obs = self.data[size - self.window - j:size - j, :]
-                likelihoods = np.append(likelihoods, hmm.log_likelihood(obs))
+                obs = data[size - self.window - j:size - j, :]
+                likelihoods = np.append(likelihoods, hmm.log_probability(obs))
                 step += 1
                 j += 1
 
@@ -46,43 +44,68 @@ class StockForecast:
             likelihood_new = likelihoods[likelihood_diff_idx - 1]
             data_index = size - likelihood_diff_idx - i - 1
 
-            predicted_change = (self.data[data_index, :] - self.data[data_index - 1, :]) * np.sign(
+            predicted_change = (data[data_index, :] - data[data_index - 1, :]) * np.sign(
                 likelihood - likelihood_new)
-            predicted = np.vstack((predicted, self.data[size - i - 1, :] + predicted_change))
+            predicted = np.vstack((predicted, data[size - i - 1, :] + predicted_change))
 
         return predicted
 
-    def _find_optimal_states(self):
-        size = len(self.data)
-        state_likelihood = []
+    def find_optimal_states(self, data) -> [int, np.array]:
+        size = len(data)
+        criteria = np.empty((len(TEST_STATES), 4, self.window))
+        score = np.zeros(len(TEST_STATES))
 
-        for states in TEST_STATES:
-            hmm = HMM(n_states=states, n_emissions=4)
-            hmm.init_params(self.data[:self.window, :])
-            offset = 0
-            likelihoods = []
+        for idx, states in tqdm(enumerate(TEST_STATES), total=len(TEST_STATES)):
             invalid_states = False
 
+            aic_list = []
+            bic_list = []
+            hqc_list = []
+            caic_list = []
+
+            offset = size - self.window * 2 + 1
+            hmm = self._create_and_init_model(states, data[offset:offset + self.window, :])
+
             while offset + self.window <= size:
-                data = self.data[offset:offset + self.window, :]
-                hmm.train(data)
+                hmm.fit(data[offset:offset + self.window, :])
                 try:
-                    likelihoods = np.append(likelihoods, hmm.log_likelihood(data))
+                    likelihood = hmm.log_probability(data)
+                    aic_list = np.append(aic_list, aic_criteria(likelihood, states))
+                    bic_list = np.append(bic_list, bic_criteria(likelihood, states, size))
+                    hqc_list = np.append(hqc_list, hqc_criteria(likelihood, states, size))
+                    caic_list = np.append(caic_list, caic_criteria(likelihood, states, size))
                 except ValueError:
                     invalid_states = True
                     break
-                offset += self.window
+                offset += 1
+
+            pad_width = (0, self.window - len(aic_list))
+            criteria[idx][0] = np.pad(aic_list, pad_width)
+            criteria[idx][1] = np.pad(bic_list, pad_width)
+            criteria[idx][2] = np.pad(hqc_list, pad_width)
+            criteria[idx][3] = np.pad(caic_list, pad_width)
 
             if invalid_states:
-                state_likelihood = np.append(state_likelihood, np.finfo(float).max)
-                print('states: ' + str(states) + ' likelihood=invalid')
+                score[idx] = np.average(np.finfo(float).max)
             else:
-                likelihood = np.average(likelihoods)
-                print('states: ' + str(states) + ' likelihood=' + str(likelihood))
-                state_likelihood = np.append(state_likelihood, likelihood)
+                score[idx] = np.average(criteria[idx])
 
-        # TODO use criteria
-        return TEST_STATES[np.nanargmin(state_likelihood)]
+        return TEST_STATES[np.nanargmin(score)], criteria
+
+    def _create_and_init_model(self, n_states, sample) -> IHMM:
+        """
+        Create hmm model based on model_type ("HMM" / "pomegranate")
+        and initialize it with sample data
+        :param n_states:
+        :param sample:
+        :return:
+        """
+        if self._model_type == 'pomegranate':
+            return HiddenMarkovModel.from_samples(NormalDistribution, n_components=n_states, X=sample)
+        else:
+            hmm = HMM(n_states=n_states, n_emissions=4)
+            hmm.init_params(sample)
+            return hmm
 
     def get_mean_error(self):
         pass
