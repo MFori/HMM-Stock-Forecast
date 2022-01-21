@@ -1,7 +1,7 @@
 import logging
 from hmm_stock_forecast.data.data import read_data
 from hmm_stock_forecast.error.error import mean_absolute_percentage_error, r_squared
-from hmm_stock_forecast.forecast import StockForecast
+from hmm_stock_forecast.forecast import StockForecast, CLOSE_INDEX
 from hmm_stock_forecast.plot.plot import show_plot, plot_criteria
 from hmm_stock_forecast.utils.args import parse_args
 from hmm_stock_forecast.utils.logging import init_logger
@@ -28,8 +28,8 @@ def main():
     plot_criteria(stats)
 
     logging.info("Running prediction")
-    predicted = forecast.run(states, data)[:, 2]
-    actual = data[-args.window:, 2]
+    predicted = forecast.run(states, data)[:, 0]
+    actual = data[-args.window:, CLOSE_INDEX]  # get only closing prices
 
     logging.info("Plotting prediction")
     show_plot(np.append(actual, None), predicted, args.ticker if args.ticker else args.file, args.end)

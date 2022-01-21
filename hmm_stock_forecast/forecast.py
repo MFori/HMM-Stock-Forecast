@@ -1,14 +1,13 @@
 import numpy as np
 from pomegranate import HiddenMarkovModel, NormalDistribution
 from tqdm import tqdm
-
 from hmm_stock_forecast.hmm.criteria import aic_criteria, bic_criteria, hqc_criteria, caic_criteria
 from hmm_stock_forecast.hmm.hmm import HMM
-
 from hmm_stock_forecast.hmm.ihmm import IHMM
 
 # number of hmm states to test (and choose) using criteria
 TEST_STATES = [2, 3, 4, 5, 6]
+CLOSE_INDEX = 3
 
 
 class StockForecast:
@@ -22,7 +21,7 @@ class StockForecast:
 
     def run(self, states, data):
         size = len(data)
-        predicted = np.empty([0, 4])
+        predicted = np.empty([0, 1])
         hmm = self._create_and_init_model(states, data[:self.window, :])
 
         for i in tqdm(reversed(range(self.window + 1)), total=self.window + 1):
@@ -40,13 +39,17 @@ class StockForecast:
                 step += 1
                 j += 1
 
-            likelihood_diff_idx = np.nanargmin(np.absolute(likelihoods - likelihood)) + 1
-            likelihood_new = likelihoods[likelihood_diff_idx - 1]
-            data_index = size - likelihood_diff_idx - i - 1
+            # find sequence with similar likelihood
+            likelihood_idx = np.nanargmin(np.absolute(likelihoods - likelihood)) + 1
+            likelihood_new = likelihoods[likelihood_idx - 1]
+            data_index = size - likelihood_idx - i - 1
 
-            predicted_change = (data[data_index, :] - data[data_index - 1, :]) * np.sign(
-                likelihood - likelihood_new)
-            predicted = np.vstack((predicted, data[size - i - 1, :] + predicted_change))
+            # predict closing price Ot = Ot + (O_new_t+1 - O_new_t) * sign(P(O|model) - P(O_new|model))
+            predicted_t1 = \
+                data[size - i - 1, CLOSE_INDEX] \
+                + (data[data_index, CLOSE_INDEX] - data[data_index - 1, CLOSE_INDEX]) \
+                * np.sign(likelihood - likelihood_new)
+            predicted = np.vstack((predicted, predicted_t1))
 
         return predicted
 
@@ -103,6 +106,6 @@ class StockForecast:
         if self._model_type == 'pomegranate':
             return HiddenMarkovModel.from_samples(NormalDistribution, n_components=n_states, X=sample)
         else:
-            hmm = HMM(n_states=n_states, n_emissions=4)
-            hmm.init_params(sample)
+            hmm = HMM(n_states=n_states)
+            hmm.init_params(sample=sample)
             return hmm
