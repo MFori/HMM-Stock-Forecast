@@ -5,8 +5,8 @@ import numpy as np
 CRITERIA = ['AIC', 'BIC', 'HQC', 'CAIC']
 
 
-def show_plot(real, predicted, title, start):
-    dates = pd.date_range(start, periods=len(real), freq="B")  # B freq for business days (skip weekends)
+def show_plot(real, predicted, title, end):
+    dates = pd.date_range(end=end, periods=len(real), freq="B")  # B freq for business days (skip weekends)
     df = pd.DataFrame({"Date": dates, "Real": real, "Predicted": predicted})
 
     plt.figure()
@@ -20,6 +20,8 @@ def show_plot(real, predicted, title, start):
 
 
 def plot_criteria(stats):
+    # sh = np.shape(stats)
+    # criteria = np.empty(np.shape((sh[1], sh[0], sh[2])))
     criteria = np.empty((4, 5, 50))
 
     for idx, state in enumerate(stats):
