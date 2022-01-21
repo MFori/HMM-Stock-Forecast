@@ -106,9 +106,3 @@ class StockForecast:
             hmm = HMM(n_states=n_states, n_emissions=4)
             hmm.init_params(sample)
             return hmm
-
-    def get_mean_error(self):
-        pass
-
-    def get_r2(self):
-        pass
