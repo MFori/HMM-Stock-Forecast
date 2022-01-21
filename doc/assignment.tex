@@ -1,26 +1,17 @@
 \section{Zadání}
 
-\par Velmi stručné - převod souboru ze zdrojového jazyka DBD do cílového jazyka DDL využitím principů formálních jazyků a překladačů.
-\par Zadáním práce bylo vytvořit jednoduchou aplikaci, která ze zadaného DBD (Database definition) souboru vytvoří schéma databáze ve formátu DDL (Data definition language) pro některou z běžných relačních databází (MySQL, PostgreSQL, MariaDB...).
+Cílem je podívat se na stávající literaturu a vyprat si pro vás zajímavý simulační problém, který zkusíte reimplementovat. V minulých letech se objevila řada věcí - celulární automat pro modelování šíření požáru, vzniku mraků nebo pohybu kapaliny v terénu, predikce cen akcií postavené na markovských modelech, simulace různého chování hmyzu a podobně. Není nutné přijít s vlastním, originálním řešením, může jít (a očekává se že půjde) o replikační studii, moc se jich nedělá.
 
-\par Semestrální práce vznikla zčásti pro předmět KIV/SAR a zčásti pro předmět KIV/FJP.
+Součástí zadání pak bude přehled state-of-the-art - co v dané oblasti už existuje, jaké nástroje je možné využít a podobně.
 
-\par Pro převod aplikaci byly vzneseny zadavatelem následující požadavky:
-\begin{itemize}
-    \item využití některého z jazyků, které jdou pustit v prostředí z/OS (C, C++, Java, Fortran)
-    \item snadné nasazení
-    \item konzolové uživatelské rozhraní
-    \item omezení zdrojového jazyka:
-    \begin{itemize}
-        \item omezení podporovaných \uv{mutací} DBD souboru na HDAM\footnote{Přesněji se jedná o typ databáze v prostředí IMS DB, který má specifické vlastnosti a je tím z uplně nejjednodušších}
-        \item omezení rozeznatelných segmentů (základních prvků) DBD souboru na:
-        \begin{itemize}
-            \item DBD - databáze v relační db
-            \item DATASET - vždy jen první dataset (nemá adekvátní náhradu v relační db)
-            \item SEGMENT - table v relační db
-            \item CHILD - column v relační db
-            \item LCHILD - jen umět definovat, parsovat, ale netvořit cílový jazyk
-        \end{itemize}
-    \end{itemize}
-\end{itemize}
+\subsection{Skrytý markovský model pro predikci cen akcií}
+
+Cílem semestrální práce by měla být analýza odborné literatury na téma predikce cen akcií za pomoci skrytého markovského modelu (dále HMM) a jeho následná implementace.
+
+Práce bude vycházet ze článku Hidden Markov Model for Stock Trading (Nguyen N., 2018) \cite{Nguyen}, který představuje aplikaci HMM pro obchodování s akciemi (jako příklad je použit index S\&P 500) na základě jejich predikce. Autor začíná použitím 4 kritérií pro odhad predikční chyby, aby určil optimální počet stavů pro HMM, vybraný čtyřstavový HMM implementovaný dle \cite{Hassan} je použit k predikci měsíčních uzavíracích cen indexu S\&P 500.
+
+Výsledkem práce by měla implementace modelu v podobě desktopové aplikace, která dle historických dat (ať už poskytnuta uživatelem, či získána automaticky např. z finance.yahoo.com) natrénuje model a následně zobrazí v grafu jak trénovací data, tak predikovaná data.
+
+V první části by měl mít implementovaný HMM fixní počet stavů, následně by mohl být rozšířen tak, aby dle kritérií pro odhad predikční chyby vybral vhodný počet stavů, který se může lišit dle konkrétního akciového titulu.
+
 \clearpage
