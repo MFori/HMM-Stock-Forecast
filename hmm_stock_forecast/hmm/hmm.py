@@ -268,7 +268,7 @@ class HMM(IHMM):
         for i in range(self.N):
             for t, o in enumerate(obs):
                 gamma_sum += gamma[t][i]
-                gamma_obs_sum += gamma[t][i] * (o - means[i])
+                gamma_obs_sum += gamma[t][i] * (o - means[i]) * (o - means[i])
 
         return np.abs(gamma_obs_sum / gamma_sum)  # todo why covars are negative??
 
