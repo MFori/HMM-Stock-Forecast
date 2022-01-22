@@ -31,9 +31,8 @@ def plot_criteria(stats) -> None:
     Plot criteria stats
     :param stats: stats from forecast.find_optimal_states
     """
-    # sh = np.shape(stats)
-    # criteria = np.empty(np.shape((sh[1], sh[0], sh[2])))
-    criteria = np.empty((4, 5, 50))  # todo use stats shape
+    sh = np.shape(stats)
+    criteria = np.empty((sh[1], sh[0], sh[2]))
 
     for idx, state in enumerate(stats):
         criteria[0][idx] = state[0]
