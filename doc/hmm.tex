@@ -1,5 +1,38 @@
 \section{Skrytý markovský model}
 
-TODO info o HMM
+Skrytý markovský model (HMM) je konečný automat s fixním počtem stavů, představen v 70. letech jako nástroj pro rozpoznávání řeči. Tento model založen na statistických metodách najde mnoho aplikací jako je rozpoznávání řeči, analýza sekvence DNA, rozpoznání ručně psaného textu a další.
+
+\subsection{Definice}
+HMM je charakterizován:
+\begin{itemize}
+    \item \(N\) - počet stavů modelu
+    \item \(M\) - počet symbolů na stav
+    \item \(T\) - délka pozorované sekvence
+    \item \(O\) - pozorovaná sekvence \(O_1, O_2, ... O_T\)
+    \item \(A = \{a_ij\}\) - pravděpodobnost přechodu ze stavu \(i\) do stavu \(j\)
+    \item \(B = \{b_j(O_t)\}\) - pravděpodobnost pozorování \(O_t\) ve stavu \(j\)
+    \item \(\pi = \{\pi_i\}\) - pravděpodobnost bytí ve stavu \(i\) v čase t=1
+    \item \(\lambda = \{A, B, \pi\}\) - HMM model
+\end{itemize}
+
+Pokud jsou pravděpodobnosti spojitě rozděleny, máme spojitý HMM. V této práci předpokládáme, že pravděpodobnost pozorování je Normální (Gaussovo) rozdělení, potom \(b_i(O_t) = N(O_t = \mu_i, \sigma_i)\), kde \(\mu_i\) a \(\sigma_i\) jsou střední hodnota a rozptyl rozdělí pro stav \(S_i\), potom jsou parametry HMM definovány jako:
+
+\[ \lambda = \{A, \mu, \sigma, \pi\} \]
+
+\subsection{Problémy a jejich řešení}
+Najdeme tři problémy při řešení problémů pomocí HMM:
+\begin{enumerate}
+    \item Pro pozorování \(O = \{O_t,t=1,2,...T\}\) a model \(\lambda = \{A,\mu,\sigma,\pi\}\) najít pravděpodobnost pozorování \(P(O|\lambda)\)
+    \item Pro pozorování \(O = \{O_t,t=1,2,...T\}\) a model \(\lambda = \{A,\mu,\sigma,\pi\}\)
+    najít sekvenci stavů, která nejlépe popisuje pozorování
+    \item Pro pozorování \(O = \{O_t,t=1,2,...T\}\) zkalibrovat parametry modelu \(\lambda = \{A,\mu,\sigma,\pi\}\)
+\end{enumerate}
+\begin{enumerate}
+    \item Pravděpodobnost pozorování najdeme pomocí algoritmu Forward nebo Backward
+    \item Sekvenci stavů najdeme pomocí algoritmu Viterbi
+    \item Model zkalibrujeme pomocí algoritmu Baum-Welch
+\end{enumerate}
+
+V naší práci využijeme algorimus Forward pro řešení prvního problému a algoritmus Baum-Welch pro řešení třetího problému (tento alogritmus využívá Forward a Backward). Druhý problém řešit nepotřebujeme.
 
 \clearpage
