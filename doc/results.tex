@@ -11,14 +11,16 @@ kde \(A_t\) je aktuální hodnota a \(F_t\) je předpoveď v čase t.
 
 \subsection{Testovací scénář}
 
-Pro otestování modelu byly použity akcie Applu (ticker AAPL) a historické denní ceny od 1.1.2019 do 1.1.2022 na časové okno 100 dní, tedy na 2.1.2022 a 50 (obchodních) dní zpět.
+Pro otestování modelu byl použit index S\&P 500 jako v případě \cite{Nguyen} (ticker SPY), ale byly použity historické denní
+ceny od 1.1.2019 do 1.1.2022 na časové okno 100 dní, tedy na 2.1.2022 a 100 (obchodních) dní zpět.
 \begin{lstlisting}
 python -m hmm_stock_forecast.main -s 2019-01-01 -e
 2022-01-01 -t SPY -w 100
 \end{lstlisting}
 
 \subsection{Optimální počet stavů}
-Program našel optimální počet stavů dle zmíněných kritérií na 2 stavy a vykreslil grafy pro jednotlivá kritéria viz obrázek \ref{fig:aic} pro AIC.
+Program našel optimální počet stavů dle zmíněných kritérií na 2 stavy a vykreslil grafy pro jednotlivá kritéria
+viz obrázek \ref{fig:aic} pro AIC.
 
 \begin{figure}[h]
     \includegraphics[width=1\textwidth]{img/aic}
@@ -41,7 +43,8 @@ Pro náš testovací scénář vyšly chyb takto:
 \[r2 = 0.822\]
 
 \subsection{Porovnání s pomegranate}
-Stejný test byl proveden také s modelem z knihovny \textbf{pomegranate}, který vybral také jako optimální dva stavy a výsledek predikce je vidět na obrázku \ref{fig:pomegranate}.
+Stejný test byl proveden také s modelem z knihovny \textbf{pomegranate}, který vybral také jako optimální dva stavy a
+výsledek predikce je vidět na obrázku \ref{fig:pomegranate}.
 \begin{lstlisting}
 python -m hmm_stock_forecast.main -s 2019-01-01 -e
 2022-01-01 -t SPY -w 100 -m pomegranate
@@ -56,6 +59,7 @@ python -m hmm_stock_forecast.main -s 2019-01-01 -e
 \[MAPE = 0.860\]
 \[r2 = 0.822\]
 
-Je také nutno podotknout, že model z knihovny \textbf{pomegranate} běží mnohem rychleji z důvodu, že části jsou psané v cythonu a využívá paralelizace.
+Je také nutno podotknout, že model z knihovny \textbf{pomegranate} běží mnohem rychleji z důvodu, že části jsou psané v cythonu a využívá
+paralelizace.
 
 \clearpage
