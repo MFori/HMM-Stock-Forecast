@@ -1,5 +1,21 @@
 \section{Existující nástroje}
 
-TODO info o hmmlear, pomegranate...
+Pro použití HMM v pythonu (ve kterém bude aplikace implementována) existuje několik nástrojů, zde následuje seznam vybraných:
+
+\begin{itemize}
+    \item hmmlearn\footnote{https://github.com/hmmlearn/hmmlearn}
+    \item pomegranate\footnote{https://github.com/jmschrei/pomegranate}
+    \item PyHHMM\footnote{https://github.com/fmorenopino/HeterogeneousHMM}
+\end{itemize}
+
+\subsection{hmmlearn}
+Knihovna pro práci s HMM v pythonu, prvotní verze programu byly testovány s touto knihovnou, ale celkem často padala.
+
+\subsection{pomegranate}
+Knihovna pro práci s HMM pythonu, narozdíl od hmmlearn fungovala spolehlivě a byla použita v prvotních fázích vývoje. Její integrace v programu zůstala a lze ji použit na místo našeho implementovaného modelu (viz uživatelská příručka). Je napsána v cythonu a obsahuje paralelizace, proto je mnohom výkonnější než naše implementace.
+
+\subsection{PyHHMM}
+Další knihovna pro práci s HMM v pythonu, s jednoduchou a transparentní implementací, některé její části byly použity i v naší implementaci.
+
 
 \clearpage

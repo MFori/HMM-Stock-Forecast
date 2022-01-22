@@ -1,5 +1,44 @@
 \section{Predikce cen akcií}
 
-TODO info jak pomoci HMM predikovat ceny
+V této části je popis, jak využít HMM k predikci cen akcií dle práce Nguyena \cite{Nguyen}, která vychází z metody z práce Hassana \cite{Hassan}.
+
+\subsection{Výběr modelu}
+Nguyen navrhuje pro výběr počtu stavů modelu použít čtyři různá kritéria pro odhad predikční chyby:
+\begin{itemize}
+    \item AIC - Akaike information criterion
+    \item BIC - Bayesian information criterion
+    \item HQC - Hannan-Quinn information criterion
+    \item CAIC - Bozdogan Consisten Akaike information criterion
+\end{itemize}
+
+\[ AIC = -2ln(L) + 2k \]
+\[ BIC = -2ln(L) + kln(M) \]
+\[ HQC = -2ln(L) + kln(ln(M)) \]
+\[ CAIC = -2ln(L) + k(ln(M) + 1) \]
+
+kde \(L\) je pravděpodobnost modelu (likelihood), \(M\) je počet prvků v pozorované sekvenci a \(k\) je počet parametrů modelu, kde v případě Normálního rozdělení \(k = N^2 + 2N - 1\), kde \(N\) je počet stavů modelu.
+
+Nguyen ve své práci testoval model pro predikci měsíčních cen indexu S\&P 500 pro všechna výše zmíněná kritéria (kde nižšího hodnota znamená lepší model) a dle jejich výsledku se rozhodl použít model se čtyřmi stavy. Jak autor ale sám zmiňuje, pro každý akciový titul, mohou vyjít kritéria různě. Proto do naší aplikace přidáme automatické nalezení nejlepšího modelu, kdy budeme testovat modely pro 2,3,4,5 a 6 stavů. Pro každý model spočteme všechna kritéria a uděláme z nich průměr, model s nejnižším průměrem vybereme jako nejlepší a použijeme ho pro následnou predikci cen akcií.
+
+\subsection{Inicializace parametrů}
+Prvotní parametry modelu \(A\) a \(\pi\) inicializujeme dle \cite{Nguyen} takto:
+\[ A = (a_ij), a_ij = 1/N \]
+\[ \pi = (1,0,...0) \]
+
+Parametry \(\mu\) a \(\sigma\) inicializujeme dle ukázové pozorované sekvence pomocí algoritmu KMeans, jako v případě knihovny PyHHMM.
+
+\subsection{Predikce}
+Pozorovaná sekvence je složena ze čtyř sekvení: otevírací, nejnižší, nejvyšší a zavírací cena:
+\[ O = \{O_t^{(1)},O_t^{(2)},O_t^{(3)},O_t^{(4)}\} \]
+Pro predikci zavírací ceny v čase T+1, použijeme jako první trénovací sekvenci
+\[ O = \{O_t^{(1)},O_t^{(2)},O_t^{(3)},O_t^{(4)}, t=T-D,T-D+1,...T\} \]
+kde \(D\) je tzv. tréninkové okno (konstanta).
+Spočteme pravděpodobnost tohoto pozorování \(P(O|\lambda)\) a posuneme testovací sekvenci o jeden den zpět a dostaneme:
+\[ O^{new} = \{O_t^{(1)},O_t^{(2)},O_t^{(3)},O_t^{(4)}, t=T-D-1,T-D,...T-1\} \]
+a spočteme pravděpodobnost pozorování \(P(O^{new}|\lambda)\). Takto budeme posouvat až na počátek pozorované sekvence a následně vybereme takovou sekvenci \(O^*\), kde \(P(O^*|\lambda)\simeq P(O|\lambda)\).
+Zavírací cenu v čase T+1 určíme takto:
+\[ O_{T+1}^{(4)} = O_T^{(4)} + (O_{T^*+1}^{(4)} - O_{T^*}^{(4)}) \times sign(P(O|\lambda)-P(O^*|\lambda)) \]
+
+Vždy předpovídáme cenu pouze jeden den dopředu a k terénování používáme pouze data od tohoto dne zpět. Pro předpovězení dalšího dne poustupujeme stejně jen k trénování použijeme jeden den navíc (ten co už jsme předtím předpovídali). V aplikaci je implementovaná předpověď pro D dnů (D je parametr programu viz uživatelská příručka).
 
 \clearpage
