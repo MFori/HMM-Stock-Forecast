@@ -3,7 +3,7 @@ class IHMM:
     HMM interface, to enable switching between our HMM implementation and pomegranate
     """
 
-    def fit(self, obs):
+    def fit(self, obs) -> None:
         """
         train model
         :param obs: observation sequence

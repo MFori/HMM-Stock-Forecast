@@ -4,16 +4,23 @@ from recordclass import RecordClass
 
 
 class Args(RecordClass):
-    ticker: str
-    file: str
-    start: str
-    end: str
-    window: int
-    model: str
+    """
+    Args holder helper class
+    """
+    ticker: str  # stock ticker (must be available at yahoo finance)
+    file: str  # file name
+    start: str  # start date (yyyy-mm-dd)
+    end: str  # end date (yyyy-mm-dd)
+    window: int  # window size
+    model: str  # model type ('HMM' or 'pomegranate')
     pass
 
 
 def parse_args() -> Args:
+    """
+    parse args
+    :return: args
+    """
     parser = argparse.ArgumentParser()
 
     parser.add_argument("-t", "--ticker", type=str, help="Stock ticker, data will be downloaded from yahoofinance")

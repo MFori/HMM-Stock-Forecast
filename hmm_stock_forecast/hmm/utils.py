@@ -1,7 +1,7 @@
 import numpy as np
 
 
-def normalise(a, axis=None):
+def normalise(a, axis=None) -> np.array:
     """
     Normalise the input array so that it sums to 1.  Modifies the input **inplace**.
 
@@ -21,7 +21,7 @@ def normalise(a, axis=None):
     a /= a_sum
 
 
-def log_mask_zero(a):
+def log_mask_zero(a) -> np.array:
     """
     Compute the log of input probabilities masking divide by zero in log.
     During the M-step of EM-algorithm, very small intermediate start

@@ -11,15 +11,32 @@ CLOSE_INDEX = 3
 
 
 class StockForecast:
+    """
+    Stock forecasting using HMM,
+    based on "Hidden Markov Model for Stock Trading" (Nguyet Nguyen, 2018)
+    """
     window: int
     model: str
 
     def __init__(self, window=50, model='HMM'):
+        """
+        Constructor method
+        :param window: training window used to set size of observation data for training and testing
+            model, data of this size will be predicted
+        :param model: value of 'HMM' for our HMM implementation based on Nguyen
+            or 'pomegranate' for using pomegranate HMM library
+        """
         self.window = window
         self._model_type = model
         pass
 
-    def run(self, states, data):
+    def predict(self, states, data) -> np.array:
+        """
+        predict closing prices for data range of self.window
+        :param states: number of HMM states
+        :param data: stock data - 2d array of ['Open', 'Low', 'High', 'Close']
+        :return: 1D array of predicted close values
+        """
         size = len(data)
         predicted = np.empty([0, 1])
         hmm = self._create_and_init_model(states, data[:self.window, :])
@@ -54,6 +71,11 @@ class StockForecast:
         return predicted
 
     def find_optimal_states(self, data) -> [int, np.array]:
+        """
+        find optimal HMM states based on sample data
+        :param data: sample stock data - 2d array of ['Open', 'Low', 'High', 'Close']
+        :return: [optimal states, criteria statistics]
+        """
         size = len(data)
         criteria = np.empty((len(TEST_STATES), 4, self.window))
         score = np.zeros(len(TEST_STATES))
@@ -99,9 +121,9 @@ class StockForecast:
         """
         Create hmm model based on model_type ("HMM" / "pomegranate")
         and initialize it with sample data
-        :param n_states:
-        :param sample:
-        :return:
+        :param n_states: number of HMM states
+        :param sample: stock data - 2d array of ['Open', 'Low', 'High', 'Close']
+        :return: HMM model (our or pomegranate)
         """
         if self._model_type == 'pomegranate':
             return HiddenMarkovModel.from_samples(NormalDistribution, n_components=n_states, X=sample)

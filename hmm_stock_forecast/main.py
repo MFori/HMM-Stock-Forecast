@@ -28,7 +28,7 @@ def main():
     plot_criteria(stats)
 
     logging.info("Running prediction")
-    predicted = forecast.run(states, data)[:, 0]
+    predicted = forecast.predict(states, data)[:, 0]
     actual = data[-args.window:, CLOSE_INDEX]  # get only closing prices
 
     logging.info("Plotting prediction")

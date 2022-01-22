@@ -6,7 +6,12 @@ import pandas_datareader as pdr
 from hmm_stock_forecast.utils.args import Args
 
 
-def read_data(args: Args):
+def read_data(args: Args) -> np.array:
+    """
+    read data based on args
+    :param args: args
+    :return: 2d array of [Open, Low, High, Close]
+    """
     data = None
 
     if args.ticker and args.start and args.end:
@@ -28,7 +33,13 @@ def read_data(args: Args):
     return data
 
 
-def read_data_from_file(file_name):
+def read_data_from_file(file_name) -> np.array:
+    """
+    read data from file,
+    file must be csv with 4 rows of [Open, Low, High, Close]
+    :param file_name: file name
+    :return: 2d array of [Open, Low, High, Close]
+    """
     try:
         data = np.genfromtxt(file_name, delimiter=',')
         if data.shape[1] != 4:
@@ -38,7 +49,14 @@ def read_data_from_file(file_name):
         return None
 
 
-def read_data_from_yahoo(ticker, start, end):
+def read_data_from_yahoo(ticker, start, end) -> np.array:
+    """
+    read data from yahoo finance
+    :param ticker: stock ticker (e.g. 'AAPL')
+    :param start: start date yyyy-mm-dd
+    :param end: end date yyyy-mm-dd
+    :return: 2d array of [Open, Low, High, Close]
+    """
     try:
         data = pdr.get_data_yahoo(ticker, start, end)
 

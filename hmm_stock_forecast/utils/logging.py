@@ -2,7 +2,10 @@ import logging
 import os
 
 
-def init_logger():
+def init_logger() -> None:
+    """
+    Init logger
+    """
     if not os.path.exists('logs'):
         os.mkdir('logs')
 
@@ -20,4 +23,5 @@ def init_logger():
     console.setLevel(logging.INFO)
     logging.getLogger('').addHandler(console)
 
+    # disable matplotlib info logs
     logging.getLogger('matplotlib').setLevel(logging.WARNING)

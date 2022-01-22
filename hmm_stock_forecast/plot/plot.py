@@ -5,7 +5,14 @@ import numpy as np
 CRITERIA = ['AIC', 'BIC', 'HQC', 'CAIC']
 
 
-def show_plot(real, predicted, title, end):
+def show_plot(real, predicted, title, end) -> None:
+    """
+    Plot real and predicted values
+    :param real: 1d array of real closing prices (last value None)
+    :param predicted: 1d array of predicted closing prices (last value prediction for tomorrow)
+    :param title: plot title
+    :param end: end date (yyyy-mm-dd)
+    """
     dates = pd.date_range(end=end, periods=len(real), freq="B")  # B freq for business days (skip weekends)
     df = pd.DataFrame({"Date": dates, "Real": real, "Predicted": predicted})
 
@@ -19,10 +26,14 @@ def show_plot(real, predicted, title, end):
     plt.show(block=False)
 
 
-def plot_criteria(stats):
+def plot_criteria(stats) -> None:
+    """
+    Plot criteria stats
+    :param stats: stats from forecast.find_optimal_states
+    """
     # sh = np.shape(stats)
     # criteria = np.empty(np.shape((sh[1], sh[0], sh[2])))
-    criteria = np.empty((4, 5, 50))
+    criteria = np.empty((4, 5, 50))  # todo use stats shape
 
     for idx, state in enumerate(stats):
         criteria[0][idx] = state[0]

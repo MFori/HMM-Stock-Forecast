@@ -10,32 +10,33 @@ MIN_COVAR = 1e-3
 
 
 class HMM(IHMM):
+    """
+    Gaussian HMM implementation based on Nguyen and hmmlearn
+    """
     N: int  # number of hidden states
     n_features: int  # Dimensionality of the Gaussian emissions
     pi: np.array  # start probabilities
     A: np.array  # transition probability matrix
     means: np.array  # gaussian means
     covars: np.array  # gaussian covariances
-    b_map: np.array
+    b_map: np.array  # mass/density mapping
 
     def __init__(self, n_states=4):
+        """
+        Constructor method
+        :param n_states: number of HMM states
+        """
         self.N = n_states
 
-    # same naming as pomegranate
-    # just return self.log_likelihood
-    def log_probability(self, obs) -> float:
-        return self.log_likelihood(obs)
-
     # noinspection PyTypeChecker
-    def log_likelihood(self, obs, b_map=None) -> float:
-        """Forward-Backward procedure is used to efficiently calculate the probability of the observations, given the model - P(O|model).
+    def log_probability(self, obs, b_map=None) -> float:
+        """Forward-Backward procedure is used to efficiently calculate the probability of the observations,
+        given the model - P(O|model).
 
-        :param b_map:
+        :param b_map: mass/density mapping
         :param obs: an observation sequence
-        :type obs: array_like
         :return: the log of the probability, i.e. the log likehood model, give the
             observation - logL(model|O).
-        :rtype: float
         """
         if b_map is None:
             b_map = self._map_B(obs)
@@ -44,10 +45,8 @@ class HMM(IHMM):
         return logsumexp(alpha[-1])
 
     def init_params(self, sample) -> None:
-        """Initialises model parameters prior to fitting. If init_type if random, it samples from a Dirichlet distribution according to the given priors. Otherwise it initialises the starting probabilities and transition probabilities uniformly.
-
-        :param sample: list of observation sequences used to find the initial state means and covariances for the Gaussian and Heterogeneous models
-        :type sample: list, optional
+        """Initialises model parameters prior to fitting
+        :param sample: observation sequence used to find the initial state means and covariances for the Gaussian models
         """
         self._set_gaussian_n_features(sample)
         self.A = np.ones((self.N, self.N)) / self.N
@@ -67,22 +66,12 @@ class HMM(IHMM):
         cv = np.tile(np.diag(cv), (self.N, 1))
         self.covars = cv
 
-    # same naming as pomegranate
-    # just call self.train
     def fit(self, obs, n_iter=100, eps=0.1) -> None:
-        self.train(obs, n_iter, eps)
+        """Updates the HMMs parameters given a new set of observed sequence.
 
-    def train(self, obs, n_iter=100, eps=0.1) -> None:
-        """Updates the HMMs parameters given a new set of observed sequences.
-        The observations can either be a single (1D) array of observed symbols, or a 2D array (matrix), where each row denotes a multivariate time sample (multiple features). The model parameters are reinitialised 'n_init' times. For each initialisation the updated model parameters and the log-likelihood is stored and the best model is selected at the end.
-
-        :param obs: a list of arrays containing the observation
-                sequences of different lengths
-        :type obs: list
+        :param obs: the observation sequence
         :param n_iter: max number of iterations to run for each initialisation; defaults to 100
-        :type n_iter: int, optional
         :param eps: the threshold for the likelihood increase (convergence); defaults to 0.1
-        :type eps: float, optional
         """
         old_log_likelihood = np.nan
         for it in range(n_iter):
@@ -112,20 +101,19 @@ class HMM(IHMM):
             self.covars = covars
 
             # we compute the P(O|model) for the set of new parameters
-            log_likelihood = self.log_likelihood(obs, self.b_map)
+            log_likelihood = self.log_probability(obs, self.b_map)
 
             improvement = abs(log_likelihood - old_log_likelihood) / abs(old_log_likelihood)
             old_log_likelihood = log_likelihood
             if improvement <= eps:
                 break
 
-    def forward(self, obs_seq, b_map):
+    def forward(self, obs_seq, b_map) -> np.array:
         """Calculates 'alpha' the forward variable given an observation sequence.
 
-        :param obs_seq: an observation sequence 
-        :type obs_seq: array_like
+        :param obs_seq: an observation sequence
+        :param b_map: mass/density mapping
         :return: array of shape (n_samples, n_states) containing the forward variables
-        :rtype: array_like
         """
         n_samples = len(obs_seq)
 
@@ -151,13 +139,11 @@ class HMM(IHMM):
 
         return alpha
 
-    def backward(self, obs_seq):
+    def backward(self, obs_seq) -> np.array:
         """Calculates 'beta', the backward variable for each observation sequence.
 
         :param obs_seq: an observation sequence 
-        :type obs_seq: array_like
         :return: array of shape (n_samples, n_states) containing the backward variables
-        :rtype: array_like
         """
         n_samples = len(obs_seq)
 
@@ -184,17 +170,13 @@ class HMM(IHMM):
 
         return beta
 
-    def _calc_xi(self, obs_seq, alpha=None, beta=None):
+    def _calc_xi(self, obs_seq, alpha, beta) -> np.array:
         """Calculates 'xi', a joint probability from the 'alpha' and 'beta' variables.
 
         :param obs_seq: an observation sequence 
-        :type obs_seq: array_like
-        :param alpha: array of shape (n_samples, n_states) containing the forward variables
-        :type alpha: array_like, optional
-        :param beta: array of shape (n_samples, n_states) containing the backward variables
-        :type beta: array_like, optional
-        :return: array of shape (n_samples, n_states, n_states) containing the a joint probability from the 'alpha' and 'beta' variables
-        :rtype: array_like
+        :param alpha: array of the forward variables
+        :param beta: array of the backward variables
+        :return: array containing the joint probability from the 'alpha' and 'beta' variables
         """
         n_samples = len(obs_seq)
 
@@ -227,15 +209,13 @@ class HMM(IHMM):
 
         return log_xi_sum
 
-    def _calc_gamma(self, alpha, beta):
+    # noinspection PyMethodMayBeStatic
+    def _calc_gamma(self, alpha, beta) -> np.array:
         """Calculates 'gamma' from 'alpha' and 'beta'.
 
-        :param alpha: array of shape (n_samples, n_states) containing the forward variables
-        :type alpha: array_like
-        :param beta: array of shape (n_samples, n_states) containing the backward variables
-        :type beta: array_like
-        :return:  array of shape (n_samples, n_states), the posteriors
-        :rtype: array_like
+        :param alpha: array of the forward variables
+        :param beta: array of the backward variables
+        :return:  array of the posteriors
         """
         log_gamma = alpha + beta
 
@@ -246,8 +226,12 @@ class HMM(IHMM):
         with np.errstate(under='ignore'):
             return np.exp(log_gamma)
 
-    def _calc_means(self, obs, gamma):
+    def _calc_means(self, obs, gamma) -> np.array:
         """
+        Calculate means from observation sequence and 'gamma'
+        :param obs: observation sequence
+        :param gamma: gamma
+        :return array of means
         """
         gamma_sum = np.zeros_like(self.means)
         gamma_obs_sum = np.zeros_like(self.means)
@@ -259,8 +243,13 @@ class HMM(IHMM):
 
         return gamma_obs_sum / gamma_sum
 
-    def _calc_covars(self, obs, gamma, means):
+    def _calc_covars(self, obs, gamma, means) -> np.array:
         """
+        Calculate covars from observation sequence, 'gamma' and 'means'
+        :param obs: observation sequence
+        :param gamma: gamma
+        :param means: means
+        :return array of covars
         """
         gamma_sum = np.zeros_like(self.means)
         gamma_obs_sum = np.zeros_like(self.means)
@@ -271,14 +260,12 @@ class HMM(IHMM):
 
         return np.abs(gamma_obs_sum / gamma_sum)  # todo why covars are negative??
 
-    def _map_B(self, obs_seq):
-        """Deriving classes should implement this method, so that it maps the
-        observations' mass/density Bj(Ot) to Bj(t). The purpose of this method is to create a common parameter that will conform both to the discrete case where PMFs are used, and the continuous case where PDFs are used.
+    def _map_B(self, obs_seq) -> np.array:
+        """maps the observations mass/density Bj(Ot) to Bj(t).
 
         :param obs_seq: an observation sequence of shape (n_samples, n_features)
         :type obs_seq: array_like
         :return: the mass/density mapping of shape (n_states, n_samples)
-        :rtype: array_like
         """
         b_map = np.zeros((self.N, len(obs_seq)))
 
@@ -291,22 +278,22 @@ class HMM(IHMM):
 
         return b_map
 
-    def _pdf(self, sample, mean, covar):
+    def _pdf(self, sample, mean, covar) -> float:
         """Multivariate Gaussian PDF function.
 
         :param sample: a multivariate sample
-        :type sample: array_like
         :param mean: mean of the distribution
-        :type mean: array_like
         :param covar: covariance matrix of the distribution
-        :type covar: array_like
         :return: the PDF of the sample
-        :rtype: float
         """
         if not np.all(np.linalg.eigvals(covar) > 0):
             covar = covar + MIN_COVAR * np.eye(self.n_features)
         return multivariate_normal.pdf(sample, mean=mean, cov=covar, allow_singular=True)
 
     def _set_gaussian_n_features(self, sample) -> None:
+        """
+        Set number of gaussian features based of sample shape
+        :param sample: sample data
+        """
         _, n_features = sample.shape
         self.n_features = n_features
