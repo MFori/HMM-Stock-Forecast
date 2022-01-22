@@ -1,6 +1,7 @@
 \section{Predikce cen akcií}
 
-V této části je popis, jak využít HMM k predikci cen akcií dle práce Nguyena \cite{Nguyen}, která vychází z metody z práce Hassana \cite{Hassan}.
+V této části je popis, jak využít HMM k predikci cen akcií dle práce Nguyena \cite{Nguyen}, která vychází z
+metody z práce Hassana \cite{Hassan}.
 
 \subsection{Výběr modelu}
 Nguyen navrhuje pro výběr počtu stavů modelu použít čtyři různá kritéria pro odhad predikční chyby:
@@ -25,7 +26,7 @@ Prvotní parametry modelu \(A\) a \(\pi\) inicializujeme dle \cite{Nguyen} takto
 \[ A = (a_ij), a_ij = 1/N \]
 \[ \pi = (1,0,...0) \]
 
-Parametry \(\mu\) a \(\sigma\) inicializujeme dle ukázové pozorované sekvence pomocí algoritmu KMeans, jako v případě knihovny PyHHMM.
+Parametry \(\mu\) a \(\sigma\) inicializujeme dle ukázkové pozorované sekvence pomocí algoritmu KMeans, jako v případě knihovny PyHHMM.
 
 \subsection{Predikce}
 Pozorovaná sekvence je složena ze čtyř sekvení: otevírací, nejnižší, nejvyšší a zavírací cena:

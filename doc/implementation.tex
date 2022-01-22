@@ -1,5 +1,38 @@
 \section{Implementace}
 
-TODO info o implementaci
+Aplikace je implementována v pythonu, projekt je rozdělen takto:
+\begin{itemize}
+    \item \emph{data/data.py} - funkce pro načítání dat z csv souboru a finance.yahoo
+    \item \emph{error/error.py} - funkce pro výpočet chyb viz výsledky
+    \item \emph{hmm/criteria.py} - funkce pro výpočet kritérií viz výše
+    \item \emph{hmm/hmm.py} - vlastní implementace hmm modelu
+    \item \emph{plot/plot.py} - funkce pro vykreslení grafů
+    \item \emph{utils} - pomocné funkce (parsování argumentů, logování)
+    \item \emph{forecast.py} - funkce pro předpověď cen za využití hmm modelu
+    \item \emph{main.py} - vstup programu
+\end{itemize}
+
+\subsection{HMM}
+Implementace modelu vychází ze článku \cite{Nguyen}, části jsou inspirovány knihovnou \textbf{PyHHMM}.
+
+\subsubsection{Rozhraní}
+Model má stejné rozhraní jako knihovna \textbf{pomegranate} a proto je možná modely měnit viz uživatelská příručka. Rozhraní definuje dvě funkce:
+\begin{lstlisting}
+def fit(self, obs) -> None
+def log_probability(self, obs) -> float
+\end{lstlisting}
+Funkce \emph{fit} slouží k natrénování modelu pomocí pozorované sekvence, funkce \emph{log\_probability} slouží ke zjištění pravděpodobnosti (jejímu logaritmu) pozorování.
+
+\subsubsection{Forward algoritmus}
+Pro zjištění pravděpodobnosti pozorování je využit algoritmus Forward, který je definovaný v článku \cite{Nguyen}. Je použita mírná modifikace (jako v knihovně \textbf{PyHHMM}), která počítá v logaritmickém měřítku.
+
+\subsubsection{Backward algoritmus}
+Dále je implementován algoritmus Backward, který pracuje na podobném principu jako předchozí a je použit u algoritmu Baum-Welch viz dále.
+
+\subsubsection{Baum-Welch algoritmus}
+Pro natrénování modelu je použit algoritmus Baum-Welch, který je popsán v článku \cite{Nguyen}.
+
+\subsection{Predikce}
+Predikce cen akcií je implementována přesně dle postupu popsaného v sekci 5.3.
 
 \clearpage

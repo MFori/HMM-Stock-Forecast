@@ -1,6 +1,8 @@
 \section{Skrytý markovský model}
 
-Skrytý markovský model (HMM) je konečný automat s fixním počtem stavů, představen v 70. letech jako nástroj pro rozpoznávání řeči. Tento model založen na statistických metodách najde mnoho aplikací jako je rozpoznávání řeči, analýza sekvence DNA, rozpoznání ručně psaného textu a další.
+Skrytý markovský model (HMM) je konečný automat s fixním počtem stavů, byl představen v 70. letech jako nástroj pro
+rozpoznávání řeči. Tento model je založen na statistických metodách a najde mnoho aplikací jako je rozpoznávání řeči,
+analýza sekvence DNA, rozpoznávání ručně psaného textu a další.
 
 \subsection{Definice}
 HMM je charakterizován:
@@ -15,17 +17,18 @@ HMM je charakterizován:
     \item \(\lambda = \{A, B, \pi\}\) - HMM model
 \end{itemize}
 
-Pokud jsou pravděpodobnosti spojitě rozděleny, máme spojitý HMM. V této práci předpokládáme, že pravděpodobnost pozorování je Normální (Gaussovo) rozdělení, potom \(b_i(O_t) = N(O_t = \mu_i, \sigma_i)\), kde \(\mu_i\) a \(\sigma_i\) jsou střední hodnota a rozptyl rozdělí pro stav \(S_i\), potom jsou parametry HMM definovány jako:
+Pokud jsou pravděpodobnosti spojitě rozděleny, máme spojitý HMM. V této práci předpokládáme, že
+model je spojitý a pravděpodobnost pozorování je Normální (Gaussovo) rozdělení. Potom \(b_i(O_t) = N(O_t = \mu_i, \sigma_i)\), kde \(\mu_i\) a \(\sigma_i\) jsou střední hodnota a rozptyl rozdělí pro stav \(S_i\) a parametry HMM jsou definovány jako:
 
 \[ \lambda = \{A, \mu, \sigma, \pi\} \]
 
 \subsection{Problémy a jejich řešení}
-Najdeme tři problémy při řešení problémů pomocí HMM:
+Při řešení problémů pomocí HMM narazíme na tři problémy:
 \begin{enumerate}
     \item Pro pozorování \(O = \{O_t,t=1,2,...T\}\) a model \(\lambda = \{A,\mu,\sigma,\pi\}\) najít pravděpodobnost pozorování \(P(O|\lambda)\)
     \item Pro pozorování \(O = \{O_t,t=1,2,...T\}\) a model \(\lambda = \{A,\mu,\sigma,\pi\}\)
     najít sekvenci stavů, která nejlépe popisuje pozorování
-    \item Pro pozorování \(O = \{O_t,t=1,2,...T\}\) zkalibrovat parametry modelu \(\lambda = \{A,\mu,\sigma,\pi\}\)
+    \item Pro pozorování \(O = \{O_t,t=1,2,...T\}\) zkalibrovat (natrénovat) parametry modelu \(\lambda = \{A,\mu,\sigma,\pi\}\)
 \end{enumerate}
 \begin{enumerate}
     \item Pravděpodobnost pozorování najdeme pomocí algoritmu Forward nebo Backward
@@ -33,6 +36,7 @@ Najdeme tři problémy při řešení problémů pomocí HMM:
     \item Model zkalibrujeme pomocí algoritmu Baum-Welch
 \end{enumerate}
 
-V naší práci využijeme algorimus Forward pro řešení prvního problému a algoritmus Baum-Welch pro řešení třetího problému (tento alogritmus využívá Forward a Backward). Druhý problém řešit nepotřebujeme.
+V naší práci využijeme algorimus Forward pro řešení prvního problému a algoritmus Baum-Welch pro řešení třetího
+problému (tento alogritmus využívá Forward a Backward). Druhý problém řešit nepotřebujeme.
 
 \clearpage
