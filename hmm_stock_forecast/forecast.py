@@ -18,7 +18,7 @@ class StockForecast:
     window: int
     model: str
 
-    def __init__(self, window=50, model='HMM'):
+    def __init__(self, window, model='HMM'):
         """
         Constructor method
         :param window: training window used to set size of observation data for training and testing
@@ -48,12 +48,9 @@ class StockForecast:
             likelihood = hmm.log_probability(train)
             likelihoods = []
             j = i + 1
-            step = 0
-            # todo remove step for speedtup testing
-            while size - self.window - j > 0 and step < 20:
+            while size - self.window - j > 0:
                 obs = data[size - self.window - j:size - j, :]
                 likelihoods = np.append(likelihoods, hmm.log_probability(obs))
-                step += 1
                 j += 1
 
             # find sequence with similar likelihood

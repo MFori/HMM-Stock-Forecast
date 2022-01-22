@@ -29,6 +29,8 @@ def read_data(args: Args) -> np.array:
             logging.error('Cant read data from file ' + args.file)
         else:
             logging.info('Data from file ' + args.file + ' raed successfully.')
+    else:
+        logging.warning('Ticker or file must be provided')
 
     return data
 

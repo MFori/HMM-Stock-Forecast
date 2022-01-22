@@ -25,9 +25,9 @@ def parse_args() -> Args:
 
     parser.add_argument("-t", "--ticker", type=str, help="Stock ticker, data will be downloaded from yahoofinance")
     parser.add_argument("-f", "--file", type=str, help="Data file")
-    parser.add_argument("-s", "--start", type=str, help="Start date (used only with ticker), yyyy-mm-dd")
-    parser.add_argument("-e", "--end", type=str, help="End date (used only with ticker), yyyy-mm-dd")
-    parser.add_argument("-w", "--window", type=str, help="Training window", default=50)
+    parser.add_argument("-s", "--start", type=str, help="Start date (used only with ticker), yyyy-mm-dd", required=True)
+    parser.add_argument("-e", "--end", type=str, help="End date (used only with ticker), yyyy-mm-dd", required=True)
+    parser.add_argument("-w", "--window", type=str, help="Training window", default=120)
     parser.add_argument("-m", "--model", type=str, help="'HMM' (our implementation, default) / 'pomegranate'",
                         default='HMM')
 

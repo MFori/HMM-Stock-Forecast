@@ -15,6 +15,7 @@ def main():
     args = parse_args()
     data = read_data(args)
     if data is None:
+        logging.error("No data, exit")
         return
 
     logging.info("Creating forecast model, window=" + str(args.window) + ", model=" + str(args.model))
