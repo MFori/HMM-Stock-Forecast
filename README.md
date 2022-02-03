@@ -45,3 +45,9 @@ at day x+1
 - r2: 82 %
 
 ![Result](doc/img/result.png)
+
+## Dependencies
+- numpy
+- matplotlib
+- pandas
+- sklearn
